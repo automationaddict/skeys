@@ -11,6 +11,8 @@ service HostsService {
   // Known Hosts
   rpc ListKnownHosts(ListKnownHostsRequest) returns (ListKnownHostsResponse);
   rpc GetKnownHost(GetKnownHostRequest) returns (GetKnownHostResponse);
+  rpc ScanHostKeys(ScanHostKeysRequest) returns (ScanHostKeysResponse);
+  rpc AddKnownHost(AddKnownHostRequest) returns (KnownHost);
   rpc RemoveKnownHost(RemoveKnownHostRequest) returns (google.protobuf.Empty);
   rpc HashKnownHosts(HashKnownHostsRequest) returns (google.protobuf.Empty);
 
@@ -59,6 +61,33 @@ message RemoveKnownHostRequest {
 
 message HashKnownHostsRequest {
   Target target = 1;
+}
+
+message ScanHostKeysRequest {
+  string hostname = 1;
+  int32 port = 2; // Default 22 if not specified
+  int32 timeout_seconds = 3; // Default 10 if not specified
+}
+
+message ScannedHostKey {
+  string hostname = 1;
+  int32 port = 2;
+  string key_type = 3;
+  string public_key = 4;
+  string fingerprint = 5;
+}
+
+message ScanHostKeysResponse {
+  repeated ScannedHostKey keys = 1;
+}
+
+message AddKnownHostRequest {
+  Target target = 1;
+  string hostname = 2;
+  int32 port = 3;
+  string key_type = 4;
+  string public_key = 5;
+  bool hash_hostname = 6; // Whether to hash the hostname when adding
 }
 
 message AuthorizedKey {

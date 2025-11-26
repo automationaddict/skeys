@@ -9,6 +9,8 @@ abstract class HostsRepository {
   Future<List<KnownHostEntry>> listKnownHosts();
   Future<void> removeKnownHost(String hostname, {int port = 22});
   Future<void> hashKnownHosts();
+  Future<List<ScannedHostKey>> scanHostKeys(String hostname, {int port = 22, int timeout = 10});
+  Future<KnownHostEntry> addKnownHost(String hostname, String keyType, String publicKey, {int port = 22, bool hashHostname = false});
 
   // Authorized keys
   Future<List<AuthorizedKeyEntry>> listAuthorizedKeys({String? user});
@@ -52,6 +54,42 @@ class HostsRepositoryImpl implements HostsRepository {
       ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL);
 
     await _client.hosts.hashKnownHosts(request);
+  }
+
+  @override
+  Future<List<ScannedHostKey>> scanHostKeys(String hostname, {int port = 22, int timeout = 10}) async {
+    final request = pb.ScanHostKeysRequest()
+      ..hostname = hostname
+      ..port = port
+      ..timeoutSeconds = timeout;
+
+    final response = await _client.hosts.scanHostKeys(request);
+    return response.keys.map((k) => ScannedHostKey(
+      hostname: k.hostname,
+      port: k.port,
+      keyType: k.keyType,
+      publicKey: k.publicKey,
+      fingerprint: k.fingerprint,
+    )).toList();
+  }
+
+  @override
+  Future<KnownHostEntry> addKnownHost(String hostname, String keyType, String publicKey, {int port = 22, bool hashHostname = false}) async {
+    final request = pb.AddKnownHostRequest()
+      ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL)
+      ..hostname = hostname
+      ..port = port
+      ..keyType = keyType
+      ..publicKey = publicKey
+      ..hashHostname = hashHostname;
+
+    final response = await _client.hosts.addKnownHost(request);
+    return KnownHostEntry(
+      host: response.hostnames.isNotEmpty ? response.hostnames.first : hostname,
+      keyType: response.keyType,
+      publicKey: response.publicKey,
+      isHashed: response.isHashed,
+    );
   }
 
   @override

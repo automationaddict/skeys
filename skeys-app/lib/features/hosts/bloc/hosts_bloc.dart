@@ -20,6 +20,9 @@ class HostsBloc extends Bloc<HostsEvent, HostsState> {
     on<HostsLoadAuthorizedKeysRequested>(_onLoadAuthorizedKeys);
     on<HostsAddAuthorizedKeyRequested>(_onAddAuthorizedKey);
     on<HostsRemoveAuthorizedKeyRequested>(_onRemoveAuthorizedKey);
+    on<HostsScanHostKeysRequested>(_onScanHostKeys);
+    on<HostsAddKnownHostRequested>(_onAddKnownHost);
+    on<HostsClearScannedKeysRequested>(_onClearScannedKeys);
     _log.debug('HostsBloc initialized');
   }
 
@@ -163,5 +166,71 @@ class HostsBloc extends Bloc<HostsEvent, HostsState> {
         errorMessage: e.toString(),
       ));
     }
+  }
+
+  Future<void> _onScanHostKeys(
+    HostsScanHostKeysRequested event,
+    Emitter<HostsState> emit,
+  ) async {
+    _log.info('scanning host keys', {'hostname': event.hostname, 'port': event.port});
+    emit(state.copyWith(status: HostsStatus.scanning, scannedKeys: []));
+
+    try {
+      final keys = await _repository.scanHostKeys(
+        event.hostname,
+        port: event.port,
+        timeout: event.timeout,
+      );
+      _log.info('host keys scanned', {'hostname': event.hostname, 'count': keys.length});
+      emit(state.copyWith(
+        status: HostsStatus.success,
+        scannedKeys: keys,
+      ));
+    } catch (e, st) {
+      _log.error('failed to scan host keys', e, st, {'hostname': event.hostname});
+      emit(state.copyWith(
+        status: HostsStatus.failure,
+        scannedKeys: [],
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onAddKnownHost(
+    HostsAddKnownHostRequested event,
+    Emitter<HostsState> emit,
+  ) async {
+    _log.info('adding known host', {'hostname': event.hostname, 'keyType': event.keyType});
+    emit(state.copyWith(status: HostsStatus.loading));
+
+    try {
+      await _repository.addKnownHost(
+        event.hostname,
+        event.keyType,
+        event.publicKey,
+        port: event.port,
+        hashHostname: event.hashHostname,
+      );
+      _log.info('known host added', {'hostname': event.hostname});
+      final hosts = await _repository.listKnownHosts();
+      emit(state.copyWith(
+        status: HostsStatus.success,
+        knownHosts: hosts,
+        scannedKeys: [],
+      ));
+    } catch (e, st) {
+      _log.error('failed to add known host', e, st, {'hostname': event.hostname});
+      emit(state.copyWith(
+        status: HostsStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onClearScannedKeys(
+    HostsClearScannedKeysRequested event,
+    Emitter<HostsState> emit,
+  ) async {
+    emit(state.copyWith(scannedKeys: []));
   }
 }

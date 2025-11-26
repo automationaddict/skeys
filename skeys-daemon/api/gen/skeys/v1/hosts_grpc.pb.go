@@ -22,6 +22,8 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	HostsService_ListKnownHosts_FullMethodName      = "/skeys.v1.HostsService/ListKnownHosts"
 	HostsService_GetKnownHost_FullMethodName        = "/skeys.v1.HostsService/GetKnownHost"
+	HostsService_ScanHostKeys_FullMethodName        = "/skeys.v1.HostsService/ScanHostKeys"
+	HostsService_AddKnownHost_FullMethodName        = "/skeys.v1.HostsService/AddKnownHost"
 	HostsService_RemoveKnownHost_FullMethodName     = "/skeys.v1.HostsService/RemoveKnownHost"
 	HostsService_HashKnownHosts_FullMethodName      = "/skeys.v1.HostsService/HashKnownHosts"
 	HostsService_ListAuthorizedKeys_FullMethodName  = "/skeys.v1.HostsService/ListAuthorizedKeys"
@@ -37,6 +39,8 @@ type HostsServiceClient interface {
 	// Known Hosts
 	ListKnownHosts(ctx context.Context, in *ListKnownHostsRequest, opts ...grpc.CallOption) (*ListKnownHostsResponse, error)
 	GetKnownHost(ctx context.Context, in *GetKnownHostRequest, opts ...grpc.CallOption) (*GetKnownHostResponse, error)
+	ScanHostKeys(ctx context.Context, in *ScanHostKeysRequest, opts ...grpc.CallOption) (*ScanHostKeysResponse, error)
+	AddKnownHost(ctx context.Context, in *AddKnownHostRequest, opts ...grpc.CallOption) (*KnownHost, error)
 	RemoveKnownHost(ctx context.Context, in *RemoveKnownHostRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	HashKnownHosts(ctx context.Context, in *HashKnownHostsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Authorized Keys
@@ -68,6 +72,26 @@ func (c *hostsServiceClient) GetKnownHost(ctx context.Context, in *GetKnownHostR
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetKnownHostResponse)
 	err := c.cc.Invoke(ctx, HostsService_GetKnownHost_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *hostsServiceClient) ScanHostKeys(ctx context.Context, in *ScanHostKeysRequest, opts ...grpc.CallOption) (*ScanHostKeysResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ScanHostKeysResponse)
+	err := c.cc.Invoke(ctx, HostsService_ScanHostKeys_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *hostsServiceClient) AddKnownHost(ctx context.Context, in *AddKnownHostRequest, opts ...grpc.CallOption) (*KnownHost, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(KnownHost)
+	err := c.cc.Invoke(ctx, HostsService_AddKnownHost_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -141,6 +165,8 @@ type HostsServiceServer interface {
 	// Known Hosts
 	ListKnownHosts(context.Context, *ListKnownHostsRequest) (*ListKnownHostsResponse, error)
 	GetKnownHost(context.Context, *GetKnownHostRequest) (*GetKnownHostResponse, error)
+	ScanHostKeys(context.Context, *ScanHostKeysRequest) (*ScanHostKeysResponse, error)
+	AddKnownHost(context.Context, *AddKnownHostRequest) (*KnownHost, error)
 	RemoveKnownHost(context.Context, *RemoveKnownHostRequest) (*emptypb.Empty, error)
 	HashKnownHosts(context.Context, *HashKnownHostsRequest) (*emptypb.Empty, error)
 	// Authorized Keys
@@ -163,6 +189,12 @@ func (UnimplementedHostsServiceServer) ListKnownHosts(context.Context, *ListKnow
 }
 func (UnimplementedHostsServiceServer) GetKnownHost(context.Context, *GetKnownHostRequest) (*GetKnownHostResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetKnownHost not implemented")
+}
+func (UnimplementedHostsServiceServer) ScanHostKeys(context.Context, *ScanHostKeysRequest) (*ScanHostKeysResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ScanHostKeys not implemented")
+}
+func (UnimplementedHostsServiceServer) AddKnownHost(context.Context, *AddKnownHostRequest) (*KnownHost, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddKnownHost not implemented")
 }
 func (UnimplementedHostsServiceServer) RemoveKnownHost(context.Context, *RemoveKnownHostRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveKnownHost not implemented")
@@ -235,6 +267,42 @@ func _HostsService_GetKnownHost_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(HostsServiceServer).GetKnownHost(ctx, req.(*GetKnownHostRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _HostsService_ScanHostKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ScanHostKeysRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HostsServiceServer).ScanHostKeys(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: HostsService_ScanHostKeys_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HostsServiceServer).ScanHostKeys(ctx, req.(*ScanHostKeysRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _HostsService_AddKnownHost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddKnownHostRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HostsServiceServer).AddKnownHost(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: HostsService_AddKnownHost_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HostsServiceServer).AddKnownHost(ctx, req.(*AddKnownHostRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -361,6 +429,14 @@ var HostsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetKnownHost",
 			Handler:    _HostsService_GetKnownHost_Handler,
+		},
+		{
+			MethodName: "ScanHostKeys",
+			Handler:    _HostsService_ScanHostKeys_Handler,
+		},
+		{
+			MethodName: "AddKnownHost",
+			Handler:    _HostsService_AddKnownHost_Handler,
 		},
 		{
 			MethodName: "RemoveKnownHost",

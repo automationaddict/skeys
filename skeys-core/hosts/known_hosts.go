@@ -3,9 +3,11 @@ package hosts
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -261,11 +263,230 @@ func (m *KnownHostsManager) Hash(ctx context.Context) error {
 	return nil
 }
 
+// ScannedKey represents a host key discovered via scanning
+type ScannedKey struct {
+	Hostname    string
+	Port        int
+	KeyType     string
+	PublicKey   string
+	Fingerprint string
+}
+
+// ScanHostKeys scans a host and retrieves its public keys
+func (m *KnownHostsManager) ScanHostKeys(ctx context.Context, hostname string, port int, timeoutSecs int) ([]*ScannedKey, error) {
+	if port <= 0 {
+		port = 22
+	}
+	if timeoutSecs <= 0 {
+		timeoutSecs = 10
+	}
+
+	m.log.InfoWithFields("scanning host keys", map[string]interface{}{
+		"hostname": hostname,
+		"port":     port,
+		"timeout":  timeoutSecs,
+	})
+
+	// Build ssh-keyscan arguments
+	args := []string{
+		"-T", fmt.Sprintf("%d", timeoutSecs),
+	}
+	if port != 22 {
+		args = append(args, "-p", fmt.Sprintf("%d", port))
+	}
+	args = append(args, hostname)
+
+	output, err := m.executor.Run(ctx, "ssh-keyscan", args...)
+	if err != nil {
+		m.log.ErrWithFields(err, "failed to scan host keys", map[string]interface{}{
+			"hostname": hostname,
+			"port":     port,
+		})
+		return nil, fmt.Errorf("failed to scan host keys: %w", err)
+	}
+
+	var keys []*ScannedKey
+	lines := strings.Split(string(output), "\n")
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		parts := strings.Fields(line)
+		if len(parts) < 3 {
+			continue
+		}
+
+		key := &ScannedKey{
+			Hostname:  parts[0],
+			Port:      port,
+			KeyType:   parts[1],
+			PublicKey: parts[2],
+		}
+
+		// Calculate fingerprint using ssh-keygen
+		fingerprint, fpErr := m.calculateFingerprint(ctx, line)
+		if fpErr == nil {
+			key.Fingerprint = fingerprint
+		}
+
+		keys = append(keys, key)
+	}
+
+	m.log.InfoWithFields("host keys scanned", map[string]interface{}{
+		"hostname": hostname,
+		"port":     port,
+		"count":    len(keys),
+	})
+
+	return keys, nil
+}
+
+// calculateFingerprint calculates the fingerprint for a known_hosts line
+func (m *KnownHostsManager) calculateFingerprint(ctx context.Context, line string) (string, error) {
+	// Create a temp file with the line
+	tmpFile, err := os.CreateTemp("", "skeys-fp-*")
+	if err != nil {
+		return "", err
+	}
+	defer os.Remove(tmpFile.Name())
+
+	if _, err := tmpFile.WriteString(line + "\n"); err != nil {
+		tmpFile.Close()
+		return "", err
+	}
+	tmpFile.Close()
+
+	// Get fingerprint using ssh-keygen
+	output, err := m.executor.Run(ctx, "ssh-keygen", "-l", "-f", tmpFile.Name())
+	if err != nil {
+		return "", err
+	}
+
+	// Output format: "256 SHA256:xxxxx hostname (ED25519)"
+	parts := strings.Fields(string(output))
+	if len(parts) >= 2 {
+		return parts[1], nil
+	}
+
+	return "", fmt.Errorf("failed to parse fingerprint")
+}
+
+// Add adds a new host key to known_hosts
+func (m *KnownHostsManager) Add(ctx context.Context, hostname string, port int, keyType, publicKey string, hashHostname bool) (*KnownHost, error) {
+	m.log.InfoWithFields("adding host key to known_hosts", map[string]interface{}{
+		"hostname": hostname,
+		"port":     port,
+		"key_type": keyType,
+		"hash":     hashHostname,
+	})
+
+	// Format the hostname (with port if non-standard)
+	hostEntry := hostname
+	if port != 0 && port != 22 {
+		hostEntry = fmt.Sprintf("[%s]:%d", hostname, port)
+	}
+
+	// Create the line to add
+	line := fmt.Sprintf("%s %s %s\n", hostEntry, keyType, publicKey)
+
+	// If hashing is requested, create temp file and hash it
+	if hashHostname {
+		tmpFile, err := os.CreateTemp("", "skeys-add-*")
+		if err != nil {
+			return nil, fmt.Errorf("failed to create temp file: %w", err)
+		}
+		tmpPath := tmpFile.Name()
+		defer os.Remove(tmpPath)
+		defer os.Remove(tmpPath + ".old")
+
+		if _, err := tmpFile.WriteString(line); err != nil {
+			tmpFile.Close()
+			return nil, fmt.Errorf("failed to write temp file: %w", err)
+		}
+		tmpFile.Close()
+
+		// Hash the temp file
+		_, err = m.executor.Run(ctx, "ssh-keygen", "-H", "-f", tmpPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to hash hostname: %w", err)
+		}
+
+		// Read the hashed line
+		hashedContent, err := os.ReadFile(tmpPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read hashed file: %w", err)
+		}
+		line = string(hashedContent)
+	}
+
+	// Ensure .ssh directory exists
+	dir := filepath.Dir(m.path)
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return nil, fmt.Errorf("failed to create .ssh directory: %w", err)
+	}
+
+	// Append to known_hosts
+	f, err := os.OpenFile(m.path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		m.log.ErrWithFields(err, "failed to open known_hosts for writing", map[string]interface{}{
+			"path": m.path,
+		})
+		return nil, fmt.Errorf("failed to open known_hosts: %w", err)
+	}
+	defer f.Close()
+
+	if _, err := f.WriteString(line); err != nil {
+		m.log.Err(err, "failed to write to known_hosts")
+		return nil, fmt.Errorf("failed to write to known_hosts: %w", err)
+	}
+
+	m.log.InfoWithFields("host key added to known_hosts", map[string]interface{}{
+		"hostname": hostname,
+		"key_type": keyType,
+	})
+
+	// Return the added entry
+	hosts, _ := m.List()
+	if len(hosts) > 0 {
+		return hosts[len(hosts)-1], nil
+	}
+
+	return &KnownHost{
+		Hostnames: []string{hostEntry},
+		KeyType:   keyType,
+		PublicKey: publicKey,
+		IsHashed:  hashHostname,
+	}, nil
+}
+
 // defaultExecutor is the default command executor
 type defaultExecutor struct{}
 
+// Run executes a command and returns the output
 func (e *defaultExecutor) Run(ctx context.Context, name string, args ...string) ([]byte, error) {
-	// Import from keys package or use shared executor
-	// For now, duplicate the logic
-	return nil, fmt.Errorf("not implemented")
+	// Validate command is in allowlist
+	allowedCommands := map[string]bool{
+		"ssh-keygen":  true,
+		"ssh-keyscan": true,
+	}
+
+	if !allowedCommands[name] {
+		return nil, fmt.Errorf("command not allowed: %s", name)
+	}
+
+	cmd := exec.CommandContext(ctx, name, args...)
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", err, stderr.String())
+	}
+
+	return stdout.Bytes(), nil
 }

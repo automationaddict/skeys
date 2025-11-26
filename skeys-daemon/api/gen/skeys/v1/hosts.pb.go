@@ -426,6 +426,270 @@ func (x *HashKnownHostsRequest) GetTarget() *Target {
 	return nil
 }
 
+type ScanHostKeysRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Hostname       string                 `protobuf:"bytes,1,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	Port           int32                  `protobuf:"varint,2,opt,name=port,proto3" json:"port,omitempty"`                                           // Default 22 if not specified
+	TimeoutSeconds int32                  `protobuf:"varint,3,opt,name=timeout_seconds,json=timeoutSeconds,proto3" json:"timeout_seconds,omitempty"` // Default 10 if not specified
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ScanHostKeysRequest) Reset() {
+	*x = ScanHostKeysRequest{}
+	mi := &file_skeys_v1_hosts_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScanHostKeysRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScanHostKeysRequest) ProtoMessage() {}
+
+func (x *ScanHostKeysRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_hosts_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScanHostKeysRequest.ProtoReflect.Descriptor instead.
+func (*ScanHostKeysRequest) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_hosts_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ScanHostKeysRequest) GetHostname() string {
+	if x != nil {
+		return x.Hostname
+	}
+	return ""
+}
+
+func (x *ScanHostKeysRequest) GetPort() int32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+func (x *ScanHostKeysRequest) GetTimeoutSeconds() int32 {
+	if x != nil {
+		return x.TimeoutSeconds
+	}
+	return 0
+}
+
+type ScannedHostKey struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Hostname      string                 `protobuf:"bytes,1,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	Port          int32                  `protobuf:"varint,2,opt,name=port,proto3" json:"port,omitempty"`
+	KeyType       string                 `protobuf:"bytes,3,opt,name=key_type,json=keyType,proto3" json:"key_type,omitempty"`
+	PublicKey     string                 `protobuf:"bytes,4,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	Fingerprint   string                 `protobuf:"bytes,5,opt,name=fingerprint,proto3" json:"fingerprint,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScannedHostKey) Reset() {
+	*x = ScannedHostKey{}
+	mi := &file_skeys_v1_hosts_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScannedHostKey) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScannedHostKey) ProtoMessage() {}
+
+func (x *ScannedHostKey) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_hosts_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScannedHostKey.ProtoReflect.Descriptor instead.
+func (*ScannedHostKey) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_hosts_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ScannedHostKey) GetHostname() string {
+	if x != nil {
+		return x.Hostname
+	}
+	return ""
+}
+
+func (x *ScannedHostKey) GetPort() int32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+func (x *ScannedHostKey) GetKeyType() string {
+	if x != nil {
+		return x.KeyType
+	}
+	return ""
+}
+
+func (x *ScannedHostKey) GetPublicKey() string {
+	if x != nil {
+		return x.PublicKey
+	}
+	return ""
+}
+
+func (x *ScannedHostKey) GetFingerprint() string {
+	if x != nil {
+		return x.Fingerprint
+	}
+	return ""
+}
+
+type ScanHostKeysResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Keys          []*ScannedHostKey      `protobuf:"bytes,1,rep,name=keys,proto3" json:"keys,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScanHostKeysResponse) Reset() {
+	*x = ScanHostKeysResponse{}
+	mi := &file_skeys_v1_hosts_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScanHostKeysResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScanHostKeysResponse) ProtoMessage() {}
+
+func (x *ScanHostKeysResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_hosts_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScanHostKeysResponse.ProtoReflect.Descriptor instead.
+func (*ScanHostKeysResponse) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_hosts_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ScanHostKeysResponse) GetKeys() []*ScannedHostKey {
+	if x != nil {
+		return x.Keys
+	}
+	return nil
+}
+
+type AddKnownHostRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Target        *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	Hostname      string                 `protobuf:"bytes,2,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	Port          int32                  `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
+	KeyType       string                 `protobuf:"bytes,4,opt,name=key_type,json=keyType,proto3" json:"key_type,omitempty"`
+	PublicKey     string                 `protobuf:"bytes,5,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	HashHostname  bool                   `protobuf:"varint,6,opt,name=hash_hostname,json=hashHostname,proto3" json:"hash_hostname,omitempty"` // Whether to hash the hostname when adding
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddKnownHostRequest) Reset() {
+	*x = AddKnownHostRequest{}
+	mi := &file_skeys_v1_hosts_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddKnownHostRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddKnownHostRequest) ProtoMessage() {}
+
+func (x *AddKnownHostRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_hosts_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddKnownHostRequest.ProtoReflect.Descriptor instead.
+func (*AddKnownHostRequest) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_hosts_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *AddKnownHostRequest) GetTarget() *Target {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+func (x *AddKnownHostRequest) GetHostname() string {
+	if x != nil {
+		return x.Hostname
+	}
+	return ""
+}
+
+func (x *AddKnownHostRequest) GetPort() int32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+func (x *AddKnownHostRequest) GetKeyType() string {
+	if x != nil {
+		return x.KeyType
+	}
+	return ""
+}
+
+func (x *AddKnownHostRequest) GetPublicKey() string {
+	if x != nil {
+		return x.PublicKey
+	}
+	return ""
+}
+
+func (x *AddKnownHostRequest) GetHashHostname() bool {
+	if x != nil {
+		return x.HashHostname
+	}
+	return false
+}
+
 type AuthorizedKey struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -441,7 +705,7 @@ type AuthorizedKey struct {
 
 func (x *AuthorizedKey) Reset() {
 	*x = AuthorizedKey{}
-	mi := &file_skeys_v1_hosts_proto_msgTypes[7]
+	mi := &file_skeys_v1_hosts_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -453,7 +717,7 @@ func (x *AuthorizedKey) String() string {
 func (*AuthorizedKey) ProtoMessage() {}
 
 func (x *AuthorizedKey) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_hosts_proto_msgTypes[7]
+	mi := &file_skeys_v1_hosts_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -466,7 +730,7 @@ func (x *AuthorizedKey) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizedKey.ProtoReflect.Descriptor instead.
 func (*AuthorizedKey) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_hosts_proto_rawDescGZIP(), []int{7}
+	return file_skeys_v1_hosts_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *AuthorizedKey) GetId() string {
@@ -528,7 +792,7 @@ type ListAuthorizedKeysRequest struct {
 
 func (x *ListAuthorizedKeysRequest) Reset() {
 	*x = ListAuthorizedKeysRequest{}
-	mi := &file_skeys_v1_hosts_proto_msgTypes[8]
+	mi := &file_skeys_v1_hosts_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -540,7 +804,7 @@ func (x *ListAuthorizedKeysRequest) String() string {
 func (*ListAuthorizedKeysRequest) ProtoMessage() {}
 
 func (x *ListAuthorizedKeysRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_hosts_proto_msgTypes[8]
+	mi := &file_skeys_v1_hosts_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -553,7 +817,7 @@ func (x *ListAuthorizedKeysRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAuthorizedKeysRequest.ProtoReflect.Descriptor instead.
 func (*ListAuthorizedKeysRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_hosts_proto_rawDescGZIP(), []int{8}
+	return file_skeys_v1_hosts_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListAuthorizedKeysRequest) GetTarget() *Target {
@@ -579,7 +843,7 @@ type ListAuthorizedKeysResponse struct {
 
 func (x *ListAuthorizedKeysResponse) Reset() {
 	*x = ListAuthorizedKeysResponse{}
-	mi := &file_skeys_v1_hosts_proto_msgTypes[9]
+	mi := &file_skeys_v1_hosts_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -591,7 +855,7 @@ func (x *ListAuthorizedKeysResponse) String() string {
 func (*ListAuthorizedKeysResponse) ProtoMessage() {}
 
 func (x *ListAuthorizedKeysResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_hosts_proto_msgTypes[9]
+	mi := &file_skeys_v1_hosts_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -604,7 +868,7 @@ func (x *ListAuthorizedKeysResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAuthorizedKeysResponse.ProtoReflect.Descriptor instead.
 func (*ListAuthorizedKeysResponse) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_hosts_proto_rawDescGZIP(), []int{9}
+	return file_skeys_v1_hosts_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListAuthorizedKeysResponse) GetKeys() []*AuthorizedKey {
@@ -626,7 +890,7 @@ type AddAuthorizedKeyRequest struct {
 
 func (x *AddAuthorizedKeyRequest) Reset() {
 	*x = AddAuthorizedKeyRequest{}
-	mi := &file_skeys_v1_hosts_proto_msgTypes[10]
+	mi := &file_skeys_v1_hosts_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -638,7 +902,7 @@ func (x *AddAuthorizedKeyRequest) String() string {
 func (*AddAuthorizedKeyRequest) ProtoMessage() {}
 
 func (x *AddAuthorizedKeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_hosts_proto_msgTypes[10]
+	mi := &file_skeys_v1_hosts_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -651,7 +915,7 @@ func (x *AddAuthorizedKeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddAuthorizedKeyRequest.ProtoReflect.Descriptor instead.
 func (*AddAuthorizedKeyRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_hosts_proto_rawDescGZIP(), []int{10}
+	return file_skeys_v1_hosts_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *AddAuthorizedKeyRequest) GetTarget() *Target {
@@ -694,7 +958,7 @@ type UpdateAuthorizedKeyRequest struct {
 
 func (x *UpdateAuthorizedKeyRequest) Reset() {
 	*x = UpdateAuthorizedKeyRequest{}
-	mi := &file_skeys_v1_hosts_proto_msgTypes[11]
+	mi := &file_skeys_v1_hosts_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -706,7 +970,7 @@ func (x *UpdateAuthorizedKeyRequest) String() string {
 func (*UpdateAuthorizedKeyRequest) ProtoMessage() {}
 
 func (x *UpdateAuthorizedKeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_hosts_proto_msgTypes[11]
+	mi := &file_skeys_v1_hosts_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -719,7 +983,7 @@ func (x *UpdateAuthorizedKeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAuthorizedKeyRequest.ProtoReflect.Descriptor instead.
 func (*UpdateAuthorizedKeyRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_hosts_proto_rawDescGZIP(), []int{11}
+	return file_skeys_v1_hosts_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *UpdateAuthorizedKeyRequest) GetTarget() *Target {
@@ -761,7 +1025,7 @@ type RemoveAuthorizedKeyRequest struct {
 
 func (x *RemoveAuthorizedKeyRequest) Reset() {
 	*x = RemoveAuthorizedKeyRequest{}
-	mi := &file_skeys_v1_hosts_proto_msgTypes[12]
+	mi := &file_skeys_v1_hosts_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -773,7 +1037,7 @@ func (x *RemoveAuthorizedKeyRequest) String() string {
 func (*RemoveAuthorizedKeyRequest) ProtoMessage() {}
 
 func (x *RemoveAuthorizedKeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_hosts_proto_msgTypes[12]
+	mi := &file_skeys_v1_hosts_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -786,7 +1050,7 @@ func (x *RemoveAuthorizedKeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveAuthorizedKeyRequest.ProtoReflect.Descriptor instead.
 func (*RemoveAuthorizedKeyRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_hosts_proto_rawDescGZIP(), []int{12}
+	return file_skeys_v1_hosts_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *RemoveAuthorizedKeyRequest) GetTarget() *Target {
@@ -843,7 +1107,28 @@ const file_skeys_v1_hosts_proto_rawDesc = "" +
 	"\bhostname\x18\x02 \x01(\tR\bhostname\x12\x12\n" +
 	"\x04port\x18\x03 \x01(\x05R\x04port\"A\n" +
 	"\x15HashKnownHostsRequest\x12(\n" +
-	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\"\xd0\x01\n" +
+	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\"n\n" +
+	"\x13ScanHostKeysRequest\x12\x1a\n" +
+	"\bhostname\x18\x01 \x01(\tR\bhostname\x12\x12\n" +
+	"\x04port\x18\x02 \x01(\x05R\x04port\x12'\n" +
+	"\x0ftimeout_seconds\x18\x03 \x01(\x05R\x0etimeoutSeconds\"\x9c\x01\n" +
+	"\x0eScannedHostKey\x12\x1a\n" +
+	"\bhostname\x18\x01 \x01(\tR\bhostname\x12\x12\n" +
+	"\x04port\x18\x02 \x01(\x05R\x04port\x12\x19\n" +
+	"\bkey_type\x18\x03 \x01(\tR\akeyType\x12\x1d\n" +
+	"\n" +
+	"public_key\x18\x04 \x01(\tR\tpublicKey\x12 \n" +
+	"\vfingerprint\x18\x05 \x01(\tR\vfingerprint\"D\n" +
+	"\x14ScanHostKeysResponse\x12,\n" +
+	"\x04keys\x18\x01 \x03(\v2\x18.skeys.v1.ScannedHostKeyR\x04keys\"\xce\x01\n" +
+	"\x13AddKnownHostRequest\x12(\n" +
+	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\x12\x1a\n" +
+	"\bhostname\x18\x02 \x01(\tR\bhostname\x12\x12\n" +
+	"\x04port\x18\x03 \x01(\x05R\x04port\x12\x19\n" +
+	"\bkey_type\x18\x04 \x01(\tR\akeyType\x12\x1d\n" +
+	"\n" +
+	"public_key\x18\x05 \x01(\tR\tpublicKey\x12#\n" +
+	"\rhash_hostname\x18\x06 \x01(\bR\fhashHostname\"\xd0\x01\n" +
 	"\rAuthorizedKey\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bkey_type\x18\x02 \x01(\tR\akeyType\x12 \n" +
@@ -873,10 +1158,12 @@ const file_skeys_v1_hosts_proto_rawDesc = "" +
 	"\x1aRemoveAuthorizedKeyRequest\x12(\n" +
 	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\x12\x15\n" +
 	"\x06key_id\x18\x02 \x01(\tR\x05keyId\x12\x12\n" +
-	"\x04user\x18\x03 \x01(\tR\x04user2\xa6\x05\n" +
+	"\x04user\x18\x03 \x01(\tR\x04user2\xb9\x06\n" +
 	"\fHostsService\x12S\n" +
 	"\x0eListKnownHosts\x12\x1f.skeys.v1.ListKnownHostsRequest\x1a .skeys.v1.ListKnownHostsResponse\x12M\n" +
-	"\fGetKnownHost\x12\x1d.skeys.v1.GetKnownHostRequest\x1a\x1e.skeys.v1.GetKnownHostResponse\x12K\n" +
+	"\fGetKnownHost\x12\x1d.skeys.v1.GetKnownHostRequest\x1a\x1e.skeys.v1.GetKnownHostResponse\x12M\n" +
+	"\fScanHostKeys\x12\x1d.skeys.v1.ScanHostKeysRequest\x1a\x1e.skeys.v1.ScanHostKeysResponse\x12B\n" +
+	"\fAddKnownHost\x12\x1d.skeys.v1.AddKnownHostRequest\x1a\x13.skeys.v1.KnownHost\x12K\n" +
 	"\x0fRemoveKnownHost\x12 .skeys.v1.RemoveKnownHostRequest\x1a\x16.google.protobuf.Empty\x12I\n" +
 	"\x0eHashKnownHosts\x12\x1f.skeys.v1.HashKnownHostsRequest\x1a\x16.google.protobuf.Empty\x12_\n" +
 	"\x12ListAuthorizedKeys\x12#.skeys.v1.ListAuthorizedKeysRequest\x1a$.skeys.v1.ListAuthorizedKeysResponse\x12N\n" +
@@ -896,7 +1183,7 @@ func file_skeys_v1_hosts_proto_rawDescGZIP() []byte {
 	return file_skeys_v1_hosts_proto_rawDescData
 }
 
-var file_skeys_v1_hosts_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_skeys_v1_hosts_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_skeys_v1_hosts_proto_goTypes = []any{
 	(*KnownHost)(nil),                  // 0: skeys.v1.KnownHost
 	(*ListKnownHostsRequest)(nil),      // 1: skeys.v1.ListKnownHostsRequest
@@ -905,48 +1192,58 @@ var file_skeys_v1_hosts_proto_goTypes = []any{
 	(*GetKnownHostResponse)(nil),       // 4: skeys.v1.GetKnownHostResponse
 	(*RemoveKnownHostRequest)(nil),     // 5: skeys.v1.RemoveKnownHostRequest
 	(*HashKnownHostsRequest)(nil),      // 6: skeys.v1.HashKnownHostsRequest
-	(*AuthorizedKey)(nil),              // 7: skeys.v1.AuthorizedKey
-	(*ListAuthorizedKeysRequest)(nil),  // 8: skeys.v1.ListAuthorizedKeysRequest
-	(*ListAuthorizedKeysResponse)(nil), // 9: skeys.v1.ListAuthorizedKeysResponse
-	(*AddAuthorizedKeyRequest)(nil),    // 10: skeys.v1.AddAuthorizedKeyRequest
-	(*UpdateAuthorizedKeyRequest)(nil), // 11: skeys.v1.UpdateAuthorizedKeyRequest
-	(*RemoveAuthorizedKeyRequest)(nil), // 12: skeys.v1.RemoveAuthorizedKeyRequest
-	(*Target)(nil),                     // 13: skeys.v1.Target
-	(*emptypb.Empty)(nil),              // 14: google.protobuf.Empty
+	(*ScanHostKeysRequest)(nil),        // 7: skeys.v1.ScanHostKeysRequest
+	(*ScannedHostKey)(nil),             // 8: skeys.v1.ScannedHostKey
+	(*ScanHostKeysResponse)(nil),       // 9: skeys.v1.ScanHostKeysResponse
+	(*AddKnownHostRequest)(nil),        // 10: skeys.v1.AddKnownHostRequest
+	(*AuthorizedKey)(nil),              // 11: skeys.v1.AuthorizedKey
+	(*ListAuthorizedKeysRequest)(nil),  // 12: skeys.v1.ListAuthorizedKeysRequest
+	(*ListAuthorizedKeysResponse)(nil), // 13: skeys.v1.ListAuthorizedKeysResponse
+	(*AddAuthorizedKeyRequest)(nil),    // 14: skeys.v1.AddAuthorizedKeyRequest
+	(*UpdateAuthorizedKeyRequest)(nil), // 15: skeys.v1.UpdateAuthorizedKeyRequest
+	(*RemoveAuthorizedKeyRequest)(nil), // 16: skeys.v1.RemoveAuthorizedKeyRequest
+	(*Target)(nil),                     // 17: skeys.v1.Target
+	(*emptypb.Empty)(nil),              // 18: google.protobuf.Empty
 }
 var file_skeys_v1_hosts_proto_depIdxs = []int32{
-	13, // 0: skeys.v1.ListKnownHostsRequest.target:type_name -> skeys.v1.Target
+	17, // 0: skeys.v1.ListKnownHostsRequest.target:type_name -> skeys.v1.Target
 	0,  // 1: skeys.v1.ListKnownHostsResponse.hosts:type_name -> skeys.v1.KnownHost
-	13, // 2: skeys.v1.GetKnownHostRequest.target:type_name -> skeys.v1.Target
+	17, // 2: skeys.v1.GetKnownHostRequest.target:type_name -> skeys.v1.Target
 	0,  // 3: skeys.v1.GetKnownHostResponse.hosts:type_name -> skeys.v1.KnownHost
-	13, // 4: skeys.v1.RemoveKnownHostRequest.target:type_name -> skeys.v1.Target
-	13, // 5: skeys.v1.HashKnownHostsRequest.target:type_name -> skeys.v1.Target
-	13, // 6: skeys.v1.ListAuthorizedKeysRequest.target:type_name -> skeys.v1.Target
-	7,  // 7: skeys.v1.ListAuthorizedKeysResponse.keys:type_name -> skeys.v1.AuthorizedKey
-	13, // 8: skeys.v1.AddAuthorizedKeyRequest.target:type_name -> skeys.v1.Target
-	13, // 9: skeys.v1.UpdateAuthorizedKeyRequest.target:type_name -> skeys.v1.Target
-	13, // 10: skeys.v1.RemoveAuthorizedKeyRequest.target:type_name -> skeys.v1.Target
-	1,  // 11: skeys.v1.HostsService.ListKnownHosts:input_type -> skeys.v1.ListKnownHostsRequest
-	3,  // 12: skeys.v1.HostsService.GetKnownHost:input_type -> skeys.v1.GetKnownHostRequest
-	5,  // 13: skeys.v1.HostsService.RemoveKnownHost:input_type -> skeys.v1.RemoveKnownHostRequest
-	6,  // 14: skeys.v1.HostsService.HashKnownHosts:input_type -> skeys.v1.HashKnownHostsRequest
-	8,  // 15: skeys.v1.HostsService.ListAuthorizedKeys:input_type -> skeys.v1.ListAuthorizedKeysRequest
-	10, // 16: skeys.v1.HostsService.AddAuthorizedKey:input_type -> skeys.v1.AddAuthorizedKeyRequest
-	11, // 17: skeys.v1.HostsService.UpdateAuthorizedKey:input_type -> skeys.v1.UpdateAuthorizedKeyRequest
-	12, // 18: skeys.v1.HostsService.RemoveAuthorizedKey:input_type -> skeys.v1.RemoveAuthorizedKeyRequest
-	2,  // 19: skeys.v1.HostsService.ListKnownHosts:output_type -> skeys.v1.ListKnownHostsResponse
-	4,  // 20: skeys.v1.HostsService.GetKnownHost:output_type -> skeys.v1.GetKnownHostResponse
-	14, // 21: skeys.v1.HostsService.RemoveKnownHost:output_type -> google.protobuf.Empty
-	14, // 22: skeys.v1.HostsService.HashKnownHosts:output_type -> google.protobuf.Empty
-	9,  // 23: skeys.v1.HostsService.ListAuthorizedKeys:output_type -> skeys.v1.ListAuthorizedKeysResponse
-	7,  // 24: skeys.v1.HostsService.AddAuthorizedKey:output_type -> skeys.v1.AuthorizedKey
-	7,  // 25: skeys.v1.HostsService.UpdateAuthorizedKey:output_type -> skeys.v1.AuthorizedKey
-	14, // 26: skeys.v1.HostsService.RemoveAuthorizedKey:output_type -> google.protobuf.Empty
-	19, // [19:27] is the sub-list for method output_type
-	11, // [11:19] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	17, // 4: skeys.v1.RemoveKnownHostRequest.target:type_name -> skeys.v1.Target
+	17, // 5: skeys.v1.HashKnownHostsRequest.target:type_name -> skeys.v1.Target
+	8,  // 6: skeys.v1.ScanHostKeysResponse.keys:type_name -> skeys.v1.ScannedHostKey
+	17, // 7: skeys.v1.AddKnownHostRequest.target:type_name -> skeys.v1.Target
+	17, // 8: skeys.v1.ListAuthorizedKeysRequest.target:type_name -> skeys.v1.Target
+	11, // 9: skeys.v1.ListAuthorizedKeysResponse.keys:type_name -> skeys.v1.AuthorizedKey
+	17, // 10: skeys.v1.AddAuthorizedKeyRequest.target:type_name -> skeys.v1.Target
+	17, // 11: skeys.v1.UpdateAuthorizedKeyRequest.target:type_name -> skeys.v1.Target
+	17, // 12: skeys.v1.RemoveAuthorizedKeyRequest.target:type_name -> skeys.v1.Target
+	1,  // 13: skeys.v1.HostsService.ListKnownHosts:input_type -> skeys.v1.ListKnownHostsRequest
+	3,  // 14: skeys.v1.HostsService.GetKnownHost:input_type -> skeys.v1.GetKnownHostRequest
+	7,  // 15: skeys.v1.HostsService.ScanHostKeys:input_type -> skeys.v1.ScanHostKeysRequest
+	10, // 16: skeys.v1.HostsService.AddKnownHost:input_type -> skeys.v1.AddKnownHostRequest
+	5,  // 17: skeys.v1.HostsService.RemoveKnownHost:input_type -> skeys.v1.RemoveKnownHostRequest
+	6,  // 18: skeys.v1.HostsService.HashKnownHosts:input_type -> skeys.v1.HashKnownHostsRequest
+	12, // 19: skeys.v1.HostsService.ListAuthorizedKeys:input_type -> skeys.v1.ListAuthorizedKeysRequest
+	14, // 20: skeys.v1.HostsService.AddAuthorizedKey:input_type -> skeys.v1.AddAuthorizedKeyRequest
+	15, // 21: skeys.v1.HostsService.UpdateAuthorizedKey:input_type -> skeys.v1.UpdateAuthorizedKeyRequest
+	16, // 22: skeys.v1.HostsService.RemoveAuthorizedKey:input_type -> skeys.v1.RemoveAuthorizedKeyRequest
+	2,  // 23: skeys.v1.HostsService.ListKnownHosts:output_type -> skeys.v1.ListKnownHostsResponse
+	4,  // 24: skeys.v1.HostsService.GetKnownHost:output_type -> skeys.v1.GetKnownHostResponse
+	9,  // 25: skeys.v1.HostsService.ScanHostKeys:output_type -> skeys.v1.ScanHostKeysResponse
+	0,  // 26: skeys.v1.HostsService.AddKnownHost:output_type -> skeys.v1.KnownHost
+	18, // 27: skeys.v1.HostsService.RemoveKnownHost:output_type -> google.protobuf.Empty
+	18, // 28: skeys.v1.HostsService.HashKnownHosts:output_type -> google.protobuf.Empty
+	13, // 29: skeys.v1.HostsService.ListAuthorizedKeys:output_type -> skeys.v1.ListAuthorizedKeysResponse
+	11, // 30: skeys.v1.HostsService.AddAuthorizedKey:output_type -> skeys.v1.AuthorizedKey
+	11, // 31: skeys.v1.HostsService.UpdateAuthorizedKey:output_type -> skeys.v1.AuthorizedKey
+	18, // 32: skeys.v1.HostsService.RemoveAuthorizedKey:output_type -> google.protobuf.Empty
+	23, // [23:33] is the sub-list for method output_type
+	13, // [13:23] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_skeys_v1_hosts_proto_init() }
@@ -961,7 +1258,7 @@ func file_skeys_v1_hosts_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skeys_v1_hosts_proto_rawDesc), len(file_skeys_v1_hosts_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

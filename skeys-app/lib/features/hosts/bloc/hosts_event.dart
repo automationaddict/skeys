@@ -45,3 +45,37 @@ final class HostsRemoveAuthorizedKeyRequested extends HostsEvent {
   @override
   List<Object?> get props => [publicKey];
 }
+
+final class HostsScanHostKeysRequested extends HostsEvent {
+  final String hostname;
+  final int port;
+  final int timeout;
+
+  const HostsScanHostKeysRequested(this.hostname, {this.port = 22, this.timeout = 10});
+
+  @override
+  List<Object?> get props => [hostname, port, timeout];
+}
+
+final class HostsAddKnownHostRequested extends HostsEvent {
+  final String hostname;
+  final String keyType;
+  final String publicKey;
+  final int port;
+  final bool hashHostname;
+
+  const HostsAddKnownHostRequested({
+    required this.hostname,
+    required this.keyType,
+    required this.publicKey,
+    this.port = 22,
+    this.hashHostname = false,
+  });
+
+  @override
+  List<Object?> get props => [hostname, keyType, publicKey, port, hashHostname];
+}
+
+final class HostsClearScannedKeysRequested extends HostsEvent {
+  const HostsClearScannedKeysRequested();
+}

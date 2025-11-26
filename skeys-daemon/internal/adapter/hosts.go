@@ -86,6 +86,61 @@ func (a *HostsServiceAdapter) HashKnownHosts(ctx context.Context, req *pb.HashKn
 	return &emptypb.Empty{}, nil
 }
 
+// ScanHostKeys scans a remote host and returns its public keys
+func (a *HostsServiceAdapter) ScanHostKeys(ctx context.Context, req *pb.ScanHostKeysRequest) (*pb.ScanHostKeysResponse, error) {
+	hostname := req.GetHostname()
+	if hostname == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "hostname is required")
+	}
+
+	port := int(req.GetPort())
+	timeout := int(req.GetTimeoutSeconds())
+
+	keys, err := a.knownHosts.ScanHostKeys(ctx, hostname, port, timeout)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to scan host keys: %v", err)
+	}
+
+	var pbKeys []*pb.ScannedHostKey
+	for _, k := range keys {
+		pbKeys = append(pbKeys, &pb.ScannedHostKey{
+			Hostname:    k.Hostname,
+			Port:        int32(k.Port),
+			KeyType:     k.KeyType,
+			PublicKey:   k.PublicKey,
+			Fingerprint: k.Fingerprint,
+		})
+	}
+
+	return &pb.ScanHostKeysResponse{Keys: pbKeys}, nil
+}
+
+// AddKnownHost adds a new host key to known_hosts
+func (a *HostsServiceAdapter) AddKnownHost(ctx context.Context, req *pb.AddKnownHostRequest) (*pb.KnownHost, error) {
+	hostname := req.GetHostname()
+	if hostname == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "hostname is required")
+	}
+	keyType := req.GetKeyType()
+	if keyType == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "key_type is required")
+	}
+	publicKey := req.GetPublicKey()
+	if publicKey == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "public_key is required")
+	}
+
+	port := int(req.GetPort())
+	hashHostname := req.GetHashHostname()
+
+	host, err := a.knownHosts.Add(ctx, hostname, port, keyType, publicKey, hashHostname)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to add known host: %v", err)
+	}
+
+	return toProtoKnownHost(host), nil
+}
+
 // ListAuthorizedKeys returns all keys in authorized_keys
 func (a *HostsServiceAdapter) ListAuthorizedKeys(ctx context.Context, req *pb.ListAuthorizedKeysRequest) (*pb.ListAuthorizedKeysResponse, error) {
 	keyList, err := a.authorizedKeys.List()

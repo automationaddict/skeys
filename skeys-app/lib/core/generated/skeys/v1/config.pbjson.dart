@@ -1,14 +1,13 @@
-// This is a generated file - do not edit.
 //
-// Generated from skeys/v1/config.proto.
-
-// @dart = 3.3
+//  Generated code. Do not modify.
+//  source: skeys/v1/config.proto
+//
+// @dart = 2.12
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names, unused_import
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -27,35 +26,10 @@ const HostConfig$json = {
     {'1': 'proxy_command', '3': 7, '4': 1, '5': 9, '10': 'proxyCommand'},
     {'1': 'forward_agent', '3': 8, '4': 1, '5': 8, '10': 'forwardAgent'},
     {'1': 'identities_only', '3': 9, '4': 1, '5': 8, '10': 'identitiesOnly'},
-    {
-      '1': 'strict_host_key_checking',
-      '3': 10,
-      '4': 1,
-      '5': 9,
-      '10': 'strictHostKeyChecking'
-    },
-    {
-      '1': 'server_alive_interval',
-      '3': 11,
-      '4': 1,
-      '5': 5,
-      '10': 'serverAliveInterval'
-    },
-    {
-      '1': 'server_alive_count_max',
-      '3': 12,
-      '4': 1,
-      '5': 5,
-      '10': 'serverAliveCountMax'
-    },
-    {
-      '1': 'extra_options',
-      '3': 13,
-      '4': 3,
-      '5': 11,
-      '6': '.skeys.v1.HostConfig.ExtraOptionsEntry',
-      '10': 'extraOptions'
-    },
+    {'1': 'strict_host_key_checking', '3': 10, '4': 1, '5': 9, '10': 'strictHostKeyChecking'},
+    {'1': 'server_alive_interval', '3': 11, '4': 1, '5': 5, '10': 'serverAliveInterval'},
+    {'1': 'server_alive_count_max', '3': 12, '4': 1, '5': 5, '10': 'serverAliveCountMax'},
+    {'1': 'extra_options', '3': 13, '4': 3, '5': 11, '6': '.skeys.v1.HostConfig.ExtraOptionsEntry', '10': 'extraOptions'},
     {'1': 'is_pattern', '3': 14, '4': 1, '5': 8, '10': 'isPattern'},
     {'1': 'line_number', '3': 15, '4': 1, '5': 5, '10': 'lineNumber'},
   ],
@@ -91,56 +65,33 @@ final $typed_data.Uint8List hostConfigDescriptor = $convert.base64Decode(
 const ListHostConfigsRequest$json = {
   '1': 'ListHostConfigsRequest',
   '2': [
-    {
-      '1': 'target',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Target',
-      '10': 'target'
-    },
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
   ],
 };
 
 /// Descriptor for `ListHostConfigsRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listHostConfigsRequestDescriptor =
-    $convert.base64Decode(
-        'ChZMaXN0SG9zdENvbmZpZ3NSZXF1ZXN0EigKBnRhcmdldBgBIAEoCzIQLnNrZXlzLnYxLlRhcm'
-        'dldFIGdGFyZ2V0');
+final $typed_data.Uint8List listHostConfigsRequestDescriptor = $convert.base64Decode(
+    'ChZMaXN0SG9zdENvbmZpZ3NSZXF1ZXN0EigKBnRhcmdldBgBIAEoCzIQLnNrZXlzLnYxLlRhcm'
+    'dldFIGdGFyZ2V0');
 
 @$core.Deprecated('Use listHostConfigsResponseDescriptor instead')
 const ListHostConfigsResponse$json = {
   '1': 'ListHostConfigsResponse',
   '2': [
-    {
-      '1': 'hosts',
-      '3': 1,
-      '4': 3,
-      '5': 11,
-      '6': '.skeys.v1.HostConfig',
-      '10': 'hosts'
-    },
+    {'1': 'hosts', '3': 1, '4': 3, '5': 11, '6': '.skeys.v1.HostConfig', '10': 'hosts'},
   ],
 };
 
 /// Descriptor for `ListHostConfigsResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listHostConfigsResponseDescriptor =
-    $convert.base64Decode(
-        'ChdMaXN0SG9zdENvbmZpZ3NSZXNwb25zZRIqCgVob3N0cxgBIAMoCzIULnNrZXlzLnYxLkhvc3'
-        'RDb25maWdSBWhvc3Rz');
+final $typed_data.Uint8List listHostConfigsResponseDescriptor = $convert.base64Decode(
+    'ChdMaXN0SG9zdENvbmZpZ3NSZXNwb25zZRIqCgVob3N0cxgBIAMoCzIULnNrZXlzLnYxLkhvc3'
+    'RDb25maWdSBWhvc3Rz');
 
 @$core.Deprecated('Use getHostConfigRequestDescriptor instead')
 const GetHostConfigRequest$json = {
   '1': 'GetHostConfigRequest',
   '2': [
-    {
-      '1': 'target',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Target',
-      '10': 'target'
-    },
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
     {'1': 'alias', '3': 2, '4': 1, '5': 9, '10': 'alias'},
   ],
 };
@@ -154,22 +105,8 @@ final $typed_data.Uint8List getHostConfigRequestDescriptor = $convert.base64Deco
 const CreateHostConfigRequest$json = {
   '1': 'CreateHostConfigRequest',
   '2': [
-    {
-      '1': 'target',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Target',
-      '10': 'target'
-    },
-    {
-      '1': 'config',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.HostConfig',
-      '10': 'config'
-    },
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
+    {'1': 'config', '3': 2, '4': 1, '5': 11, '6': '.skeys.v1.HostConfig', '10': 'config'},
   ],
 };
 
@@ -183,23 +120,9 @@ final $typed_data.Uint8List createHostConfigRequestDescriptor = $convert.base64D
 const UpdateHostConfigRequest$json = {
   '1': 'UpdateHostConfigRequest',
   '2': [
-    {
-      '1': 'target',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Target',
-      '10': 'target'
-    },
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
     {'1': 'alias', '3': 2, '4': 1, '5': 9, '10': 'alias'},
-    {
-      '1': 'config',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.HostConfig',
-      '10': 'config'
-    },
+    {'1': 'config', '3': 3, '4': 1, '5': 11, '6': '.skeys.v1.HostConfig', '10': 'config'},
   ],
 };
 
@@ -213,36 +136,21 @@ final $typed_data.Uint8List updateHostConfigRequestDescriptor = $convert.base64D
 const DeleteHostConfigRequest$json = {
   '1': 'DeleteHostConfigRequest',
   '2': [
-    {
-      '1': 'target',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Target',
-      '10': 'target'
-    },
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
     {'1': 'alias', '3': 2, '4': 1, '5': 9, '10': 'alias'},
   ],
 };
 
 /// Descriptor for `DeleteHostConfigRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List deleteHostConfigRequestDescriptor =
-    $convert.base64Decode(
-        'ChdEZWxldGVIb3N0Q29uZmlnUmVxdWVzdBIoCgZ0YXJnZXQYASABKAsyEC5za2V5cy52MS5UYX'
-        'JnZXRSBnRhcmdldBIUCgVhbGlhcxgCIAEoCVIFYWxpYXM=');
+final $typed_data.Uint8List deleteHostConfigRequestDescriptor = $convert.base64Decode(
+    'ChdEZWxldGVIb3N0Q29uZmlnUmVxdWVzdBIoCgZ0YXJnZXQYASABKAsyEC5za2V5cy52MS5UYX'
+    'JnZXRSBnRhcmdldBIUCgVhbGlhcxgCIAEoCVIFYWxpYXM=');
 
 @$core.Deprecated('Use testConnectionRequestDescriptor instead')
 const TestConnectionRequest$json = {
   '1': 'TestConnectionRequest',
   '2': [
-    {
-      '1': 'target',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Target',
-      '10': 'target'
-    },
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
     {'1': 'alias', '3': 2, '4': 1, '5': 9, '10': 'alias'},
     {'1': 'timeout_seconds', '3': 3, '4': 1, '5': 5, '10': 'timeoutSeconds'},
   ],
@@ -275,14 +183,7 @@ final $typed_data.Uint8List testConnectionResponseDescriptor = $convert.base64De
 const ServerConfig$json = {
   '1': 'ServerConfig',
   '2': [
-    {
-      '1': 'directives',
-      '3': 1,
-      '4': 3,
-      '5': 11,
-      '6': '.skeys.v1.ServerConfigDirective',
-      '10': 'directives'
-    },
+    {'1': 'directives', '3': 1, '4': 3, '5': 11, '6': '.skeys.v1.ServerConfigDirective', '10': 'directives'},
     {'1': 'raw_content', '3': 2, '4': 1, '5': 9, '10': 'rawContent'},
   ],
 };
@@ -315,43 +216,21 @@ final $typed_data.Uint8List serverConfigDirectiveDescriptor = $convert.base64Dec
 const GetServerConfigRequest$json = {
   '1': 'GetServerConfigRequest',
   '2': [
-    {
-      '1': 'target',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Target',
-      '10': 'target'
-    },
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
   ],
 };
 
 /// Descriptor for `GetServerConfigRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List getServerConfigRequestDescriptor =
-    $convert.base64Decode(
-        'ChZHZXRTZXJ2ZXJDb25maWdSZXF1ZXN0EigKBnRhcmdldBgBIAEoCzIQLnNrZXlzLnYxLlRhcm'
-        'dldFIGdGFyZ2V0');
+final $typed_data.Uint8List getServerConfigRequestDescriptor = $convert.base64Decode(
+    'ChZHZXRTZXJ2ZXJDb25maWdSZXF1ZXN0EigKBnRhcmdldBgBIAEoCzIQLnNrZXlzLnYxLlRhcm'
+    'dldFIGdGFyZ2V0');
 
 @$core.Deprecated('Use updateServerConfigRequestDescriptor instead')
 const UpdateServerConfigRequest$json = {
   '1': 'UpdateServerConfigRequest',
   '2': [
-    {
-      '1': 'target',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Target',
-      '10': 'target'
-    },
-    {
-      '1': 'updates',
-      '3': 2,
-      '4': 3,
-      '5': 11,
-      '6': '.skeys.v1.ServerConfigUpdate',
-      '10': 'updates'
-    },
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
+    {'1': 'updates', '3': 2, '4': 3, '5': 11, '6': '.skeys.v1.ServerConfigUpdate', '10': 'updates'},
   ],
 };
 
@@ -380,23 +259,15 @@ final $typed_data.Uint8List serverConfigUpdateDescriptor = $convert.base64Decode
 const ValidateServerConfigRequest$json = {
   '1': 'ValidateServerConfigRequest',
   '2': [
-    {
-      '1': 'target',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Target',
-      '10': 'target'
-    },
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
     {'1': 'content', '3': 2, '4': 1, '5': 9, '10': 'content'},
   ],
 };
 
 /// Descriptor for `ValidateServerConfigRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List validateServerConfigRequestDescriptor =
-    $convert.base64Decode(
-        'ChtWYWxpZGF0ZVNlcnZlckNvbmZpZ1JlcXVlc3QSKAoGdGFyZ2V0GAEgASgLMhAuc2tleXMudj'
-        'EuVGFyZ2V0UgZ0YXJnZXQSGAoHY29udGVudBgCIAEoCVIHY29udGVudA==');
+final $typed_data.Uint8List validateServerConfigRequestDescriptor = $convert.base64Decode(
+    'ChtWYWxpZGF0ZVNlcnZlckNvbmZpZ1JlcXVlc3QSKAoGdGFyZ2V0GAEgASgLMhAuc2tleXMudj'
+    'EuVGFyZ2V0UgZ0YXJnZXQSGAoHY29udGVudBgCIAEoCVIHY29udGVudA==');
 
 @$core.Deprecated('Use validateServerConfigResponseDescriptor instead')
 const ValidateServerConfigResponse$json = {
@@ -408,32 +279,23 @@ const ValidateServerConfigResponse$json = {
 };
 
 /// Descriptor for `ValidateServerConfigResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List validateServerConfigResponseDescriptor =
-    $convert.base64Decode(
-        'ChxWYWxpZGF0ZVNlcnZlckNvbmZpZ1Jlc3BvbnNlEhQKBXZhbGlkGAEgASgIUgV2YWxpZBIjCg'
-        '1lcnJvcl9tZXNzYWdlGAIgASgJUgxlcnJvck1lc3NhZ2U=');
+final $typed_data.Uint8List validateServerConfigResponseDescriptor = $convert.base64Decode(
+    'ChxWYWxpZGF0ZVNlcnZlckNvbmZpZ1Jlc3BvbnNlEhQKBXZhbGlkGAEgASgIUgV2YWxpZBIjCg'
+    '1lcnJvcl9tZXNzYWdlGAIgASgJUgxlcnJvck1lc3NhZ2U=');
 
 @$core.Deprecated('Use restartSSHServiceRequestDescriptor instead')
 const RestartSSHServiceRequest$json = {
   '1': 'RestartSSHServiceRequest',
   '2': [
-    {
-      '1': 'target',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Target',
-      '10': 'target'
-    },
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
     {'1': 'reload_only', '3': 2, '4': 1, '5': 8, '10': 'reloadOnly'},
   ],
 };
 
 /// Descriptor for `RestartSSHServiceRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List restartSSHServiceRequestDescriptor =
-    $convert.base64Decode(
-        'ChhSZXN0YXJ0U1NIU2VydmljZVJlcXVlc3QSKAoGdGFyZ2V0GAEgASgLMhAuc2tleXMudjEuVG'
-        'FyZ2V0UgZ0YXJnZXQSHwoLcmVsb2FkX29ubHkYAiABKAhSCnJlbG9hZE9ubHk=');
+final $typed_data.Uint8List restartSSHServiceRequestDescriptor = $convert.base64Decode(
+    'ChhSZXN0YXJ0U1NIU2VydmljZVJlcXVlc3QSKAoGdGFyZ2V0GAEgASgLMhAuc2tleXMudjEuVG'
+    'FyZ2V0UgZ0YXJnZXQSHwoLcmVsb2FkX29ubHkYAiABKAhSCnJlbG9hZE9ubHk=');
 
 @$core.Deprecated('Use restartSSHServiceResponseDescriptor instead')
 const RestartSSHServiceResponse$json = {
@@ -445,7 +307,7 @@ const RestartSSHServiceResponse$json = {
 };
 
 /// Descriptor for `RestartSSHServiceResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List restartSSHServiceResponseDescriptor =
-    $convert.base64Decode(
-        'ChlSZXN0YXJ0U1NIU2VydmljZVJlc3BvbnNlEhgKB3N1Y2Nlc3MYASABKAhSB3N1Y2Nlc3MSGA'
-        'oHbWVzc2FnZRgCIAEoCVIHbWVzc2FnZQ==');
+final $typed_data.Uint8List restartSSHServiceResponseDescriptor = $convert.base64Decode(
+    'ChlSZXN0YXJ0U1NIU2VydmljZVJlc3BvbnNlEhgKB3N1Y2Nlc3MYASABKAhSB3N1Y2Nlc3MSGA'
+    'oHbWVzc2FnZRgCIAEoCVIHbWVzc2FnZQ==');
+

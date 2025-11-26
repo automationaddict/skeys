@@ -11,7 +11,9 @@ class HelpService {
     'config': 'config-client', // Default to client config
     'config/client': 'config-client',
     'config/server': 'config-server',
-    'hosts': 'hosts',
+    'hosts': 'hosts-known', // Default to known hosts
+    'hosts/known': 'hosts-known',
+    'hosts/authorized': 'hosts-authorized',
     'agent': 'agent',
     'remotes': 'remotes',
     'backup': 'backup',

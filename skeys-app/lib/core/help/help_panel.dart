@@ -3,17 +3,18 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../di/injection.dart';
 import '../settings/settings_service.dart';
+import 'help_context_service.dart';
 import 'help_service.dart';
 
 /// A flyout panel for displaying context-aware help documentation.
 class HelpPanel extends StatefulWidget {
-  final String currentRoute;
+  final String baseRoute;
   final VoidCallback onClose;
   final HelpService helpService;
 
   const HelpPanel({
     super.key,
-    required this.currentRoute,
+    required this.baseRoute,
     required this.onClose,
     required this.helpService,
   });
@@ -25,8 +26,10 @@ class HelpPanel extends StatefulWidget {
 class _HelpPanelState extends State<HelpPanel> {
   final _searchController = TextEditingController();
   final _settingsService = getIt<SettingsService>();
+  final _helpContextService = getIt<HelpContextService>();
   String _content = '';
   String _currentDocName = '';
+  String _currentRoute = '';
   bool _isLoading = true;
   List<SearchResult> _searchResults = [];
   bool _isSearching = false;
@@ -36,13 +39,25 @@ class _HelpPanelState extends State<HelpPanel> {
   void initState() {
     super.initState();
     _panelWidth = _settingsService.helpPanelWidth;
+    _helpContextService.addListener(_onContextChanged);
+    _updateCurrentRoute();
     _loadHelpForCurrentRoute();
+  }
+
+  void _onContextChanged() {
+    _updateCurrentRoute();
+    _loadHelpForCurrentRoute();
+  }
+
+  void _updateCurrentRoute() {
+    _currentRoute = _helpContextService.buildHelpRoute(widget.baseRoute);
   }
 
   @override
   void didUpdateWidget(HelpPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.currentRoute != widget.currentRoute) {
+    if (oldWidget.baseRoute != widget.baseRoute) {
+      _updateCurrentRoute();
       _loadHelpForCurrentRoute();
     }
   }
@@ -54,15 +69,17 @@ class _HelpPanelState extends State<HelpPanel> {
       _isSearching = false;
     });
 
-    final routeName = _extractRouteName(widget.currentRoute);
+    final routeName = _extractRouteName(_currentRoute);
     final docName = widget.helpService.getDocForRoute(routeName) ?? routeName;
     final content = await widget.helpService.loadDocForRoute(routeName);
 
-    setState(() {
-      _content = content;
-      _currentDocName = docName;
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _content = content;
+        _currentDocName = docName;
+        _isLoading = false;
+      });
+    }
   }
 
   String _extractRouteName(String route) {
@@ -106,6 +123,7 @@ class _HelpPanelState extends State<HelpPanel> {
 
   @override
   void dispose() {
+    _helpContextService.removeListener(_onContextChanged);
     _searchController.dispose();
     super.dispose();
   }

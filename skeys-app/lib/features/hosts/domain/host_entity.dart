@@ -18,6 +18,26 @@ class KnownHostEntry extends Equatable {
   List<Object?> get props => [host, keyType, publicKey, isHashed];
 }
 
+/// Scanned host key entry (from ssh-keyscan).
+class ScannedHostKey extends Equatable {
+  final String hostname;
+  final int port;
+  final String keyType;
+  final String publicKey;
+  final String fingerprint;
+
+  const ScannedHostKey({
+    required this.hostname,
+    required this.port,
+    required this.keyType,
+    required this.publicKey,
+    required this.fingerprint,
+  });
+
+  @override
+  List<Object?> get props => [hostname, port, keyType, publicKey, fingerprint];
+}
+
 /// Authorized key entry.
 class AuthorizedKeyEntry extends Equatable {
   final String keyType;

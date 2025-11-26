@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/di/injection.dart';
+import '../../../core/help/help_context_service.dart';
 import '../bloc/hosts_bloc.dart';
+import '../domain/host_entity.dart';
 
 /// Page for managing known_hosts and authorized_keys.
 class HostsPage extends StatefulWidget {
@@ -13,18 +16,33 @@ class HostsPage extends StatefulWidget {
 
 class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final _helpContextService = getIt<HelpContextService>();
   bool _authorizedKeysLoaded = false;
+
+  static const _tabContexts = ['known', 'authorized'];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onTabChanged);
+    // Set initial context
+    _helpContextService.setContextSuffix(_tabContexts[0]);
     context.read<HostsBloc>().add(const HostsLoadKnownHostsRequested());
+  }
+
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) {
+      _helpContextService.setContextSuffix(_tabContexts[_tabController.index]);
+      setState(() {}); // Rebuild to update FAB visibility
+    }
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
+    _helpContextService.clearContext();
     super.dispose();
   }
 
@@ -64,6 +82,23 @@ class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMix
             ],
           );
         },
+      ),
+      floatingActionButton: _tabController.index == 0
+          ? FloatingActionButton.extended(
+              onPressed: () => _showScanHostDialog(context),
+              icon: const Icon(Icons.add),
+              label: const Text('Add Host'),
+            )
+          : null,
+    );
+  }
+
+  void _showScanHostDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => BlocProvider.value(
+        value: context.read<HostsBloc>(),
+        child: const _ScanHostDialog(),
       ),
     );
   }
@@ -184,6 +219,194 @@ class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMix
           ),
         );
       },
+    );
+  }
+}
+
+class _ScanHostDialog extends StatefulWidget {
+  const _ScanHostDialog();
+
+  @override
+  State<_ScanHostDialog> createState() => _ScanHostDialogState();
+}
+
+class _ScanHostDialogState extends State<_ScanHostDialog> {
+  final _hostnameController = TextEditingController();
+  final _portController = TextEditingController(text: '22');
+  bool _hashHostname = false;
+
+  @override
+  void dispose() {
+    _hostnameController.dispose();
+    _portController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<HostsBloc, HostsState>(
+      builder: (context, state) {
+        return AlertDialog(
+          title: const Text('Add Known Host'),
+          content: SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: _hostnameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Hostname',
+                    hintText: 'e.g., github.com',
+                    border: OutlineInputBorder(),
+                  ),
+                  enabled: state.status != HostsStatus.scanning,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _portController,
+                  decoration: const InputDecoration(
+                    labelText: 'Port',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  enabled: state.status != HostsStatus.scanning,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: state.status == HostsStatus.scanning
+                            ? null
+                            : () => _scanHost(context),
+                        icon: state.status == HostsStatus.scanning
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.search),
+                        label: Text(state.status == HostsStatus.scanning
+                            ? 'Scanning...'
+                            : 'Scan Host'),
+                      ),
+                    ),
+                  ],
+                ),
+                if (state.scannedKeys.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  Text(
+                    'Found ${state.scannedKeys.length} key(s):',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  ...state.scannedKeys.map((key) => _ScannedKeyTile(
+                        hostKey: key,
+                        hashHostname: _hashHostname,
+                        onAdd: () => _addKey(context, key),
+                      )),
+                  const SizedBox(height: 8),
+                  CheckboxListTile(
+                    title: const Text('Hash hostname'),
+                    subtitle: const Text('Hide hostname in known_hosts'),
+                    value: _hashHostname,
+                    onChanged: (value) => setState(() => _hashHostname = value ?? false),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ],
+                if (state.status == HostsStatus.failure && state.errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Text(
+                      state.errorMessage!,
+                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                context.read<HostsBloc>().add(const HostsClearScannedKeysRequested());
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            if (state.scannedKeys.isNotEmpty)
+              FilledButton(
+                onPressed: () => _addAllKeys(context, state.scannedKeys),
+                child: const Text('Add All Keys'),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _scanHost(BuildContext context) {
+    final hostname = _hostnameController.text.trim();
+    if (hostname.isEmpty) return;
+
+    final port = int.tryParse(_portController.text) ?? 22;
+    context.read<HostsBloc>().add(HostsScanHostKeysRequested(hostname, port: port));
+  }
+
+  void _addKey(BuildContext context, ScannedHostKey key) {
+    context.read<HostsBloc>().add(HostsAddKnownHostRequested(
+          hostname: key.hostname,
+          keyType: key.keyType,
+          publicKey: key.publicKey,
+          port: key.port,
+          hashHostname: _hashHostname,
+        ));
+    Navigator.of(context).pop();
+  }
+
+  void _addAllKeys(BuildContext context, List<ScannedHostKey> keys) {
+    for (final key in keys) {
+      context.read<HostsBloc>().add(HostsAddKnownHostRequested(
+            hostname: key.hostname,
+            keyType: key.keyType,
+            publicKey: key.publicKey,
+            port: key.port,
+            hashHostname: _hashHostname,
+          ));
+    }
+    Navigator.of(context).pop();
+  }
+}
+
+class _ScannedKeyTile extends StatelessWidget {
+  final ScannedHostKey hostKey;
+  final bool hashHostname;
+  final VoidCallback onAdd;
+
+  const _ScannedKeyTile({
+    required this.hostKey,
+    required this.hashHostname,
+    required this.onAdd,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: const Icon(Icons.vpn_key),
+        title: Text(hostKey.keyType),
+        subtitle: Text(
+          hostKey.fingerprint.isNotEmpty ? hostKey.fingerprint : 'No fingerprint',
+          style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+        ),
+        trailing: IconButton(
+          icon: const Icon(Icons.add_circle_outline),
+          onPressed: onAdd,
+          tooltip: 'Add this key',
+        ),
+      ),
     );
   }
 }
