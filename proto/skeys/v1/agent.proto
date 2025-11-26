@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package skeys.v1;
+
+option go_package = "github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/duration.proto";
+import "skeys/v1/common.proto";
+
+service AgentService {
+  rpc GetAgentStatus(GetAgentStatusRequest) returns (GetAgentStatusResponse);
+  rpc ListAgentKeys(ListAgentKeysRequest) returns (ListAgentKeysResponse);
+  rpc AddKeyToAgent(AddKeyToAgentRequest) returns (google.protobuf.Empty);
+  rpc RemoveKeyFromAgent(RemoveKeyFromAgentRequest) returns (google.protobuf.Empty);
+  rpc RemoveAllKeysFromAgent(RemoveAllKeysFromAgentRequest) returns (google.protobuf.Empty);
+  rpc LockAgent(LockAgentRequest) returns (google.protobuf.Empty);
+  rpc UnlockAgent(UnlockAgentRequest) returns (google.protobuf.Empty);
+}
+
+message AgentKey {
+  string fingerprint = 1;
+  string comment = 2;
+  string type = 3;
+  int32 bits = 4;
+  bool has_lifetime = 5;
+  int32 lifetime_seconds = 6;
+  bool is_confirm = 7;
+}
+
+message GetAgentStatusRequest {
+  Target target = 1;
+}
+
+message GetAgentStatusResponse {
+  bool running = 1;
+  string socket_path = 2;
+  bool is_locked = 3;
+  int32 key_count = 4;
+}
+
+message ListAgentKeysRequest {
+  Target target = 1;
+}
+
+message ListAgentKeysResponse {
+  repeated AgentKey keys = 1;
+}
+
+message AddKeyToAgentRequest {
+  Target target = 1;
+  string key_path = 2;
+  string passphrase = 3;
+  google.protobuf.Duration lifetime = 4;
+  bool confirm = 5;
+}
+
+message RemoveKeyFromAgentRequest {
+  Target target = 1;
+  string fingerprint = 2;
+}
+
+message RemoveAllKeysFromAgentRequest {
+  Target target = 1;
+}
+
+message LockAgentRequest {
+  Target target = 1;
+  string passphrase = 2;
+}
+
+message UnlockAgentRequest {
+  Target target = 1;
+  string passphrase = 2;
+}

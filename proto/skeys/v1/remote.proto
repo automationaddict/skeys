@@ -1,0 +1,133 @@
+syntax = "proto3";
+
+package skeys.v1;
+
+option go_package = "github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service RemoteService {
+  rpc ListRemotes(ListRemotesRequest) returns (ListRemotesResponse);
+  rpc GetRemote(GetRemoteRequest) returns (Remote);
+  rpc AddRemote(AddRemoteRequest) returns (Remote);
+  rpc UpdateRemote(UpdateRemoteRequest) returns (Remote);
+  rpc DeleteRemote(DeleteRemoteRequest) returns (google.protobuf.Empty);
+  rpc TestConnection(TestRemoteConnectionRequest) returns (TestRemoteConnectionResponse);
+  rpc Connect(ConnectRequest) returns (ConnectResponse);
+  rpc Disconnect(DisconnectRequest) returns (google.protobuf.Empty);
+  rpc ListConnections(ListConnectionsRequest) returns (ListConnectionsResponse);
+  rpc ExecuteCommand(ExecuteCommandRequest) returns (ExecuteCommandResponse);
+}
+
+message Remote {
+  string id = 1;
+  string name = 2;
+  string host = 3;
+  int32 port = 4;
+  string user = 5;
+  string identity_file = 6;
+  string ssh_config_alias = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp last_connected_at = 9;
+  RemoteStatus status = 10;
+}
+
+enum RemoteStatus {
+  REMOTE_STATUS_UNSPECIFIED = 0;
+  REMOTE_STATUS_DISCONNECTED = 1;
+  REMOTE_STATUS_CONNECTING = 2;
+  REMOTE_STATUS_CONNECTED = 3;
+  REMOTE_STATUS_ERROR = 4;
+}
+
+message Connection {
+  string id = 1;
+  string remote_id = 2;
+  string host = 3;
+  int32 port = 4;
+  string user = 5;
+  string server_version = 6;
+  google.protobuf.Timestamp connected_at = 7;
+  google.protobuf.Timestamp last_activity_at = 8;
+}
+
+message ListRemotesRequest {}
+
+message ListRemotesResponse {
+  repeated Remote remotes = 1;
+}
+
+message GetRemoteRequest {
+  string id = 1;
+}
+
+message AddRemoteRequest {
+  string name = 1;
+  string host = 2;
+  int32 port = 3;
+  string user = 4;
+  string identity_file = 5;
+  string ssh_config_alias = 6;
+}
+
+message UpdateRemoteRequest {
+  string id = 1;
+  string name = 2;
+  string host = 3;
+  int32 port = 4;
+  string user = 5;
+  string identity_file = 6;
+  string ssh_config_alias = 7;
+}
+
+message DeleteRemoteRequest {
+  string id = 1;
+}
+
+message TestRemoteConnectionRequest {
+  string remote_id = 1;
+  string host = 2;
+  int32 port = 3;
+  string user = 4;
+  string identity_file = 5;
+  int32 timeout_seconds = 6;
+}
+
+message TestRemoteConnectionResponse {
+  bool success = 1;
+  string message = 2;
+  string server_version = 3;
+  int32 latency_ms = 4;
+}
+
+message ConnectRequest {
+  string remote_id = 1;
+  string passphrase = 2;
+}
+
+message ConnectResponse {
+  Connection connection = 1;
+}
+
+message DisconnectRequest {
+  string connection_id = 1;
+}
+
+message ListConnectionsRequest {}
+
+message ListConnectionsResponse {
+  repeated Connection connections = 1;
+}
+
+message ExecuteCommandRequest {
+  string connection_id = 1;
+  string command = 2;
+  int32 timeout_seconds = 3;
+}
+
+message ExecuteCommandResponse {
+  int32 exit_code = 1;
+  string stdout = 2;
+  string stderr = 3;
+}

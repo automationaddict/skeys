@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package skeys.v1;
+
+option go_package = "github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1";
+
+import "google/protobuf/empty.proto";
+import "skeys/v1/common.proto";
+
+service HostsService {
+  // Known Hosts
+  rpc ListKnownHosts(ListKnownHostsRequest) returns (ListKnownHostsResponse);
+  rpc GetKnownHost(GetKnownHostRequest) returns (GetKnownHostResponse);
+  rpc RemoveKnownHost(RemoveKnownHostRequest) returns (google.protobuf.Empty);
+  rpc HashKnownHosts(HashKnownHostsRequest) returns (google.protobuf.Empty);
+
+  // Authorized Keys
+  rpc ListAuthorizedKeys(ListAuthorizedKeysRequest) returns (ListAuthorizedKeysResponse);
+  rpc AddAuthorizedKey(AddAuthorizedKeyRequest) returns (AuthorizedKey);
+  rpc UpdateAuthorizedKey(UpdateAuthorizedKeyRequest) returns (AuthorizedKey);
+  rpc RemoveAuthorizedKey(RemoveAuthorizedKeyRequest) returns (google.protobuf.Empty);
+}
+
+message KnownHost {
+  string id = 1;
+  repeated string hostnames = 2;
+  string key_type = 3;
+  string fingerprint = 4;
+  string public_key = 5;
+  bool is_hashed = 6;
+  bool is_revoked = 7;
+  bool is_cert_authority = 8;
+  int32 line_number = 9;
+}
+
+message ListKnownHostsRequest {
+  Target target = 1;
+}
+
+message ListKnownHostsResponse {
+  repeated KnownHost hosts = 1;
+}
+
+message GetKnownHostRequest {
+  Target target = 1;
+  string hostname = 2;
+  int32 port = 3;
+}
+
+message GetKnownHostResponse {
+  repeated KnownHost hosts = 1;
+}
+
+message RemoveKnownHostRequest {
+  Target target = 1;
+  string hostname = 2;
+  int32 port = 3;
+}
+
+message HashKnownHostsRequest {
+  Target target = 1;
+}
+
+message AuthorizedKey {
+  string id = 1;
+  string key_type = 2;
+  string fingerprint = 3;
+  string comment = 4;
+  string public_key = 5;
+  repeated string options = 6;
+  int32 line_number = 7;
+}
+
+message ListAuthorizedKeysRequest {
+  Target target = 1;
+  string user = 2;
+}
+
+message ListAuthorizedKeysResponse {
+  repeated AuthorizedKey keys = 1;
+}
+
+message AddAuthorizedKeyRequest {
+  Target target = 1;
+  string public_key = 2;
+  repeated string options = 3;
+  string user = 4;
+}
+
+message UpdateAuthorizedKeyRequest {
+  Target target = 1;
+  string key_id = 2;
+  repeated string options = 3;
+  string comment = 4;
+}
+
+message RemoveAuthorizedKeyRequest {
+  Target target = 1;
+  string key_id = 2;
+  string user = 3;
+}

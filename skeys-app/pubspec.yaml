@@ -1,0 +1,67 @@
+name: skeys_app
+description: "SSH Key Management Application - Keep your SSH keys on track!"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # BLoC Pattern - Industry Standard State Management
+  flutter_bloc: ^9.0.0
+  bloc: ^9.0.0
+  equatable: ^2.0.7
+
+  # gRPC for backend communication
+  grpc: ^5.0.0
+  protobuf: ^5.1.0
+
+  # Dependency Injection
+  get_it: ^9.0.0
+  injectable: ^2.7.0
+
+  # Navigation
+  go_router: ^17.0.0
+
+  # Logging
+  logger: ^2.4.0
+
+  # Persistence
+  shared_preferences: ^2.3.3
+
+  # Utilities
+  path_provider: ^2.1.5
+  path: ^1.9.0
+  fixnum: ^1.1.0
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # Window Management
+  window_manager: ^0.4.3
+
+  # UI
+  cupertino_icons: ^1.0.8
+  flutter_svg: ^2.0.10+1
+  flutter_markdown: ^0.7.4+3
+  file_picker: ^8.0.0+1
+
+  # Backup/Archive
+  archive: ^4.0.4
+  cryptography: ^2.7.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.12
+  freezed: ^2.5.7
+  json_serializable: ^6.8.0
+  injectable_generator: ^2.7.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/docs/

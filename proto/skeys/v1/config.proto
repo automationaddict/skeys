@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package skeys.v1;
+
+option go_package = "github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1";
+
+import "google/protobuf/empty.proto";
+import "skeys/v1/common.proto";
+
+service ConfigService {
+  // SSH Client Config (~/.ssh/config)
+  rpc ListHostConfigs(ListHostConfigsRequest) returns (ListHostConfigsResponse);
+  rpc GetHostConfig(GetHostConfigRequest) returns (HostConfig);
+  rpc CreateHostConfig(CreateHostConfigRequest) returns (HostConfig);
+  rpc UpdateHostConfig(UpdateHostConfigRequest) returns (HostConfig);
+  rpc DeleteHostConfig(DeleteHostConfigRequest) returns (google.protobuf.Empty);
+  rpc TestConnection(TestConnectionRequest) returns (TestConnectionResponse);
+
+  // SSH Server Config (/etc/ssh/sshd_config)
+  rpc GetServerConfig(GetServerConfigRequest) returns (ServerConfig);
+  rpc UpdateServerConfig(UpdateServerConfigRequest) returns (ServerConfig);
+  rpc ValidateServerConfig(ValidateServerConfigRequest) returns (ValidateServerConfigResponse);
+  rpc RestartSSHService(RestartSSHServiceRequest) returns (RestartSSHServiceResponse);
+}
+
+message HostConfig {
+  string alias = 1;
+  string hostname = 2;
+  string user = 3;
+  int32 port = 4;
+  repeated string identity_files = 5;
+  string proxy_jump = 6;
+  string proxy_command = 7;
+  bool forward_agent = 8;
+  bool identities_only = 9;
+  string strict_host_key_checking = 10;
+  int32 server_alive_interval = 11;
+  int32 server_alive_count_max = 12;
+  map<string, string> extra_options = 13;
+  bool is_pattern = 14;
+  int32 line_number = 15;
+}
+
+message ListHostConfigsRequest {
+  Target target = 1;
+}
+
+message ListHostConfigsResponse {
+  repeated HostConfig hosts = 1;
+}
+
+message GetHostConfigRequest {
+  Target target = 1;
+  string alias = 2;
+}
+
+message CreateHostConfigRequest {
+  Target target = 1;
+  HostConfig config = 2;
+}
+
+message UpdateHostConfigRequest {
+  Target target = 1;
+  string alias = 2;
+  HostConfig config = 3;
+}
+
+message DeleteHostConfigRequest {
+  Target target = 1;
+  string alias = 2;
+}
+
+message TestConnectionRequest {
+  Target target = 1;
+  string alias = 2;
+  int32 timeout_seconds = 3;
+}
+
+message TestConnectionResponse {
+  bool success = 1;
+  string message = 2;
+  string server_version = 3;
+  int32 latency_ms = 4;
+}
+
+message ServerConfig {
+  repeated ServerConfigDirective directives = 1;
+  string raw_content = 2;
+}
+
+message ServerConfigDirective {
+  string key = 1;
+  string value = 2;
+  int32 line_number = 3;
+  bool is_commented = 4;
+  string match_block = 5;
+}
+
+message GetServerConfigRequest {
+  Target target = 1;
+}
+
+message UpdateServerConfigRequest {
+  Target target = 1;
+  repeated ServerConfigUpdate updates = 2;
+}
+
+message ServerConfigUpdate {
+  string key = 1;
+  string value = 2;
+  bool delete = 3;
+}
+
+message ValidateServerConfigRequest {
+  Target target = 1;
+  string content = 2;
+}
+
+message ValidateServerConfigResponse {
+  bool valid = 1;
+  string error_message = 2;
+}
+
+message RestartSSHServiceRequest {
+  Target target = 1;
+  bool reload_only = 2;
+}
+
+message RestartSSHServiceResponse {
+  bool success = 1;
+  string message = 2;
+}

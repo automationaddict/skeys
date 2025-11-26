@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+package skeys.v1;
+
+option go_package = "github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "skeys/v1/common.proto";
+
+service KeyService {
+  rpc ListKeys(ListKeysRequest) returns (ListKeysResponse);
+  rpc GetKey(GetKeyRequest) returns (SSHKey);
+  rpc GenerateKey(GenerateKeyRequest) returns (SSHKey);
+  rpc DeleteKey(DeleteKeyRequest) returns (google.protobuf.Empty);
+  rpc GetFingerprint(GetFingerprintRequest) returns (GetFingerprintResponse);
+  rpc ChangePassphrase(ChangePassphraseRequest) returns (google.protobuf.Empty);
+  rpc PushKeyToRemote(PushKeyToRemoteRequest) returns (PushKeyToRemoteResponse);
+}
+
+message SSHKey {
+  string id = 1;
+  string name = 2;
+  string private_key_path = 3;
+  string public_key_path = 4;
+  KeyType type = 5;
+  int32 bits = 6;
+  string comment = 7;
+  string fingerprint_sha256 = 8;
+  string fingerprint_md5 = 9;
+  string public_key = 10;
+  bool has_passphrase = 11;
+  bool in_agent = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp modified_at = 14;
+}
+
+enum KeyType {
+  KEY_TYPE_UNSPECIFIED = 0;
+  KEY_TYPE_RSA = 1;
+  KEY_TYPE_ED25519 = 2;
+  KEY_TYPE_ECDSA = 3;
+  KEY_TYPE_ED25519_SK = 4;
+  KEY_TYPE_ECDSA_SK = 5;
+}
+
+message ListKeysRequest {
+  Target target = 1;
+}
+
+message ListKeysResponse {
+  repeated SSHKey keys = 1;
+}
+
+message GetKeyRequest {
+  Target target = 1;
+  string key_id = 2;
+}
+
+message GenerateKeyRequest {
+  Target target = 1;
+  string name = 2;
+  KeyType type = 3;
+  int32 bits = 4;
+  string comment = 5;
+  string passphrase = 6;
+  bool add_to_agent = 7;
+}
+
+message DeleteKeyRequest {
+  Target target = 1;
+  string key_id = 2;
+}
+
+message GetFingerprintRequest {
+  Target target = 1;
+  string key_id = 2;
+  FingerprintAlgorithm algorithm = 3;
+}
+
+enum FingerprintAlgorithm {
+  FINGERPRINT_ALGORITHM_UNSPECIFIED = 0;
+  FINGERPRINT_ALGORITHM_SHA256 = 1;
+  FINGERPRINT_ALGORITHM_MD5 = 2;
+}
+
+message GetFingerprintResponse {
+  string fingerprint = 1;
+  FingerprintAlgorithm algorithm = 2;
+}
+
+message ChangePassphraseRequest {
+  Target target = 1;
+  string key_id = 2;
+  string old_passphrase = 3;
+  string new_passphrase = 4;
+}
+
+message PushKeyToRemoteRequest {
+  string key_id = 1;
+  string remote_id = 2;
+  string remote_user = 3;
+  bool append = 4;
+}
+
+message PushKeyToRemoteResponse {
+  bool success = 1;
+  string message = 2;
+}

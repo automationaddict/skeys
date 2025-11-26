@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package skeys.v1;
+
+option go_package = "github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1";
+
+import "google/protobuf/timestamp.proto";
+
+// Target specifies where an operation should execute
+message Target {
+  TargetType type = 1;
+  string remote_id = 2;
+}
+
+enum TargetType {
+  TARGET_TYPE_UNSPECIFIED = 0;
+  TARGET_TYPE_LOCAL = 1;
+  TARGET_TYPE_REMOTE = 2;
+}

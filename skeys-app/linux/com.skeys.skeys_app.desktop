@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=SKeys
+Comment=SSH Key Management Application
+Exec=skeys_app
+Icon=com.skeys.skeys_app
+Terminal=false
+Type=Application
+Categories=Utility;Security;System;
+Keywords=SSH;Keys;Security;Remote;
+StartupWMClass=com.skeys.skeys_app
