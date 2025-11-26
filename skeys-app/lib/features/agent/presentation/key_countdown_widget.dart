@@ -3,15 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/settings/settings_service.dart';
 import '../service/agent_key_tracker.dart';
 
 /// Widget that displays a countdown timer for a key's remaining time in the agent.
 class KeyCountdownWidget extends StatefulWidget {
   final String fingerprint;
+  /// If true, show "Unknown" for untracked keys instead of hiding.
+  final bool showUnknown;
 
   const KeyCountdownWidget({
     super.key,
     required this.fingerprint,
+    this.showUnknown = true,
   });
 
   @override
@@ -50,9 +54,43 @@ class _KeyCountdownWidgetState extends State<KeyCountdownWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final settingsService = getIt<SettingsService>();
+    final timeoutMinutes = settingsService.agentKeyTimeoutMinutes;
+
     if (_remainingSeconds == null) {
-      // Key not tracked or no timeout
-      return const SizedBox.shrink();
+      // Key not tracked - show "Unknown" if timeout is configured and showUnknown is true
+      if (!widget.showUnknown || timeoutMinutes == 0) {
+        return const SizedBox.shrink();
+      }
+
+      // Show indicator that this key has unknown remaining time
+      final color = Theme.of(context).colorScheme.outline;
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.timer,
+              size: 14,
+              color: color,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Unknown',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+          ],
+        ),
+      );
     }
 
     final remaining = _remainingSeconds!;

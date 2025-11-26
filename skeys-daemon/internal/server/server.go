@@ -1,6 +1,9 @@
 package server
 
 import (
+	"os"
+	"path/filepath"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
@@ -28,6 +31,7 @@ type Server struct {
 	knownHosts     *hosts.KnownHostsManager
 	authorizedKeys *hosts.AuthorizedKeysManager
 	agentService   *agent.Service
+	managedAgent   *agent.ManagedAgent
 	connectionPool *remote.ConnectionPool
 
 	// gRPC service adapters
@@ -67,9 +71,21 @@ func New(opts ...ServerOption) (*Server, error) {
 	)
 	s.Server = grpcServer
 
-	// Initialize agent service first (needed by keys service)
+	// Start managed SSH agent
 	agentLog := s.log.WithComponent("agent")
-	agentService := agent.NewService(agent.WithLogger(agentLog))
+	agentSocketPath := getManagedAgentSocketPath()
+	managedAgent := agent.NewManagedAgent(agentSocketPath, agent.WithManagedAgentLogger(agentLog))
+	if err := managedAgent.Start(); err != nil {
+		s.log.Err(err, "failed to start managed agent")
+		return nil, err
+	}
+	s.managedAgent = managedAgent
+	s.log.InfoWithFields("managed agent started", map[string]interface{}{
+		"socket_path": agentSocketPath,
+	})
+
+	// Initialize agent service pointing to our managed agent
+	agentService := agent.NewService(agent.WithSocketPath(agentSocketPath), agent.WithLogger(agentLog))
 	s.agentService = agentService
 	s.log.Debug("agent service initialized")
 
@@ -125,7 +141,7 @@ func New(opts ...ServerOption) (*Server, error) {
 	s.keyAdapter = adapter.NewKeyServiceAdapter(keyService)
 	s.configAdapter = adapter.NewConfigServiceAdapter(clientConfig, serverConfig)
 	s.hostsAdapter = adapter.NewHostsServiceAdapter(knownHosts, authorizedKeys)
-	s.agentAdapter = adapter.NewAgentServiceAdapter(agentService)
+	s.agentAdapter = adapter.NewAgentServiceAdapter(agentService, managedAgent)
 	s.remoteAdapter = adapter.NewRemoteServiceAdapter(connectionPool)
 
 	// Register gRPC services
@@ -140,4 +156,31 @@ func New(opts ...ServerOption) (*Server, error) {
 
 	s.log.Info("all services initialized and registered")
 	return s, nil
+}
+
+// Stop gracefully stops the server and managed agent
+func (s *Server) Stop() {
+	s.log.Info("stopping server")
+	s.Server.GracefulStop()
+	if s.managedAgent != nil {
+		s.managedAgent.Stop()
+	}
+}
+
+// ManagedAgentSocketPath returns the socket path for the managed SSH agent
+func (s *Server) ManagedAgentSocketPath() string {
+	if s.managedAgent != nil {
+		return s.managedAgent.SocketPath()
+	}
+	return ""
+}
+
+// getManagedAgentSocketPath returns the socket path for the managed SSH agent
+func getManagedAgentSocketPath() string {
+	// Use XDG_RUNTIME_DIR if available (typical on Linux)
+	if runtimeDir := os.Getenv("XDG_RUNTIME_DIR"); runtimeDir != "" {
+		return filepath.Join(runtimeDir, "skeys-agent.sock")
+	}
+	// Fall back to /tmp
+	return "/tmp/skeys-agent.sock"
 }

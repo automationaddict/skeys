@@ -3,7 +3,9 @@ package adapter
 
 import (
 	"context"
+	"os"
 
+	"golang.org/x/crypto/ssh"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -15,13 +17,15 @@ import (
 // AgentServiceAdapter adapts the agent service to the gRPC AgentService interface.
 type AgentServiceAdapter struct {
 	pb.UnimplementedAgentServiceServer
-	service *agent.Service
+	service      *agent.Service
+	managedAgent *agent.ManagedAgent
 }
 
 // NewAgentServiceAdapter creates a new agent service adapter
-func NewAgentServiceAdapter(service *agent.Service) *AgentServiceAdapter {
+func NewAgentServiceAdapter(service *agent.Service, managedAgent *agent.ManagedAgent) *AgentServiceAdapter {
 	return &AgentServiceAdapter{
-		service: service,
+		service:      service,
+		managedAgent: managedAgent,
 	}
 }
 
@@ -57,15 +61,48 @@ func (a *AgentServiceAdapter) ListAgentKeys(ctx context.Context, req *pb.ListAge
 
 // AddKeyToAgent adds a key to the agent
 func (a *AgentServiceAdapter) AddKeyToAgent(ctx context.Context, req *pb.AddKeyToAgentRequest) (*emptypb.Empty, error) {
-	// TODO: Implement key loading from file path with passphrase
-	// This is complex as it requires reading and decrypting the private key
-	return nil, status.Errorf(codes.Unimplemented, "method AddKeyToAgent not implemented")
+	keyPath := req.GetKeyPath()
+	passphrase := req.GetPassphrase()
+	confirm := req.GetConfirm()
+
+	// Calculate lifetime in seconds from duration
+	var lifetimeSecs uint32
+	if lifetime := req.GetLifetime(); lifetime != nil {
+		lifetimeSecs = uint32(lifetime.GetSeconds())
+	}
+
+	// Read the private key file
+	keyData, err := os.ReadFile(keyPath)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "failed to read key file: %v", err)
+	}
+
+	// Parse the private key
+	var privateKey interface{}
+	if passphrase != "" {
+		privateKey, err = ssh.ParseRawPrivateKeyWithPassphrase(keyData, []byte(passphrase))
+	} else {
+		privateKey, err = ssh.ParseRawPrivateKey(keyData)
+	}
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "failed to parse private key: %v", err)
+	}
+
+	// Add to managed agent directly
+	if err := a.managedAgent.AddKeyDirect(privateKey, keyPath, lifetimeSecs, confirm); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to add key to agent: %v", err)
+	}
+
+	return &emptypb.Empty{}, nil
 }
 
 // RemoveKeyFromAgent removes a key from the agent
 func (a *AgentServiceAdapter) RemoveKeyFromAgent(ctx context.Context, req *pb.RemoveKeyFromAgentRequest) (*emptypb.Empty, error) {
-	// TODO: Implement - requires finding key by fingerprint and removing it
-	return nil, status.Errorf(codes.Unimplemented, "method RemoveKeyFromAgent not implemented")
+	if err := a.service.RemoveKeyByFingerprint(req.GetFingerprint()); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to remove key from agent: %v", err)
+	}
+
+	return &emptypb.Empty{}, nil
 }
 
 // RemoveAllKeysFromAgent removes all keys from the agent

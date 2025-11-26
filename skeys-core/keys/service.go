@@ -51,12 +51,7 @@ type GenerateOptions struct {
 	Bits       int    // For RSA: 2048, 4096
 	Comment    string
 	Passphrase string
-}
-
-// Executor is the interface for running SSH commands
-// This allows for dependency injection and testing
-type Executor interface {
-	Run(ctx context.Context, name string, args ...string) ([]byte, error)
+	path       string // internal: full path to write the key
 }
 
 // AgentChecker is the interface for checking if keys are loaded in the SSH agent
@@ -72,8 +67,8 @@ type AgentChecker interface {
 // It is designed to be reusable across different transports.
 type Service struct {
 	sshDir       string
-	executor     Executor
 	agentChecker AgentChecker
+	keyGenerator *KeyGenerator
 	log          *logging.Logger
 }
 
@@ -84,13 +79,6 @@ type ServiceOption func(*Service)
 func WithSSHDir(dir string) ServiceOption {
 	return func(s *Service) {
 		s.sshDir = dir
-	}
-}
-
-// WithExecutor sets a custom command executor
-func WithExecutor(exec Executor) ServiceOption {
-	return func(s *Service) {
-		s.executor = exec
 	}
 }
 
@@ -116,9 +104,9 @@ func NewService(opts ...ServiceOption) (*Service, error) {
 	}
 
 	s := &Service{
-		sshDir:   filepath.Join(homeDir, ".ssh"),
-		executor: &defaultExecutor{},
-		log:      logging.Nop(),
+		sshDir:       filepath.Join(homeDir, ".ssh"),
+		keyGenerator: NewKeyGenerator(),
+		log:          logging.Nop(),
 	}
 
 	for _, opt := range opts {
@@ -241,28 +229,21 @@ func (s *Service) Generate(ctx context.Context, opts GenerateOptions) (*Key, err
 		keyType = KeyTypeED25519 // Default to ED25519
 	}
 
-	// Build ssh-keygen arguments
-	args := []string{
-		"-t", string(keyType),
-		"-f", keyPath,
-		"-C", opts.Comment,
-		"-N", opts.Passphrase,
+	// Set up options for native key generation
+	opts.path = keyPath
+	if opts.Type == "" {
+		opts.Type = keyType
 	}
 
-	// Add bits for RSA
-	if keyType == KeyTypeRSA && opts.Bits > 0 {
-		args = append(args, "-b", fmt.Sprintf("%d", opts.Bits))
-	}
-
-	s.log.DebugWithFields("executing ssh-keygen", map[string]interface{}{
+	s.log.DebugWithFields("generating key natively", map[string]interface{}{
 		"key_type": keyType,
 		"key_path": keyPath,
 	})
 
-	// Execute ssh-keygen
-	if _, err := s.executor.Run(ctx, "ssh-keygen", args...); err != nil {
-		s.log.Err(err, "ssh-keygen failed")
-		return nil, fmt.Errorf("ssh-keygen failed: %w", err)
+	// Generate key using native Go implementation
+	if err := s.keyGenerator.GenerateKeyPair(opts); err != nil {
+		s.log.Err(err, "key generation failed")
+		return nil, fmt.Errorf("key generation failed: %w", err)
 	}
 
 	s.log.InfoWithFields("SSH key generated successfully", map[string]interface{}{
@@ -356,28 +337,22 @@ func (s *Service) Fingerprint(ctx context.Context, name string, algorithm string
 		algorithm = "sha256"
 	}
 
-	args := []string{"-l", "-E", algorithm, "-f", keyPath}
+	// Try public key first, then private key path
+	publicKeyPath := keyPath + ".pub"
+	if _, err := os.Stat(publicKeyPath); os.IsNotExist(err) {
+		publicKeyPath = keyPath // Maybe they passed the public key path directly
+	}
 
-	output, err := s.executor.Run(ctx, "ssh-keygen", args...)
+	fingerprint, err := s.keyGenerator.CalculateFingerprint(publicKeyPath, algorithm)
 	if err != nil {
 		s.log.ErrWithFields(err, "failed to get fingerprint", map[string]interface{}{
 			"key_name":  name,
 			"algorithm": algorithm,
 		})
-		return "", fmt.Errorf("ssh-keygen failed: %w", err)
+		return "", fmt.Errorf("failed to calculate fingerprint: %w", err)
 	}
 
-	// Parse fingerprint from output: "256 SHA256:xxx comment (ED25519)"
-	parts := strings.Fields(string(output))
-	if len(parts) >= 2 {
-		return parts[1], nil
-	}
-
-	s.log.WarnWithFields("unexpected fingerprint format", map[string]interface{}{
-		"key_name": name,
-		"output":   string(output),
-	})
-	return "", fmt.Errorf("unexpected fingerprint format")
+	return fingerprint, nil
 }
 
 // ChangePassphrase changes the passphrase of an existing key
@@ -400,9 +375,7 @@ func (s *Service) ChangePassphrase(ctx context.Context, name, oldPass, newPass s
 		keyPath = filepath.Join(s.sshDir, name)
 	}
 
-	args := []string{"-p", "-f", keyPath, "-P", oldPass, "-N", newPass}
-
-	if _, err := s.executor.Run(ctx, "ssh-keygen", args...); err != nil {
+	if err := s.keyGenerator.ChangePassphrase(keyPath, oldPass, newPass); err != nil {
 		s.log.ErrWithFields(err, "failed to change passphrase", map[string]interface{}{
 			"key_name": name,
 		})
@@ -695,57 +668,32 @@ func (s *Service) isKeyInAgent(ctx context.Context, fingerprint string) bool {
 		return false
 	}
 
-	// If we have an agent checker (preferred method), use it
-	if s.agentChecker != nil {
-		fingerprints, err := s.agentChecker.ListLoadedFingerprints()
-		if err != nil {
-			s.log.DebugWithFields("agent checker failed", map[string]interface{}{
-				"error": err.Error(),
-			})
-			return false
-		}
-		for _, fp := range fingerprints {
-			if fp == fingerprint {
-				return true
-			}
-		}
+	// Requires an agent checker to be configured
+	if s.agentChecker == nil {
+		s.log.Debug("no agent checker configured, cannot check if key is in agent")
 		return false
 	}
 
-	// Fallback: Run ssh-add -l to list agent keys (relies on SSH_AUTH_SOCK env var)
-	output, err := s.executor.Run(ctx, "ssh-add", "-l")
+	fingerprints, err := s.agentChecker.ListLoadedFingerprints()
 	if err != nil {
-		// Agent not running or no keys
+		s.log.DebugWithFields("agent checker failed", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return false
 	}
-
-	// Each line contains: bits fingerprint comment (keytype)
-	// Compare fingerprints
-	lines := strings.Split(string(output), "\n")
-	for _, line := range lines {
-		if strings.Contains(line, fingerprint) {
+	for _, fp := range fingerprints {
+		if fp == fingerprint {
 			return true
 		}
 	}
-
 	return false
 }
 
-// getKeyBits extracts the bit size from a key using ssh-keygen -l
+// getKeyBits extracts the bit size from a public key file
 func (s *Service) getKeyBits(ctx context.Context, publicKeyPath string) int {
-	output, err := s.executor.Run(ctx, "ssh-keygen", "-l", "-f", publicKeyPath)
+	bits, err := s.keyGenerator.GetKeyBits(publicKeyPath)
 	if err != nil {
 		return 0
 	}
-
-	// Output format: "bits fingerprint comment (keytype)"
-	// Example: "256 SHA256:xxx user@host (ED25519)"
-	parts := strings.Fields(string(output))
-	if len(parts) < 1 {
-		return 0
-	}
-
-	bits := 0
-	fmt.Sscanf(parts[0], "%d", &bits)
 	return bits
 }

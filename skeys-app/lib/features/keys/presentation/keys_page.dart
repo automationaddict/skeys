@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/di/injection.dart';
+import '../../../core/settings/settings_service.dart';
+import '../../agent/bloc/agent_bloc.dart';
+import '../../agent/service/agent_key_tracker.dart';
 import '../bloc/keys_bloc.dart';
 import '../domain/key_entity.dart';
 import 'widgets/key_list_tile.dart';
@@ -101,6 +105,7 @@ class _KeysPageState extends State<KeysPage> {
                     context.read<KeysBloc>().add(KeysCopyPublicKeyRequested(key.path));
                   },
                   onDelete: () => _confirmDelete(context, key),
+                  onAddToAgent: () => _addToAgent(context, key),
                 );
               },
             ),
@@ -149,5 +154,34 @@ class _KeysPageState extends State<KeysPage> {
         ],
       ),
     );
+  }
+
+  void _addToAgent(BuildContext context, KeyEntity key) {
+    final settingsService = getIt<SettingsService>();
+    final timeoutMinutes = settingsService.agentKeyTimeoutMinutes;
+
+    // Add the key to the agent
+    context.read<AgentBloc>().add(AgentAddKeyRequested(keyPath: key.path));
+
+    // Track the key for countdown display
+    if (timeoutMinutes > 0) {
+      final tracker = getIt<AgentKeyTracker>();
+      tracker.keyAdded(key.fingerprint, timeoutMinutes * 60);
+    }
+
+    // Show feedback
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Adding "${key.name}" to agent...'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+
+    // Reload keys to update isInAgent status
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (context.mounted) {
+        context.read<KeysBloc>().add(const KeysLoadRequested());
+      }
+    });
   }
 }

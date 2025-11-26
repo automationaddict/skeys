@@ -9,12 +9,14 @@ class KeyListTile extends StatefulWidget {
   final KeyEntity keyEntity;
   final VoidCallback onCopyPublicKey;
   final VoidCallback onDelete;
+  final VoidCallback? onAddToAgent;
 
   const KeyListTile({
     super.key,
     required this.keyEntity,
     required this.onCopyPublicKey,
     required this.onDelete,
+    this.onAddToAgent,
   });
 
   @override
@@ -112,6 +114,9 @@ class _KeyListTileState extends State<KeyListTile>
                   case 'copy':
                     widget.onCopyPublicKey();
                     break;
+                  case 'add_to_agent':
+                    widget.onAddToAgent?.call();
+                    break;
                   case 'delete':
                     widget.onDelete();
                     break;
@@ -126,6 +131,15 @@ class _KeyListTileState extends State<KeyListTile>
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
+                if (!widget.keyEntity.isInAgent && widget.onAddToAgent != null)
+                  const PopupMenuItem(
+                    value: 'add_to_agent',
+                    child: ListTile(
+                      leading: Icon(Icons.add_circle_outline),
+                      title: Text('Add to Agent'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
                 const PopupMenuItem(
                   value: 'delete',
                   child: ListTile(

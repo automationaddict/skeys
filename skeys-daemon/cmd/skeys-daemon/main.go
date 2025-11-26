@@ -88,7 +88,7 @@ func main() {
 		log.InfoWithFields("received shutdown signal", map[string]interface{}{
 			"signal": sig.String(),
 		})
-		srv.GracefulStop()
+		srv.Stop()
 	case err := <-errChan:
 		if err != nil {
 			log.FatalErr(err, "server error")
