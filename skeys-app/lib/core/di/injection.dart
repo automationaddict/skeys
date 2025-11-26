@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import '../backend/backend_launcher.dart';
 import '../backend/daemon_status_service.dart';
 import '../grpc/grpc_client.dart';
+import '../help/help_context_service.dart';
 import '../logging/app_logger.dart';
 import '../settings/settings_service.dart';
 import '../../features/keys/bloc/keys_bloc.dart';
@@ -13,6 +14,7 @@ import '../../features/hosts/bloc/hosts_bloc.dart';
 import '../../features/hosts/repository/hosts_repository.dart';
 import '../../features/agent/bloc/agent_bloc.dart';
 import '../../features/agent/repository/agent_repository.dart';
+import '../../features/agent/service/agent_key_tracker.dart';
 import '../../features/remote/bloc/remote_bloc.dart';
 import '../../features/remote/repository/remote_repository.dart';
 
@@ -27,6 +29,11 @@ Future<void> configureDependencies() async {
   _log.debug('initializing settings service');
   final settingsService = await SettingsService.init();
   getIt.registerSingleton<SettingsService>(settingsService);
+
+  // Help context service (for tab-aware help)
+  _log.debug('creating help context service');
+  final helpContextService = HelpContextService();
+  getIt.registerSingleton<HelpContextService>(helpContextService);
 
   // Apply persisted log level
   AppLogger.configure(level: settingsService.logLevel);
@@ -79,6 +86,11 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<AgentRepository>(
     () => AgentRepositoryImpl(grpcClient),
   );
+
+  // Agent key tracker (tracks when keys were added for countdown display)
+  _log.debug('creating agent key tracker');
+  final agentKeyTracker = AgentKeyTracker();
+  getIt.registerSingleton<AgentKeyTracker>(agentKeyTracker);
   getIt.registerLazySingleton<RemoteRepository>(
     () => RemoteRepositoryImpl(grpcClient),
   );

@@ -225,6 +225,7 @@ class _SecurityTab extends StatefulWidget {
 class _SecurityTabState extends State<_SecurityTab> {
   late int _warningDays;
   late int _criticalDays;
+  late int _agentTimeoutMinutes;
 
   @override
   void initState() {
@@ -232,6 +233,7 @@ class _SecurityTabState extends State<_SecurityTab> {
     final settings = getIt<SettingsService>();
     _warningDays = settings.keyExpirationWarningDays;
     _criticalDays = settings.keyExpirationCriticalDays;
+    _agentTimeoutMinutes = settings.agentKeyTimeoutMinutes;
   }
 
   @override
@@ -288,6 +290,25 @@ class _SecurityTabState extends State<_SecurityTab> {
             },
           ),
 
+          const SizedBox(height: 32),
+
+          // Agent timeout section
+          Text(
+            'SSH Agent Timeout',
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Automatically remove keys from the agent after a specified time for security.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Agent timeout setting
+          _buildAgentTimeoutSetting(context),
+
           const SizedBox(height: 24),
 
           // Info box
@@ -317,6 +338,77 @@ class _SecurityTabState extends State<_SecurityTab> {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAgentTimeoutSetting(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.timer_outlined, color: colorScheme.primary, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Key Timeout', style: theme.textTheme.titleSmall),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Keys added to the agent will be automatically removed after this time',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Slider(
+                  value: _agentTimeoutMinutes.toDouble(),
+                  min: 0,
+                  max: 480, // 8 hours max
+                  divisions: 48, // 10 minute increments
+                  onChanged: (v) async {
+                    final rounded = (v / 10).round() * 10; // Round to nearest 10
+                    setState(() => _agentTimeoutMinutes = rounded);
+                    await getIt<SettingsService>().setAgentKeyTimeoutMinutes(rounded);
+                  },
+                ),
+              ),
+              SizedBox(
+                width: 100,
+                child: Text(
+                  _agentTimeoutMinutes == 0
+                      ? 'No timeout'
+                      : _agentTimeoutMinutes >= 60
+                          ? '${_agentTimeoutMinutes ~/ 60}h ${_agentTimeoutMinutes % 60}m'
+                          : '$_agentTimeoutMinutes min',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ],
           ),
         ],
       ),

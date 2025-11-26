@@ -67,8 +67,8 @@ class _HelpPanelState extends State<HelpPanel> {
 
   String _extractRouteName(String route) {
     final path = route.startsWith('/') ? route.substring(1) : route;
-    final parts = path.split('/');
-    return parts.isNotEmpty ? parts.first : 'keys';
+    // Return the full path to support routes with context (e.g., 'config/client')
+    return path.isEmpty ? 'keys' : path;
   }
 
   Future<void> _performSearch(String query) async {
@@ -419,7 +419,10 @@ class _HelpPanelState extends State<HelpPanel> {
       case 'keys':
         return Icons.key;
       case 'config':
+      case 'config-client':
         return Icons.tune;
+      case 'config-server':
+        return Icons.settings;
       case 'hosts':
         return Icons.dns;
       case 'agent':

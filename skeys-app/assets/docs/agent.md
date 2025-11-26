@@ -44,10 +44,15 @@ Remove keys from the agent when:
 - Using a shared computer
 - Reducing exposure of sensitive keys
 
-### Key Lifetime
-Some agent configurations automatically remove keys after a timeout. You can set this when adding keys:
-- Default: Keys remain until agent restarts
-- Timed: Keys automatically removed after specified duration
+### Key Timeout
+SKeys can automatically remove keys from the agent after a specified time. Configure this in **Settings > Security > SSH Agent Timeout**.
+
+- **No timeout**: Keys remain until agent restarts or manually removed
+- **Timed**: Keys automatically removed after the specified duration (10 minutes to 8 hours)
+
+The current timeout setting is displayed in the **Actions** card on this screen.
+
+**Note:** The timeout applies when keys are added to the agent via SKeys. Keys added externally (e.g., via command line) may not have a timeout.
 
 ## Agent Forwarding
 
@@ -98,7 +103,7 @@ Can serve as an SSH agent, useful if you also use GPG keys.
 ### Security
 
 1. **Don't forward to untrusted servers** - Agent forwarding exposes your keys
-2. **Use key lifetimes** on shared machines
+2. **Set a key timeout** in Settings > Security for automatic key removal
 3. **Lock/remove keys** when stepping away
 4. **Use separate keys** for high-security servers
 

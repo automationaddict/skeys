@@ -1,9 +1,12 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../core/di/injection.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/settings/settings_service.dart';
 import '../domain/agent_entity.dart';
 import '../repository/agent_repository.dart';
+import '../service/agent_key_tracker.dart';
 
 part 'agent_event.dart';
 part 'agent_state.dart';
@@ -78,23 +81,48 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
     AgentAddKeyRequested event,
     Emitter<AgentState> emit,
   ) async {
+    // Get timeout from settings if not specified in event
+    final settingsService = getIt<SettingsService>();
+    final timeoutMinutes = settingsService.agentKeyTimeoutMinutes;
+    final lifetime = event.lifetime ?? (timeoutMinutes > 0
+        ? Duration(minutes: timeoutMinutes)
+        : null);
+
     _log.info('adding key to agent', {
       'path': event.keyPath,
-      'lifetime': event.lifetime,
+      'lifetime': lifetime,
       'confirm': event.confirm,
     });
     emit(state.copyWith(status: AgentBlocStatus.loading));
 
     try {
+      // Get keys before adding to track the new one
+      final keysBefore = state.loadedKeys.map((k) => k.fingerprint).toSet();
+
       await _repository.addKey(
         event.keyPath,
         passphrase: event.passphrase,
-        lifetime: event.lifetime,
+        lifetime: lifetime,
         confirm: event.confirm,
       );
       _log.info('key added to agent', {'path': event.keyPath});
       final keys = await _repository.listKeys();
       final agentStatus = await _repository.getStatus();
+
+      // Track the newly added key(s)
+      if (timeoutMinutes > 0) {
+        final tracker = getIt<AgentKeyTracker>();
+        for (final key in keys) {
+          if (!keysBefore.contains(key.fingerprint)) {
+            tracker.keyAdded(key.fingerprint, timeoutMinutes * 60);
+            _log.debug('tracking new key', {
+              'fingerprint': key.fingerprint,
+              'timeout_seconds': timeoutMinutes * 60,
+            });
+          }
+        }
+      }
+
       emit(state.copyWith(
         status: AgentBlocStatus.success,
         loadedKeys: keys,
@@ -119,6 +147,11 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
     try {
       await _repository.removeKey(event.fingerprint);
       _log.info('key removed from agent', {'fingerprint': event.fingerprint});
+
+      // Remove from tracker
+      final tracker = getIt<AgentKeyTracker>();
+      tracker.keyRemoved(event.fingerprint);
+
       final keys = await _repository.listKeys();
       final agentStatus = await _repository.getStatus();
       emit(state.copyWith(
@@ -145,6 +178,11 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
     try {
       await _repository.removeAllKeys();
       _log.info('all keys removed from agent');
+
+      // Clear tracker
+      final tracker = getIt<AgentKeyTracker>();
+      tracker.clear();
+
       final agentStatus = await _repository.getStatus();
       emit(state.copyWith(
         status: AgentBlocStatus.success,

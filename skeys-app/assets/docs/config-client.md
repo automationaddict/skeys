@@ -1,8 +1,8 @@
-# SSH Configuration
+# SSH Client Configuration
 
 ## Overview
 
-The Config screen allows you to view and manage your SSH client configuration. This configuration controls how SSH connects to remote servers, including host aliases, connection options, and authentication settings.
+The Client Config tab allows you to view and manage your SSH client configuration. This configuration controls how SSH connects to remote servers, including host aliases, connection options, and authentication settings.
 
 ## What is SSH Config?
 
@@ -156,5 +156,5 @@ Ensure `IdentityFile` path is correct and the key exists.
 
 ## File Location
 
-- Client config: `~/.ssh/config`
+- User config: `~/.ssh/config`
 - System-wide: `/etc/ssh/ssh_config`

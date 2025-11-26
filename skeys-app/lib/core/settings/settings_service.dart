@@ -25,6 +25,7 @@ class SettingsService extends ChangeNotifier {
   static const _helpPanelWidthKey = 'help_panel_width';
   static const _keyExpirationWarningDaysKey = 'key_expiration_warning_days';
   static const _keyExpirationCriticalDaysKey = 'key_expiration_critical_days';
+  static const _agentKeyTimeoutMinutesKey = 'agent_key_timeout_minutes';
 
   // Default window size
   static const defaultWindowWidth = 1200.0;
@@ -40,6 +41,9 @@ class SettingsService extends ChangeNotifier {
   // Default key expiration thresholds (in days)
   static const defaultKeyExpirationWarningDays = 90;
   static const defaultKeyExpirationCriticalDays = 180;
+
+  // Default agent key timeout (in minutes, 0 = no timeout)
+  static const defaultAgentKeyTimeoutMinutes = 0;
 
   final SharedPreferences _prefs;
   final AppLogger _log = AppLogger('settings');
@@ -191,6 +195,18 @@ class SettingsService extends ChangeNotifier {
       return KeyExpirationStatus.warning;
     }
     return KeyExpirationStatus.ok;
+  }
+
+  /// Get the agent key timeout (in minutes). 0 means no timeout.
+  int get agentKeyTimeoutMinutes {
+    return _prefs.getInt(_agentKeyTimeoutMinutesKey) ?? defaultAgentKeyTimeoutMinutes;
+  }
+
+  /// Set the agent key timeout (in minutes). 0 means no timeout.
+  Future<void> setAgentKeyTimeoutMinutes(int minutes) async {
+    await _prefs.setInt(_agentKeyTimeoutMinutesKey, minutes);
+    _log.info('agent key timeout changed', {'minutes': minutes});
+    notifyListeners();
   }
 }
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../di/injection.dart';
+import '../help/help_context_service.dart';
 import '../help/help_panel.dart';
 import '../help/help_service.dart';
 import '../settings/settings_dialog.dart';
@@ -18,11 +20,12 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   final _helpService = HelpService();
+  final _helpContextService = getIt<HelpContextService>();
   bool _showHelp = false;
 
   @override
   Widget build(BuildContext context) {
-    final currentRoute = GoRouterState.of(context).uri.path;
+    final baseRoute = GoRouterState.of(context).uri.path;
 
     return Scaffold(
       body: Row(
@@ -103,10 +106,16 @@ class _AppShellState extends State<AppShell> {
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(child: widget.child),
           if (_showHelp) ...[
-            HelpPanel(
-              currentRoute: currentRoute,
-              helpService: _helpService,
-              onClose: () => setState(() => _showHelp = false),
+            ListenableBuilder(
+              listenable: _helpContextService,
+              builder: (context, _) {
+                final currentRoute = _helpContextService.buildHelpRoute(baseRoute);
+                return HelpPanel(
+                  currentRoute: currentRoute,
+                  helpService: _helpService,
+                  onClose: () => setState(() => _showHelp = false),
+                );
+              },
             ),
           ],
         ],

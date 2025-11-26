@@ -5,9 +5,12 @@ class HelpService {
   final Map<String, String> _cache = {};
 
   /// Route name to documentation file mapping.
+  /// For routes with tabs, use 'route/tab' format (e.g., 'config/client')
   static const Map<String, String> _routeToDoc = {
     'keys': 'keys',
-    'config': 'config',
+    'config': 'config-client', // Default to client config
+    'config/client': 'config-client',
+    'config/server': 'config-server',
     'hosts': 'hosts',
     'agent': 'agent',
     'remotes': 'remotes',

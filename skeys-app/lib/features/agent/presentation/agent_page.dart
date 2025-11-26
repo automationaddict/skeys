@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/di/injection.dart';
+import '../../../core/settings/settings_service.dart';
 import '../bloc/agent_bloc.dart';
+import '../service/agent_key_tracker.dart';
+import 'key_countdown_widget.dart';
 
 /// Page for SSH agent management.
 class AgentPage extends StatefulWidget {
@@ -37,6 +41,12 @@ class _AgentPageState extends State<AgentPage> {
       ),
       body: BlocBuilder<AgentBloc, AgentState>(
         builder: (context, state) {
+          // Sync the key tracker with current agent keys
+          final tracker = getIt<AgentKeyTracker>();
+          tracker.syncWithAgentKeys(
+            state.loadedKeys.map((k) => k.fingerprint).toList(),
+          );
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -124,46 +134,76 @@ class _AgentPageState extends State<AgentPage> {
 
   Widget _buildActionsCard(BuildContext context, AgentState state) {
     final isLocked = state.agentStatus?.isLocked ?? false;
+    final settingsService = getIt<SettingsService>();
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Actions',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+    return ListenableBuilder(
+      listenable: settingsService,
+      builder: (context, _) {
+        final timeoutMinutes = settingsService.agentKeyTimeoutMinutes;
+        final timeoutText = timeoutMinutes == 0
+            ? 'No timeout'
+            : timeoutMinutes >= 60
+                ? '${timeoutMinutes ~/ 60}h ${timeoutMinutes % 60}m'
+                : '$timeoutMinutes min';
+
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (isLocked)
-                  OutlinedButton.icon(
-                    onPressed: () => _showUnlockDialog(context),
-                    icon: const Icon(Icons.lock_open),
-                    label: const Text('Unlock'),
-                  )
-                else
-                  OutlinedButton.icon(
-                    onPressed: () => _showLockDialog(context),
-                    icon: const Icon(Icons.lock),
-                    label: const Text('Lock'),
-                  ),
-                OutlinedButton.icon(
-                  onPressed: state.loadedKeys.isNotEmpty
-                      ? () => _confirmRemoveAll(context)
-                      : null,
-                  icon: const Icon(Icons.clear_all),
-                  label: const Text('Remove All Keys'),
+                Row(
+                  children: [
+                    Text(
+                      'Actions',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const Spacer(),
+                    Icon(
+                      Icons.timer_outlined,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Timeout: $timeoutText',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (isLocked)
+                      OutlinedButton.icon(
+                        onPressed: () => _showUnlockDialog(context),
+                        icon: const Icon(Icons.lock_open),
+                        label: const Text('Unlock'),
+                      )
+                    else
+                      OutlinedButton.icon(
+                        onPressed: () => _showLockDialog(context),
+                        icon: const Icon(Icons.lock),
+                        label: const Text('Lock'),
+                      ),
+                    OutlinedButton.icon(
+                      onPressed: state.loadedKeys.isNotEmpty
+                          ? () => _confirmRemoveAll(context)
+                          : null,
+                      icon: const Icon(Icons.clear_all),
+                      label: const Text('Remove All Keys'),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -201,29 +241,56 @@ class _AgentPageState extends State<AgentPage> {
         else
           ...state.loadedKeys.map((key) => Card(
                 margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  leading: const Icon(Icons.key),
-                  title: Text(key.comment.isNotEmpty ? key.comment : 'No comment'),
-                  subtitle: Column(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${key.type} (${key.bits} bits)'),
-                      Text(
-                        key.fingerprint,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontFamily: 'monospace',
+                      const Icon(Icons.key),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    key.comment.isNotEmpty ? key.comment : 'No comment',
+                                    style: Theme.of(context).textTheme.bodyLarge,
+                                  ),
+                                ),
+                                KeyCountdownWidget(fingerprint: key.fingerprint),
+                              ],
                             ),
-                        overflow: TextOverflow.ellipsis,
+                            const SizedBox(height: 4),
+                            Text(
+                              '${key.type} (${key.bits} bits)',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              key.fingerprint,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontFamily: 'monospace',
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle_outline),
+                        onPressed: () {
+                          context.read<AgentBloc>().add(AgentRemoveKeyRequested(key.fingerprint));
+                        },
                       ),
                     ],
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.remove_circle_outline),
-                    onPressed: () {
-                      context.read<AgentBloc>().add(AgentRemoveKeyRequested(key.fingerprint));
-                    },
-                  ),
-                  isThreeLine: true,
                 ),
               )),
       ],

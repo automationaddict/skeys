@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/di/injection.dart';
+import '../../../core/help/help_context_service.dart';
 import '../bloc/config_bloc.dart';
 
 /// Page for SSH configuration management.
@@ -13,17 +15,31 @@ class ConfigPage extends StatefulWidget {
 
 class _ConfigPageState extends State<ConfigPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final _helpContextService = getIt<HelpContextService>();
+
+  static const _tabContexts = ['client', 'server'];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onTabChanged);
+    // Set initial context
+    _helpContextService.setContextSuffix(_tabContexts[0]);
     context.read<ConfigBloc>().add(const ConfigLoadClientHostsRequested());
+  }
+
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) {
+      _helpContextService.setContextSuffix(_tabContexts[_tabController.index]);
+    }
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
+    _helpContextService.clearContext();
     super.dispose();
   }
 
