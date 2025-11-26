@@ -27,7 +27,7 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -79,10 +79,16 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
             // Tabs
             TabBar(
               controller: _tabController,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
               tabs: const [
                 Tab(
                   icon: Icon(Icons.text_fields_outlined),
                   text: 'Display',
+                ),
+                Tab(
+                  icon: Icon(Icons.shield_outlined),
+                  text: 'Security',
                 ),
                 Tab(
                   icon: Icon(Icons.backup_outlined),
@@ -104,6 +110,7 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
                 controller: _tabController,
                 children: const [
                   _DisplayTab(),
+                  _SecurityTab(),
                   _BackupTab(),
                   _LoggingTab(),
                   _AboutTab(),
@@ -203,6 +210,187 @@ class _DisplayTabState extends State<_DisplayTab> {
       ),
       dense: true,
       contentPadding: EdgeInsets.zero,
+    );
+  }
+}
+
+/// Security settings tab with key expiration thresholds.
+class _SecurityTab extends StatefulWidget {
+  const _SecurityTab();
+
+  @override
+  State<_SecurityTab> createState() => _SecurityTabState();
+}
+
+class _SecurityTabState extends State<_SecurityTab> {
+  late int _warningDays;
+  late int _criticalDays;
+
+  @override
+  void initState() {
+    super.initState();
+    final settings = getIt<SettingsService>();
+    _warningDays = settings.keyExpirationWarningDays;
+    _criticalDays = settings.keyExpirationCriticalDays;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Key Rotation Reminders',
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Get notified when your SSH keys are due for rotation. '
+            'Regular key rotation is a security best practice.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Warning threshold
+          _buildThresholdSetting(
+            context: context,
+            title: 'Warning Threshold',
+            description: 'Show a warning icon when key age exceeds this many days',
+            icon: Icons.warning_amber_rounded,
+            iconColor: Colors.orange,
+            value: _warningDays,
+            onChanged: (value) async {
+              setState(() => _warningDays = value);
+              await getIt<SettingsService>().setKeyExpirationWarningDays(value);
+            },
+          ),
+
+          const SizedBox(height: 20),
+
+          // Critical threshold
+          _buildThresholdSetting(
+            context: context,
+            title: 'Critical Threshold',
+            description: 'Show a critical alert when key age exceeds this many days',
+            icon: Icons.error_rounded,
+            iconColor: Colors.red,
+            value: _criticalDays,
+            onChanged: (value) async {
+              setState(() => _criticalDays = value);
+              await getIt<SettingsService>().setKeyExpirationCriticalDays(value);
+            },
+          ),
+
+          const SizedBox(height: 24),
+
+          // Info box
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Keys older than the warning threshold will show a yellow indicator. '
+                    'Keys older than the critical threshold will show a pulsing red indicator.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThresholdSetting({
+    required BuildContext context,
+    required String title,
+    required String description,
+    required IconData icon,
+    required Color iconColor,
+    required int value,
+    required ValueChanged<int> onChanged,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: iconColor, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: theme.textTheme.titleSmall),
+                    const SizedBox(height: 2),
+                    Text(
+                      description,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Slider(
+                  value: value.toDouble(),
+                  min: 7,
+                  max: 365,
+                  divisions: 358,
+                  onChanged: (v) => onChanged(v.round()),
+                ),
+              ),
+              SizedBox(
+                width: 80,
+                child: Text(
+                  '$value days',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -396,7 +584,7 @@ class _BackupTab extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -442,7 +630,7 @@ class _BackupTab extends StatelessWidget {
             },
           ),
 
-          const Spacer(),
+          const SizedBox(height: 24),
 
           // Security note
           Container(

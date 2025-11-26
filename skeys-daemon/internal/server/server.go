@@ -67,9 +67,18 @@ func New(opts ...ServerOption) (*Server, error) {
 	)
 	s.Server = grpcServer
 
+	// Initialize agent service first (needed by keys service)
+	agentLog := s.log.WithComponent("agent")
+	agentService := agent.NewService(agent.WithLogger(agentLog))
+	s.agentService = agentService
+	s.log.Debug("agent service initialized")
+
 	// Initialize core library services with logging
 	keysLog := s.log.WithComponent("keys")
-	keyService, err := keys.NewService(keys.WithLogger(keysLog))
+	keyService, err := keys.NewService(
+		keys.WithLogger(keysLog),
+		keys.WithAgentChecker(agentService), // Inject agent service for checking loaded keys
+	)
 	if err != nil {
 		s.log.Err(err, "failed to initialize keys service")
 		return nil, err
@@ -106,11 +115,6 @@ func New(opts ...ServerOption) (*Server, error) {
 	}
 	s.authorizedKeys = authorizedKeys
 	s.log.Debug("authorized_keys manager initialized")
-
-	agentLog := s.log.WithComponent("agent")
-	agentService := agent.NewService(agent.WithLogger(agentLog))
-	s.agentService = agentService
-	s.log.Debug("agent service initialized")
 
 	remoteLog := s.log.WithComponent("remote")
 	connectionPool := remote.NewConnectionPool(remote.PoolConfig{}, remote.WithPoolLogger(remoteLog))

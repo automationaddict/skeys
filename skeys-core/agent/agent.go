@@ -304,6 +304,79 @@ func (s *Service) connect() (net.Conn, error) {
 	return conn, nil
 }
 
+// ListLoadedFingerprints returns fingerprints of all keys loaded in the agent.
+// This method implements the keys.AgentChecker interface.
+func (s *Service) ListLoadedFingerprints() ([]string, error) {
+	s.log.Debug("listing loaded fingerprints")
+
+	conn, err := s.connect()
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	agentClient := agent.NewClient(conn)
+	keys, err := agentClient.List()
+	if err != nil {
+		s.log.Err(err, "failed to list keys from agent")
+		return nil, fmt.Errorf("failed to list keys: %w", err)
+	}
+
+	var fingerprints []string
+	for _, key := range keys {
+		fingerprints = append(fingerprints, ssh.FingerprintSHA256(key))
+	}
+
+	s.log.DebugWithFields("listed loaded fingerprints", map[string]interface{}{
+		"count": len(fingerprints),
+	})
+
+	return fingerprints, nil
+}
+
+// RemoveKeyByFingerprint removes a key from the agent by its fingerprint.
+// This method implements the keys.AgentChecker interface.
+func (s *Service) RemoveKeyByFingerprint(fingerprint string) error {
+	s.log.InfoWithFields("removing key from agent by fingerprint", map[string]interface{}{
+		"fingerprint": fingerprint,
+	})
+
+	conn, err := s.connect()
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	agentClient := agent.NewClient(conn)
+	keys, err := agentClient.List()
+	if err != nil {
+		s.log.Err(err, "failed to list keys from agent")
+		return fmt.Errorf("failed to list keys: %w", err)
+	}
+
+	// Find the key with matching fingerprint
+	for _, key := range keys {
+		if ssh.FingerprintSHA256(key) == fingerprint {
+			if err := agentClient.Remove(key); err != nil {
+				s.log.ErrWithFields(err, "failed to remove key from agent", map[string]interface{}{
+					"fingerprint": fingerprint,
+				})
+				return fmt.Errorf("failed to remove key: %w", err)
+			}
+			s.log.InfoWithFields("key removed from agent", map[string]interface{}{
+				"fingerprint": fingerprint,
+			})
+			return nil
+		}
+	}
+
+	// Key not found in agent - not an error, just means it wasn't loaded
+	s.log.DebugWithFields("key not found in agent", map[string]interface{}{
+		"fingerprint": fingerprint,
+	})
+	return nil
+}
+
 // getBits returns the key size in bits
 func getBits(key *agent.Key) int {
 	// This is approximate based on key type

@@ -62,7 +62,18 @@ Remove keys you no longer need. This action is irreversible - the key pair will 
 ## Key Indicators
 
 - **Lock icon**: Key is protected with a passphrase
+- **Open lock icon** (orange): Key has no passphrase protection
 - **Shield icon**: Key is currently loaded in the SSH agent
+- **Warning icon** (orange): Key age exceeds the warning threshold - consider rotating
+- **Error icon** (red, pulsing): Key age exceeds the critical threshold - rotation strongly recommended
+
+### Key Rotation Thresholds
+
+Configure expiration thresholds in **Settings > Security**:
+- **Warning threshold**: Days before showing an orange warning (default: 90 days)
+- **Critical threshold**: Days before showing a red alert (default: 180 days)
+
+These thresholds help you maintain good security hygiene by reminding you to rotate older keys.
 
 ## Best Practices
 

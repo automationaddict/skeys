@@ -59,12 +59,22 @@ type Executor interface {
 	Run(ctx context.Context, name string, args ...string) ([]byte, error)
 }
 
+// AgentChecker is the interface for checking if keys are loaded in the SSH agent
+// This allows the keys service to query the agent without tight coupling
+type AgentChecker interface {
+	// ListLoadedFingerprints returns fingerprints of all keys loaded in the agent
+	ListLoadedFingerprints() ([]string, error)
+	// RemoveKeyByFingerprint removes a key from the agent by its fingerprint
+	RemoveKeyByFingerprint(fingerprint string) error
+}
+
 // Service provides SSH key management operations.
 // It is designed to be reusable across different transports.
 type Service struct {
-	sshDir   string
-	executor Executor
-	log      *logging.Logger
+	sshDir       string
+	executor     Executor
+	agentChecker AgentChecker
+	log          *logging.Logger
 }
 
 // ServiceOption is a functional option for configuring the Service
@@ -81,6 +91,13 @@ func WithSSHDir(dir string) ServiceOption {
 func WithExecutor(exec Executor) ServiceOption {
 	return func(s *Service) {
 		s.executor = exec
+	}
+}
+
+// WithAgentChecker sets an agent checker for querying loaded keys
+func WithAgentChecker(checker AgentChecker) ServiceOption {
+	return func(s *Service) {
+		s.agentChecker = checker
 	}
 }
 
@@ -277,6 +294,33 @@ func (s *Service) Delete(ctx context.Context, name string) error {
 	}
 	publicPath := privatePath + ".pub"
 
+	// Get fingerprint before deleting so we can remove from agent
+	fingerprint, err := s.Fingerprint(ctx, name, "sha256")
+	if err != nil {
+		s.log.WarnWithFields("could not get fingerprint before deletion", map[string]interface{}{
+			"key_name": name,
+			"error":    err.Error(),
+		})
+		// Continue with deletion even if we can't get fingerprint
+	}
+
+	// Remove from SSH agent if loaded (do this before deleting files)
+	if fingerprint != "" && s.agentChecker != nil {
+		if err := s.agentChecker.RemoveKeyByFingerprint(fingerprint); err != nil {
+			s.log.WarnWithFields("could not remove key from agent", map[string]interface{}{
+				"key_name":    name,
+				"fingerprint": fingerprint,
+				"error":       err.Error(),
+			})
+			// Continue with file deletion even if agent removal fails
+		} else {
+			s.log.InfoWithFields("removed key from SSH agent", map[string]interface{}{
+				"key_name":    name,
+				"fingerprint": fingerprint,
+			})
+		}
+	}
+
 	// Remove private key
 	if err := os.Remove(privatePath); err != nil && !os.IsNotExist(err) {
 		s.log.ErrWithFields(err, "failed to delete private key", map[string]interface{}{
@@ -437,6 +481,7 @@ func (s *Service) load(ctx context.Context, name string) (*Key, error) {
 		PublicKey:         strings.TrimSpace(string(pubKeyData)),
 		HasPassphrase:     hasPassphrase,
 		InAgent:           inAgent,
+		CreatedAt:         modTime, // Use modTime as best approximation (Linux doesn't reliably track birth time)
 		ModifiedAt:        modTime,
 	}, nil
 }
@@ -650,7 +695,24 @@ func (s *Service) isKeyInAgent(ctx context.Context, fingerprint string) bool {
 		return false
 	}
 
-	// Run ssh-add -l to list agent keys
+	// If we have an agent checker (preferred method), use it
+	if s.agentChecker != nil {
+		fingerprints, err := s.agentChecker.ListLoadedFingerprints()
+		if err != nil {
+			s.log.DebugWithFields("agent checker failed", map[string]interface{}{
+				"error": err.Error(),
+			})
+			return false
+		}
+		for _, fp := range fingerprints {
+			if fp == fingerprint {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Fallback: Run ssh-add -l to list agent keys (relies on SSH_AUTH_SOCK env var)
 	output, err := s.executor.Run(ctx, "ssh-add", "-l")
 	if err != nil {
 		// Agent not running or no keys

@@ -23,6 +23,8 @@ class SettingsService extends ChangeNotifier {
   static const _windowWidthKey = 'window_width';
   static const _windowHeightKey = 'window_height';
   static const _helpPanelWidthKey = 'help_panel_width';
+  static const _keyExpirationWarningDaysKey = 'key_expiration_warning_days';
+  static const _keyExpirationCriticalDaysKey = 'key_expiration_critical_days';
 
   // Default window size
   static const defaultWindowWidth = 1200.0;
@@ -34,6 +36,10 @@ class SettingsService extends ChangeNotifier {
   static const defaultHelpPanelWidth = 400.0;
   static const minHelpPanelWidth = 280.0;
   static const maxHelpPanelWidth = 600.0;
+
+  // Default key expiration thresholds (in days)
+  static const defaultKeyExpirationWarningDays = 90;
+  static const defaultKeyExpirationCriticalDays = 180;
 
   final SharedPreferences _prefs;
   final AppLogger _log = AppLogger('settings');
@@ -148,4 +154,49 @@ class SettingsService extends ChangeNotifier {
     await _prefs.setDouble(_helpPanelWidthKey, clampedWidth);
     _log.debug('help panel width saved', {'width': clampedWidth});
   }
+
+  /// Get the key expiration warning threshold (in days).
+  int get keyExpirationWarningDays {
+    return _prefs.getInt(_keyExpirationWarningDaysKey) ?? defaultKeyExpirationWarningDays;
+  }
+
+  /// Set the key expiration warning threshold (in days).
+  Future<void> setKeyExpirationWarningDays(int days) async {
+    await _prefs.setInt(_keyExpirationWarningDaysKey, days);
+    _log.info('key expiration warning days changed', {'days': days});
+    notifyListeners();
+  }
+
+  /// Get the key expiration critical threshold (in days).
+  int get keyExpirationCriticalDays {
+    return _prefs.getInt(_keyExpirationCriticalDaysKey) ?? defaultKeyExpirationCriticalDays;
+  }
+
+  /// Set the key expiration critical threshold (in days).
+  Future<void> setKeyExpirationCriticalDays(int days) async {
+    await _prefs.setInt(_keyExpirationCriticalDaysKey, days);
+    _log.info('key expiration critical days changed', {'days': days});
+    notifyListeners();
+  }
+
+  /// Check the expiration status of a key based on its age.
+  /// Returns 'ok', 'warning', or 'critical'.
+  KeyExpirationStatus getKeyExpirationStatus(DateTime keyDate) {
+    final now = DateTime.now();
+    final age = now.difference(keyDate).inDays;
+
+    if (age >= keyExpirationCriticalDays) {
+      return KeyExpirationStatus.critical;
+    } else if (age >= keyExpirationWarningDays) {
+      return KeyExpirationStatus.warning;
+    }
+    return KeyExpirationStatus.ok;
+  }
+}
+
+/// Key expiration status levels.
+enum KeyExpirationStatus {
+  ok,
+  warning,
+  critical,
 }
