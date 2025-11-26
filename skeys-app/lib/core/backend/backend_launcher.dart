@@ -40,12 +40,19 @@ class BackendLauncher {
     // Check if socket already exists (daemon already running externally)
     final socketFile = File(_socketPath!);
     if (await socketFile.exists()) {
-      _log.info('found existing daemon socket, connecting to external daemon', {
-        'socket_path': _socketPath,
-      });
-      _isRunning = true;
-      _externalDaemon = true;
-      return;
+      // Verify the socket is actually listening by trying to connect
+      if (await _isSocketListening(_socketPath!)) {
+        _log.info('found existing daemon socket, connecting to external daemon', {
+          'socket_path': _socketPath,
+        });
+        _isRunning = true;
+        _externalDaemon = true;
+        return;
+      } else {
+        // Stale socket file - remove it
+        _log.warning('found stale socket file, removing', {'path': _socketPath});
+        await socketFile.delete();
+      }
     }
 
     // Find the daemon executable
@@ -177,6 +184,21 @@ class BackendLauncher {
       'Could not find skeys-daemon executable. '
       'Please build the daemon or install it to one of: ${locations.join(", ")}',
     );
+  }
+
+  /// Checks if a Unix socket is actually listening (not just a stale file).
+  Future<bool> _isSocketListening(String socketPath) async {
+    try {
+      final socket = await Socket.connect(
+        InternetAddress(socketPath, type: InternetAddressType.unix),
+        0,
+      );
+      await socket.close();
+      return true;
+    } catch (e) {
+      _log.debug('socket connection test failed', {'path': socketPath, 'error': e});
+      return false;
+    }
   }
 
   Future<void> _waitForSocket() async {
