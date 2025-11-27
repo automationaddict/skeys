@@ -1,0 +1,17 @@
+services:
+  daemon:
+    build:
+      context: .
+      dockerfile: skeys-daemon/Dockerfile
+      args:
+        VERSION: dev
+        COMMIT: ${COMMIT:-unknown}
+    container_name: skeys-daemon-dev
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      - HOME=${HOME}
+    volumes:
+      - /tmp:/tmp
+      - ${HOME}/.ssh:${HOME}/.ssh
+      - ${HOME}/.local/share/skeys:${HOME}/.local/share/skeys
+    command: ["--socket", "/tmp/skeys-dev.sock", "--log-pretty"]

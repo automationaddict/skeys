@@ -1,4 +1,4 @@
-# skeys_app
+# skeys-app
 
 A new Flutter project.
 

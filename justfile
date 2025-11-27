@@ -45,16 +45,13 @@ proto-clean:
 # Backend (Go)
 # ============================================================
 
-# Build the daemon
+# Build the daemon (for local testing only, dev uses container)
 build-daemon:
     @echo "Building skeys-daemon..."
-    cd skeys-daemon && go build -o bin/skeys-daemon ./cmd/skeys-daemon
+    cd skeys-daemon && go build \
+        -ldflags="-X main.version=dev -X main.commit=$(git rev-parse --short HEAD 2>/dev/null || echo unknown)" \
+        -o bin/skeys-daemon ./cmd/skeys-daemon
     @echo "Daemon built: skeys-daemon/bin/skeys-daemon"
-
-# Run the daemon
-run-daemon: build-daemon
-    @echo "Starting skeys-daemon..."
-    ./skeys-daemon/bin/skeys-daemon
 
 # Run daemon tests
 test-daemon:
@@ -68,24 +65,6 @@ test-core:
 
 # Run all Go tests
 test-go: test-core test-daemon
-
-# Lint Go code
-lint-go:
-    @echo "Linting Go code..."
-    cd skeys-core && golangci-lint run ./...
-    cd skeys-daemon && golangci-lint run ./...
-
-# Format Go code
-fmt-go:
-    @echo "Formatting Go code..."
-    cd skeys-core && go fmt ./...
-    cd skeys-daemon && go fmt ./...
-
-# Tidy Go modules
-tidy-go:
-    @echo "Tidying Go modules..."
-    cd skeys-core && go mod tidy
-    cd skeys-daemon && go mod tidy
 
 # ============================================================
 # Frontend (Flutter)
@@ -101,25 +80,16 @@ build-app: flutter-deps
     @echo "Building Flutter app..."
     cd skeys-app && flutter build linux
 
-# Run Flutter app
-run-app: build-daemon flutter-deps
-    @echo "Starting Flutter app..."
-    cd skeys-app && flutter run -d linux
+# Run Flutter app in dev mode (requires daemon via tilt up)
+run-app: flutter-deps
+    @echo "Starting Flutter app in dev mode..."
+    @echo "Make sure daemon is running: tilt up"
+    cd skeys-app && SKEYS_DEV=true flutter run -d linux
 
 # Run Flutter tests
 test-app:
     @echo "Running Flutter tests..."
     cd skeys-app && flutter test
-
-# Analyze Flutter code
-analyze-app:
-    @echo "Analyzing Flutter code..."
-    cd skeys-app && flutter analyze
-
-# Format Flutter code
-fmt-app:
-    @echo "Formatting Flutter code..."
-    cd skeys-app && dart format lib test
 
 # Generate Flutter code (freezed, json_serializable, etc.)
 gen-app:
@@ -143,14 +113,6 @@ build: proto-gen build-daemon build-app
 test: test-go test-app
     @echo "All tests complete"
 
-# Format all code
-fmt: fmt-go fmt-app
-    @echo "All code formatted"
-
-# Lint/analyze all code
-lint: lint-go analyze-app
-    @echo "All code linted"
-
 # Clean all build artifacts
 clean: proto-clean
     rm -rf skeys-daemon/bin
@@ -158,14 +120,26 @@ clean: proto-clean
     @echo "Clean complete"
 
 # ============================================================
-# Development
+# Development (containerized daemon)
 # ============================================================
 
-# Start development environment (daemon + app)
-dev: build-daemon
-    @echo "Starting development environment..."
-    @echo "Run 'just run-daemon' in one terminal"
-    @echo "Run 'just run-app' in another terminal"
+# Start the full dev environment (daemon container + Flutter app)
+tilt-up:
+    tilt up
+
+# Stop the dev environment
+tilt-down:
+    tilt down
+    rm -f /tmp/skeys-dev.sock
+
+# Kill any orphaned dev processes/containers
+tilt-kill:
+    @echo "Killing orphaned dev processes..."
+    -docker stop skeys-daemon-dev 2>/dev/null || true
+    -docker rm skeys-daemon-dev 2>/dev/null || true
+    -docker stop $$(docker ps -q --filter ancestor=skeys-daemon-dev) 2>/dev/null || true
+    rm -f /tmp/skeys-dev.sock
+    @echo "Cleanup complete"
 
 # Install development dependencies
 setup:
@@ -176,6 +150,10 @@ setup:
     flutter --version
     @echo "Checking protoc..."
     protoc --version
+    @echo "Checking Docker..."
+    docker --version
+    @echo "Checking Tilt..."
+    tilt version
     @echo "Installing protoc plugins..."
     go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
     go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
@@ -194,54 +172,36 @@ uninstall-daemon:
     rm -f ~/.local/bin/skeys-daemon
     @echo "Daemon uninstalled"
 
-# Install the app (binary, icons, and .desktop file)
+# Install the app (bundle, icons, and .desktop file)
 install-app: build-app
     @echo "Installing SKeys app..."
-    @# Install binary
-    mkdir -p ~/.local/bin
-    cp skeys-app/build/linux/x64/release/bundle/skeys_app ~/.local/bin/
-    @# Install app bundle to ~/.local/share/skeys
+    @# Clean any previous install first
+    rm -rf ~/.local/share/skeys
+    @# Install app bundle (binary + libs + data)
     mkdir -p ~/.local/share/skeys
     cp -r skeys-app/build/linux/x64/release/bundle/* ~/.local/share/skeys/
-    @# Install .desktop file
+    @# Install .desktop file with correct path
     mkdir -p ~/.local/share/applications
-    sed "s|Exec=skeys_app|Exec=$HOME/.local/share/skeys/skeys_app|g" \
-        skeys-app/linux/com.skeys.skeys_app.desktop > ~/.local/share/applications/com.skeys.skeys_app.desktop
+    sed "s|Exec=skeys-app|Exec=$HOME/.local/share/skeys/skeys-app|g" \
+        skeys-app/linux/com.skeys.skeys-app.desktop > ~/.local/share/applications/com.skeys.skeys-app.desktop
     @# Install icons to hicolor theme
-    mkdir -p ~/.local/share/icons/hicolor/16x16/apps
-    mkdir -p ~/.local/share/icons/hicolor/32x32/apps
-    mkdir -p ~/.local/share/icons/hicolor/48x48/apps
-    mkdir -p ~/.local/share/icons/hicolor/64x64/apps
-    mkdir -p ~/.local/share/icons/hicolor/128x128/apps
-    mkdir -p ~/.local/share/icons/hicolor/256x256/apps
-    mkdir -p ~/.local/share/icons/hicolor/512x512/apps
-    mkdir -p ~/.local/share/icons/hicolor/1024x1024/apps
-    cp skeys-app/linux/runner/icons/skeys_16.png ~/.local/share/icons/hicolor/16x16/apps/com.skeys.skeys_app.png
-    cp skeys-app/linux/runner/icons/skeys_32.png ~/.local/share/icons/hicolor/32x32/apps/com.skeys.skeys_app.png
-    cp skeys-app/linux/runner/icons/skeys_48.png ~/.local/share/icons/hicolor/48x48/apps/com.skeys.skeys_app.png
-    cp skeys-app/linux/runner/icons/skeys_64.png ~/.local/share/icons/hicolor/64x64/apps/com.skeys.skeys_app.png
-    cp skeys-app/linux/runner/icons/skeys_128.png ~/.local/share/icons/hicolor/128x128/apps/com.skeys.skeys_app.png
-    cp skeys-app/linux/runner/icons/skeys_256.png ~/.local/share/icons/hicolor/256x256/apps/com.skeys.skeys_app.png
-    cp skeys-app/linux/runner/icons/skeys_512.png ~/.local/share/icons/hicolor/512x512/apps/com.skeys.skeys_app.png
-    cp skeys-app/linux/runner/icons/skeys_1024.png ~/.local/share/icons/hicolor/1024x1024/apps/com.skeys.skeys_app.png
+    for size in 16 32 48 64 128 256 512 1024; do \
+        mkdir -p ~/.local/share/icons/hicolor/$${size}x$${size}/apps; \
+        cp skeys-app/linux/runner/icons/skeys_$${size}.png \
+           ~/.local/share/icons/hicolor/$${size}x$${size}/apps/com.skeys.skeys-app.png; \
+    done
     @# Update icon cache
     gtk-update-icon-cache -f -t ~/.local/share/icons/hicolor || true
-    @echo "SKeys app installed! You may need to log out and back in for the icon to appear in your launcher."
+    @echo "SKeys app installed to ~/.local/share/skeys/"
 
 # Uninstall the app
 uninstall-app:
     @echo "Uninstalling SKeys app..."
-    rm -f ~/.local/bin/skeys_app
     rm -rf ~/.local/share/skeys
-    rm -f ~/.local/share/applications/com.skeys.skeys_app.desktop
-    rm -f ~/.local/share/icons/hicolor/16x16/apps/com.skeys.skeys_app.png
-    rm -f ~/.local/share/icons/hicolor/32x32/apps/com.skeys.skeys_app.png
-    rm -f ~/.local/share/icons/hicolor/48x48/apps/com.skeys.skeys_app.png
-    rm -f ~/.local/share/icons/hicolor/64x64/apps/com.skeys.skeys_app.png
-    rm -f ~/.local/share/icons/hicolor/128x128/apps/com.skeys.skeys_app.png
-    rm -f ~/.local/share/icons/hicolor/256x256/apps/com.skeys.skeys_app.png
-    rm -f ~/.local/share/icons/hicolor/512x512/apps/com.skeys.skeys_app.png
-    rm -f ~/.local/share/icons/hicolor/1024x1024/apps/com.skeys.skeys_app.png
+    rm -f ~/.local/share/applications/com.skeys.skeys-app.desktop
+    for size in 16 32 48 64 128 256 512 1024; do \
+        rm -f ~/.local/share/icons/hicolor/$${size}x$${size}/apps/com.skeys.skeys-app.png; \
+    done
     gtk-update-icon-cache -f -t ~/.local/share/icons/hicolor || true
     @echo "SKeys app uninstalled"
 

@@ -7,6 +7,12 @@ import '../logging/app_logger.dart';
 /// Launches and manages the skeys-daemon backend process.
 ///
 /// The daemon communicates via Unix socket for gRPC.
+///
+/// In dev mode (SKEYS_DEV=true), connects to /tmp/skeys-dev.sock and expects
+/// the daemon to be running externally (e.g., via Tilt container).
+///
+/// In production mode, connects to /tmp/skeys.sock and will launch the
+/// installed daemon if not already running.
 class BackendLauncher {
   final AppLogger _log = AppLogger('backend');
 
@@ -14,6 +20,13 @@ class BackendLauncher {
   String? _socketPath;
   bool _isRunning = false;
   bool _externalDaemon = false;
+
+  /// Returns true if running in development mode (SKEYS_DEV=true)
+  static bool get isDevMode => Platform.environment['SKEYS_DEV'] == 'true';
+
+  /// Returns the appropriate socket path based on mode
+  static String get defaultSocketPath =>
+      isDevMode ? '/tmp/skeys-dev.sock' : '/tmp/skeys.sock';
 
   String get socketPath {
     if (_socketPath == null) {
@@ -31,10 +44,12 @@ class BackendLauncher {
       return;
     }
 
-    _log.info('starting backend launcher');
+    _log.info('starting backend launcher', {
+      'dev_mode': isDevMode,
+    });
 
-    // Determine socket path - use /tmp for consistency with daemon
-    _socketPath = '/tmp/skeys.sock';
+    // Use appropriate socket path for mode
+    _socketPath = defaultSocketPath;
     _log.debug('using socket path', {'socket_path': _socketPath});
 
     // Check if socket already exists (daemon already running externally)
@@ -55,7 +70,16 @@ class BackendLauncher {
       }
     }
 
-    // Find the daemon executable
+    // In dev mode, the daemon should be running via Tilt/container
+    // Don't try to start it ourselves
+    if (isDevMode) {
+      throw StateError(
+        'Dev mode: daemon not running. Start it with "tilt up" or "just dev".\n'
+        'Expected socket at: $_socketPath',
+      );
+    }
+
+    // Production mode: find and launch the daemon
     String daemonPath;
     try {
       daemonPath = await _findDaemonExecutable();
@@ -65,7 +89,7 @@ class BackendLauncher {
       rethrow;
     }
 
-    // Start the daemon process (not detached so we can monitor it)
+    // Start the daemon process
     _log.info('starting daemon process', {
       'executable': daemonPath,
       'socket': _socketPath,
@@ -95,10 +119,6 @@ class BackendLauncher {
 
     _isRunning = true;
     _externalDaemon = false;
-
-    // Note: With setsid -f, the daemon runs in its own session and we can't
-    // directly monitor its exit or capture its output. The daemon logs to
-    // its own stdout which goes to the terminal or /dev/null.
 
     _log.info('backend launcher started successfully');
   }
@@ -144,12 +164,8 @@ class BackendLauncher {
   }
 
   Future<String> _findDaemonExecutable() async {
-    // Check common locations for the daemon
+    // Only search installed locations - dev mode uses containerized daemon
     final locations = [
-      // Development: relative to app
-      path.join(Directory.current.path, '..', 'skeys-daemon', 'skeys-daemon'),
-      // Development: in daemon build dir
-      path.join(Directory.current.path, '..', 'skeys-daemon', 'bin', 'skeys-daemon'),
       // Installed: user local bin
       path.join(Platform.environment['HOME'] ?? '', '.local', 'bin', 'skeys-daemon'),
       // Installed: system bin
@@ -182,7 +198,7 @@ class BackendLauncher {
 
     throw StateError(
       'Could not find skeys-daemon executable. '
-      'Please build the daemon or install it to one of: ${locations.join(", ")}',
+      'Please install skeys with "just install" or download from GitHub releases.',
     );
   }
 
