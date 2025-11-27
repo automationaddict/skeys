@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/di/injection.dart';
 import '../../../core/help/help_context_service.dart';
+import '../../../core/notifications/app_toast.dart';
 import '../bloc/hosts_bloc.dart';
 import '../domain/host_entity.dart';
 
@@ -144,27 +146,11 @@ class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMix
             itemCount: state.knownHosts.length,
             itemBuilder: (context, index) {
               final host = state.knownHosts[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  leading: Icon(
-                    host.isHashed ? Icons.tag : Icons.dns,
-                    color: host.isHashed ? Colors.green : null,
-                  ),
-                  title: Text(
-                    host.isHashed ? '[HASHED]' : host.host,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontFamily: 'monospace',
-                        ),
-                  ),
-                  subtitle: Text(host.keyType),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: () {
-                      context.read<HostsBloc>().add(HostsRemoveKnownHostRequested(host.host));
-                    },
-                  ),
-                ),
+              return _KnownHostCard(
+                host: host,
+                onDelete: () {
+                  context.read<HostsBloc>().add(HostsRemoveKnownHostRequested(host.host));
+                },
               );
             },
           ),
@@ -408,5 +394,127 @@ class _ScannedKeyTile extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Expandable card for known host entries with public key display.
+class _KnownHostCard extends StatefulWidget {
+  final KnownHostEntry host;
+  final VoidCallback onDelete;
+
+  const _KnownHostCard({
+    required this.host,
+    required this.onDelete,
+  });
+
+  @override
+  State<_KnownHostCard> createState() => _KnownHostCardState();
+}
+
+class _KnownHostCardState extends State<_KnownHostCard> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          ListTile(
+            leading: Icon(
+              widget.host.isHashed ? Icons.tag : Icons.dns,
+              color: widget.host.isHashed ? Colors.green : null,
+            ),
+            title: Text(
+              widget.host.isHashed ? '[HASHED]' : widget.host.host,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontFamily: 'monospace',
+              ),
+            ),
+            subtitle: Text(widget.host.keyType),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: AnimatedRotation(
+                    turns: _isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: const Icon(Icons.expand_more),
+                  ),
+                  onPressed: () => setState(() => _isExpanded = !_isExpanded),
+                  tooltip: _isExpanded ? 'Hide key' : 'Show key',
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: widget.onDelete,
+                  tooltip: 'Remove host',
+                ),
+              ],
+            ),
+          ),
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text(
+                        'Public Key',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.copy, size: 18),
+                        onPressed: () => _copyPublicKey(context),
+                        tooltip: 'Copy public key',
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: SelectableText(
+                      widget.host.publicKey,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontFamily: 'monospace',
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            crossFadeState: _isExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _copyPublicKey(BuildContext context) {
+    final fullKey = '${widget.host.keyType} ${widget.host.publicKey}';
+    Clipboard.setData(ClipboardData(text: fullKey));
+    AppToast.success(context, message: 'Public key copied to clipboard');
   }
 }
