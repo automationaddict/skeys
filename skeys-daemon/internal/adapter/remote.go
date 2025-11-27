@@ -60,6 +60,7 @@ func (a *RemoteServiceAdapter) DeleteRemote(ctx context.Context, req *pb.DeleteR
 }
 
 // TestConnection tests connectivity to a remote host with real SSH authentication
+// and proper host key verification
 func (a *RemoteServiceAdapter) TestConnection(ctx context.Context, req *pb.TestRemoteConnectionRequest) (*pb.TestRemoteConnectionResponse, error) {
 	cfg := remote.ConnectionConfig{
 		Host:           req.GetHost(),
@@ -67,6 +68,7 @@ func (a *RemoteServiceAdapter) TestConnection(ctx context.Context, req *pb.TestR
 		User:           req.GetUser(),
 		AgentSocket:    a.agentSocketPath,
 		PrivateKeyPath: req.GetIdentityFile(),
+		TrustHostKey:   req.GetTrustHostKey(),
 	}
 
 	if req.GetPassphrase() != "" {
@@ -86,12 +88,43 @@ func (a *RemoteServiceAdapter) TestConnection(ctx context.Context, req *pb.TestR
 		return nil, status.Errorf(codes.Internal, "test connection failed: %v", err)
 	}
 
-	return &pb.TestRemoteConnectionResponse{
+	// Build response with host key status
+	resp := &pb.TestRemoteConnectionResponse{
 		Success:       result.Success,
 		Message:       result.Message,
 		ServerVersion: result.ServerVersion,
 		LatencyMs:     int32(result.LatencyMs),
-	}, nil
+		HostKeyStatus: toProtoHostKeyStatus(result.HostKeyStatus),
+	}
+
+	// Include host key info if available
+	if result.HostKeyInfo != nil {
+		resp.HostKeyInfo = &pb.HostKeyInfo{
+			Hostname:    result.HostKeyInfo.Hostname,
+			Port:        int32(result.HostKeyInfo.Port),
+			KeyType:     result.HostKeyInfo.KeyType,
+			Fingerprint: result.HostKeyInfo.Fingerprint,
+			PublicKey:   result.HostKeyInfo.PublicKey,
+		}
+	}
+
+	return resp, nil
+}
+
+// toProtoHostKeyStatus converts core HostKeyStatus to proto HostKeyStatus
+func toProtoHostKeyStatus(s remote.HostKeyStatus) pb.HostKeyStatus {
+	switch s {
+	case remote.HostKeyStatusVerified:
+		return pb.HostKeyStatus_HOST_KEY_STATUS_VERIFIED
+	case remote.HostKeyStatusUnknown:
+		return pb.HostKeyStatus_HOST_KEY_STATUS_UNKNOWN
+	case remote.HostKeyStatusMismatch:
+		return pb.HostKeyStatus_HOST_KEY_STATUS_MISMATCH
+	case remote.HostKeyStatusAdded:
+		return pb.HostKeyStatus_HOST_KEY_STATUS_ADDED
+	default:
+		return pb.HostKeyStatus_HOST_KEY_STATUS_UNSPECIFIED
+	}
 }
 
 // Connect establishes a connection to a remote server

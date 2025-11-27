@@ -189,12 +189,19 @@ class BackendLauncher {
   /// Checks if a Unix socket is actually listening (not just a stale file).
   Future<bool> _isSocketListening(String socketPath) async {
     try {
+      // Use a short timeout to avoid hanging on stale sockets
       final socket = await Socket.connect(
         InternetAddress(socketPath, type: InternetAddressType.unix),
         0,
-      );
+      ).timeout(const Duration(milliseconds: 500));
       await socket.close();
       return true;
+    } on TimeoutException {
+      _log.debug('socket connection timed out (stale socket)', {'path': socketPath});
+      return false;
+    } on SocketException catch (e) {
+      _log.debug('socket connection failed', {'path': socketPath, 'error': e.message});
+      return false;
     } catch (e) {
       _log.debug('socket connection test failed', {'path': socketPath, 'error': e});
       return false;

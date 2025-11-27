@@ -78,6 +78,7 @@ final class KeysTestConnectionRequested extends KeysEvent {
   final int port;
   final String user;
   final String? passphrase;
+  final bool trustHostKey;
 
   const KeysTestConnectionRequested({
     required this.keyPath,
@@ -85,10 +86,11 @@ final class KeysTestConnectionRequested extends KeysEvent {
     required this.port,
     required this.user,
     this.passphrase,
+    this.trustHostKey = false,
   });
 
   @override
-  List<Object?> get props => [keyPath, host, port, user, passphrase];
+  List<Object?> get props => [keyPath, host, port, user, passphrase, trustHostKey];
 }
 
 /// Clear the test connection result.

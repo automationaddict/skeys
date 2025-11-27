@@ -41,6 +41,7 @@ type ConnectionConfig struct {
 	Passphrase     []byte
 	Timeout        time.Duration
 	AgentSocket    string // Path to SSH agent socket for agent-based auth
+	TrustHostKey   bool   // If true and host is unknown, add to known_hosts before connecting
 }
 
 // ConnectionPool manages a pool of SSH connections
@@ -394,9 +395,19 @@ type TestResult struct {
 	Message       string
 	ServerVersion string
 	LatencyMs     int64
+	HostKeyStatus HostKeyStatus
+	HostKeyInfo   *HostKeyInfo
 }
 
 // TestConnection tests SSH connectivity to a host with real authentication
+// and proper host key verification.
+//
+// The host key verification flow is:
+// 1. Check if host is in known_hosts
+// 2. If unknown and TrustHostKey=false, return HostKeyStatusUnknown (caller should prompt user)
+// 3. If unknown and TrustHostKey=true, add to known_hosts and proceed
+// 4. If mismatch (possible MITM), return HostKeyStatusMismatch and refuse to connect
+// 5. If verified, proceed with connection
 func TestConnection(ctx context.Context, cfg ConnectionConfig) (*TestResult, error) {
 	if cfg.Port == 0 {
 		cfg.Port = 22
@@ -405,26 +416,101 @@ func TestConnection(ctx context.Context, cfg ConnectionConfig) (*TestResult, err
 		cfg.Timeout = 10 * time.Second
 	}
 
+	// Create host key verifier
+	verifier, err := NewHostKeyVerifier()
+	if err != nil {
+		return &TestResult{
+			Success: false,
+			Message: fmt.Sprintf("failed to initialize host key verifier: %v", err),
+		}, nil
+	}
+
+	// Check host key status first
+	hostKeyStatus, hostKeyInfo, err := verifier.CheckHostKey(ctx, cfg.Host, cfg.Port)
+	if err != nil {
+		return &TestResult{
+			Success: false,
+			Message: fmt.Sprintf("failed to check host key: %v", err),
+		}, nil
+	}
+
+	// Handle host key status
+	switch hostKeyStatus {
+	case HostKeyStatusMismatch:
+		// Host key changed - possible MITM attack, refuse to connect
+		return &TestResult{
+			Success:       false,
+			Message:       "WARNING: Remote host identification has changed! This could indicate a man-in-the-middle attack.",
+			HostKeyStatus: HostKeyStatusMismatch,
+			HostKeyInfo:   hostKeyInfo,
+		}, nil
+
+	case HostKeyStatusUnknown:
+		if !cfg.TrustHostKey {
+			// Host is unknown and user hasn't approved - return status for UI to prompt
+			return &TestResult{
+				Success:       false,
+				Message:       fmt.Sprintf("Host '%s' is not in known_hosts. Verify the fingerprint before connecting.", cfg.Host),
+				HostKeyStatus: HostKeyStatusUnknown,
+				HostKeyInfo:   hostKeyInfo,
+			}, nil
+		}
+		// User approved - add to known_hosts
+		if hostKeyInfo != nil {
+			if err := verifier.AddHostKey(cfg.Host, cfg.Port, hostKeyInfo.KeyType, hostKeyInfo.PublicKey); err != nil {
+				return &TestResult{
+					Success: false,
+					Message: fmt.Sprintf("failed to add host key to known_hosts: %v", err),
+				}, nil
+			}
+			hostKeyStatus = HostKeyStatusAdded
+		}
+
+	case HostKeyStatusVerified:
+		// Host key verified, proceed with connection
+	}
+
+	// Now proceed with actual SSH authentication
 	var authMethods []ssh.AuthMethod
 	var agentConn net.Conn
+	var keyNeedsPassphrase bool // Track if key parsing failed due to passphrase
 
-	// IMPORTANT: Add direct key auth FIRST (before agent) so the specific key is tried first
-	// This ensures we test the specific key the user selected, not all keys in the agent
+	// Try agent auth FIRST if socket provided and no passphrase given
+	// This handles the case where key is loaded in agent (already decrypted)
+	if cfg.AgentSocket != "" && len(cfg.Passphrase) == 0 {
+		conn, dialErr := net.Dial("unix", cfg.AgentSocket)
+		if dialErr == nil {
+			agentConn = conn
+			agentClient := agent.NewClient(conn)
+			authMethods = append(authMethods, ssh.PublicKeysCallback(agentClient.Signers))
+		}
+	}
 
 	// Add direct key auth if key bytes provided
 	if len(cfg.PrivateKey) > 0 {
 		var signer ssh.Signer
-		var err error
+		var parseErr error
 		if len(cfg.Passphrase) > 0 {
-			signer, err = ssh.ParsePrivateKeyWithPassphrase(cfg.PrivateKey, cfg.Passphrase)
+			signer, parseErr = ssh.ParsePrivateKeyWithPassphrase(cfg.PrivateKey, cfg.Passphrase)
 		} else {
-			signer, err = ssh.ParsePrivateKey(cfg.PrivateKey)
+			signer, parseErr = ssh.ParsePrivateKey(cfg.PrivateKey)
 		}
-		if err != nil {
-			return &TestResult{
-				Success: false,
-				Message: fmt.Sprintf("failed to parse private key: %v", err),
-			}, nil
+		if parseErr != nil {
+			// Check if it's a passphrase error - don't fail immediately if agent auth is available
+			if strings.Contains(parseErr.Error(), "this private key is passphrase protected") ||
+				strings.Contains(parseErr.Error(), "decryption password") {
+				keyNeedsPassphrase = true
+			} else {
+				if agentConn != nil {
+					agentConn.Close()
+				}
+				return &TestResult{
+					Success:       false,
+					Message:       fmt.Sprintf("failed to parse private key: %v", parseErr),
+					HostKeyStatus: hostKeyStatus,
+					HostKeyInfo:   hostKeyInfo,
+				}, nil
+			}
 		}
 		if signer != nil {
 			authMethods = append(authMethods, ssh.PublicKeys(signer))
@@ -433,46 +519,65 @@ func TestConnection(ctx context.Context, cfg ConnectionConfig) (*TestResult, err
 
 	// Load key from file if path provided
 	if cfg.PrivateKeyPath != "" {
-		keyBytes, err := os.ReadFile(cfg.PrivateKeyPath)
-		if err != nil {
+		keyBytes, readErr := os.ReadFile(cfg.PrivateKeyPath)
+		if readErr != nil {
+			if agentConn != nil {
+				agentConn.Close()
+			}
 			return &TestResult{
-				Success: false,
-				Message: fmt.Sprintf("failed to read private key file: %v", err),
+				Success:       false,
+				Message:       fmt.Sprintf("failed to read private key file: %v", readErr),
+				HostKeyStatus: hostKeyStatus,
+				HostKeyInfo:   hostKeyInfo,
 			}, nil
 		}
 		var signer ssh.Signer
+		var parseErr error
 		if len(cfg.Passphrase) > 0 {
-			signer, err = ssh.ParsePrivateKeyWithPassphrase(keyBytes, cfg.Passphrase)
+			signer, parseErr = ssh.ParsePrivateKeyWithPassphrase(keyBytes, cfg.Passphrase)
 		} else {
-			signer, err = ssh.ParsePrivateKey(keyBytes)
+			signer, parseErr = ssh.ParsePrivateKey(keyBytes)
 		}
-		if err != nil {
-			// Check if it's a passphrase error
-			if strings.Contains(err.Error(), "this private key is passphrase protected") ||
-				strings.Contains(err.Error(), "decryption password") {
+		if parseErr != nil {
+			// Check if it's a passphrase error - don't fail immediately if agent auth is available
+			if strings.Contains(parseErr.Error(), "this private key is passphrase protected") ||
+				strings.Contains(parseErr.Error(), "decryption password") {
+				keyNeedsPassphrase = true
+			} else {
+				if agentConn != nil {
+					agentConn.Close()
+				}
 				return &TestResult{
-					Success: false,
-					Message: "private key is passphrase protected",
+					Success:       false,
+					Message:       fmt.Sprintf("failed to parse private key: %v", parseErr),
+					HostKeyStatus: hostKeyStatus,
+					HostKeyInfo:   hostKeyInfo,
 				}, nil
 			}
-			return &TestResult{
-				Success: false,
-				Message: fmt.Sprintf("failed to parse private key: %v", err),
-			}, nil
 		}
 		if signer != nil {
 			authMethods = append(authMethods, ssh.PublicKeys(signer))
 		}
 	}
 
-	// Try agent auth as fallback if socket provided and no direct key auth worked
-	if cfg.AgentSocket != "" {
-		conn, err := net.Dial("unix", cfg.AgentSocket)
-		if err == nil {
+	// If agent socket provided and we haven't added it yet (passphrase was provided), add it now as fallback
+	if cfg.AgentSocket != "" && len(cfg.Passphrase) > 0 && agentConn == nil {
+		conn, dialErr := net.Dial("unix", cfg.AgentSocket)
+		if dialErr == nil {
 			agentConn = conn
 			agentClient := agent.NewClient(conn)
 			authMethods = append(authMethods, ssh.PublicKeysCallback(agentClient.Signers))
 		}
+	}
+
+	// If key needs passphrase and we have no auth methods, fail with helpful message
+	if keyNeedsPassphrase && len(authMethods) == 0 {
+		return &TestResult{
+			Success:       false,
+			Message:       "private key is passphrase protected - load key into agent or provide passphrase",
+			HostKeyStatus: hostKeyStatus,
+			HostKeyInfo:   hostKeyInfo,
+		}, nil
 	}
 
 	if len(authMethods) == 0 {
@@ -480,16 +585,32 @@ func TestConnection(ctx context.Context, cfg ConnectionConfig) (*TestResult, err
 			agentConn.Close()
 		}
 		return &TestResult{
-			Success: false,
-			Message: "no authentication methods available - load key into agent or provide key file",
+			Success:       false,
+			Message:       "no authentication methods available - load key into agent or provide key file",
+			HostKeyStatus: hostKeyStatus,
+			HostKeyInfo:   hostKeyInfo,
 		}, nil
 	}
 
-	// Build SSH client config
+	// Create host key callback that properly verifies against known_hosts
+	hostKeyCallback, err := verifier.CreateHostKeyCallback(false)
+	if err != nil {
+		if agentConn != nil {
+			agentConn.Close()
+		}
+		return &TestResult{
+			Success:       false,
+			Message:       fmt.Sprintf("failed to create host key callback: %v", err),
+			HostKeyStatus: hostKeyStatus,
+			HostKeyInfo:   hostKeyInfo,
+		}, nil
+	}
+
+	// Build SSH client config with proper host key verification
 	sshConfig := &ssh.ClientConfig{
 		User:            cfg.User,
 		Auth:            authMethods,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // TODO: Use known_hosts
+		HostKeyCallback: hostKeyCallback,
 		Timeout:         cfg.Timeout,
 	}
 
@@ -514,9 +635,11 @@ func TestConnection(ctx context.Context, cfg ConnectionConfig) (*TestResult, err
 			msg = "connection timed out - server may be unreachable"
 		}
 		return &TestResult{
-			Success:   false,
-			Message:   msg,
-			LatencyMs: latency,
+			Success:       false,
+			Message:       msg,
+			LatencyMs:     latency,
+			HostKeyStatus: hostKeyStatus,
+			HostKeyInfo:   hostKeyInfo,
 		}, nil
 	}
 	defer client.Close()
@@ -554,5 +677,7 @@ func TestConnection(ctx context.Context, cfg ConnectionConfig) (*TestResult, err
 		Message:       message,
 		ServerVersion: serverVersion,
 		LatencyMs:     latency,
+		HostKeyStatus: hostKeyStatus,
+		HostKeyInfo:   hostKeyInfo,
 	}, nil
 }

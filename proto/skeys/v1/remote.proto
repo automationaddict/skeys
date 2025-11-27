@@ -93,6 +93,25 @@ message TestRemoteConnectionRequest {
   string identity_file = 5;
   int32 timeout_seconds = 6;
   string passphrase = 7;  // Passphrase for encrypted key (optional)
+  bool trust_host_key = 8;  // If true and host is unknown, add to known_hosts before connecting
+}
+
+// Status of host key verification
+enum HostKeyStatus {
+  HOST_KEY_STATUS_UNSPECIFIED = 0;
+  HOST_KEY_STATUS_VERIFIED = 1;     // Host key matched known_hosts
+  HOST_KEY_STATUS_UNKNOWN = 2;      // Host not in known_hosts, needs user approval
+  HOST_KEY_STATUS_MISMATCH = 3;     // Host key changed (possible MITM attack)
+  HOST_KEY_STATUS_ADDED = 4;        // Host key was added to known_hosts (after trust_host_key=true)
+}
+
+// Information about an unknown or mismatched host key
+message HostKeyInfo {
+  string hostname = 1;
+  int32 port = 2;
+  string key_type = 3;
+  string fingerprint = 4;
+  string public_key = 5;
 }
 
 message TestRemoteConnectionResponse {
@@ -100,6 +119,8 @@ message TestRemoteConnectionResponse {
   string message = 2;
   string server_version = 3;
   int32 latency_ms = 4;
+  HostKeyStatus host_key_status = 5;
+  HostKeyInfo host_key_info = 6;  // Present when status is UNKNOWN or MISMATCH
 }
 
 message ConnectRequest {

@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../core/logging/app_logger.dart';
+import '../../remote/domain/remote_entity.dart';
 import '../../remote/repository/remote_repository.dart';
 import '../domain/key_entity.dart';
 import '../repository/keys_repository.dart';
@@ -169,6 +170,7 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
       'host': event.host,
       'port': event.port,
       'user': event.user,
+      'trustHostKey': event.trustHostKey,
     });
     emit(state.copyWith(status: KeysStatus.testingConnection, clearTestResult: true));
 
@@ -180,10 +182,12 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
         identityFile: event.keyPath,
         timeoutSeconds: 10,
         passphrase: event.passphrase,
+        trustHostKey: event.trustHostKey,
       );
       _log.info('connection test completed', {
         'success': result.success,
         'message': result.message,
+        'hostKeyStatus': result.hostKeyStatus.name,
       });
       emit(state.copyWith(
         status: KeysStatus.success,
@@ -193,6 +197,8 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
           serverVersion: result.serverVersion,
           latencyMs: result.latencyMs,
           host: event.host,
+          hostKeyStatus: result.hostKeyStatus,
+          hostKeyInfo: result.hostKeyInfo,
         ),
       ));
     } catch (e, st) {

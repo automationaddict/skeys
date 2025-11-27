@@ -27,6 +27,7 @@ abstract class RemoteRepository {
     required String identityFile,
     int? timeoutSeconds,
     String? passphrase,
+    bool trustHostKey = false,
   });
 }
 
@@ -138,12 +139,14 @@ class RemoteRepositoryImpl implements RemoteRepository {
     required String identityFile,
     int? timeoutSeconds,
     String? passphrase,
+    bool trustHostKey = false,
   }) async {
     final request = pb.TestRemoteConnectionRequest()
       ..host = host
       ..port = port
       ..user = user
-      ..identityFile = identityFile;
+      ..identityFile = identityFile
+      ..trustHostKey = trustHostKey;
 
     if (timeoutSeconds != null) request.timeoutSeconds = timeoutSeconds;
     if (passphrase != null) request.passphrase = passphrase;
@@ -154,6 +157,33 @@ class RemoteRepositoryImpl implements RemoteRepository {
       message: response.message,
       serverVersion: response.serverVersion.isEmpty ? null : response.serverVersion,
       latencyMs: response.latencyMs > 0 ? response.latencyMs : null,
+      hostKeyStatus: _mapHostKeyStatus(response.hostKeyStatus),
+      hostKeyInfo: response.hasHostKeyInfo() ? _mapHostKeyInfo(response.hostKeyInfo) : null,
+    );
+  }
+
+  HostKeyVerificationStatus _mapHostKeyStatus(pb.HostKeyStatus status) {
+    switch (status) {
+      case pb.HostKeyStatus.HOST_KEY_STATUS_VERIFIED:
+        return HostKeyVerificationStatus.verified;
+      case pb.HostKeyStatus.HOST_KEY_STATUS_UNKNOWN:
+        return HostKeyVerificationStatus.unknown;
+      case pb.HostKeyStatus.HOST_KEY_STATUS_MISMATCH:
+        return HostKeyVerificationStatus.mismatch;
+      case pb.HostKeyStatus.HOST_KEY_STATUS_ADDED:
+        return HostKeyVerificationStatus.added;
+      default:
+        return HostKeyVerificationStatus.unspecified;
+    }
+  }
+
+  HostKeyInfo _mapHostKeyInfo(pb.HostKeyInfo info) {
+    return HostKeyInfo(
+      hostname: info.hostname,
+      port: info.port,
+      keyType: info.keyType,
+      fingerprint: info.fingerprint,
+      publicKey: info.publicKey,
     );
   }
 

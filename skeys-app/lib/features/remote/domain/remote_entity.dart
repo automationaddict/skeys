@@ -102,20 +102,77 @@ class CommandResult extends Equatable {
   List<Object?> get props => [exitCode, stdout, stderr];
 }
 
+/// Status of host key verification.
+enum HostKeyVerificationStatus {
+  /// Unspecified or unknown status
+  unspecified,
+
+  /// Host key matched known_hosts
+  verified,
+
+  /// Host not in known_hosts, needs user approval
+  unknown,
+
+  /// Host key changed (possible MITM attack)
+  mismatch,
+
+  /// Host key was added to known_hosts
+  added,
+}
+
+/// Information about a host key.
+class HostKeyInfo extends Equatable {
+  final String hostname;
+  final int port;
+  final String keyType;
+  final String fingerprint;
+  final String publicKey;
+
+  const HostKeyInfo({
+    required this.hostname,
+    required this.port,
+    required this.keyType,
+    required this.fingerprint,
+    required this.publicKey,
+  });
+
+  @override
+  List<Object?> get props => [hostname, port, keyType, fingerprint, publicKey];
+}
+
 /// Result of testing an SSH connection.
 class TestConnectionResult extends Equatable {
   final bool success;
   final String message;
   final String? serverVersion;
   final int? latencyMs;
+  final HostKeyVerificationStatus hostKeyStatus;
+  final HostKeyInfo? hostKeyInfo;
 
   const TestConnectionResult({
     required this.success,
     required this.message,
     this.serverVersion,
     this.latencyMs,
+    this.hostKeyStatus = HostKeyVerificationStatus.unspecified,
+    this.hostKeyInfo,
   });
 
+  /// Whether the host key needs user approval (unknown host).
+  bool get needsHostKeyApproval =>
+      hostKeyStatus == HostKeyVerificationStatus.unknown;
+
+  /// Whether there is a host key mismatch (potential security issue).
+  bool get hasHostKeyMismatch =>
+      hostKeyStatus == HostKeyVerificationStatus.mismatch;
+
   @override
-  List<Object?> get props => [success, message, serverVersion, latencyMs];
+  List<Object?> get props => [
+        success,
+        message,
+        serverVersion,
+        latencyMs,
+        hostKeyStatus,
+        hostKeyInfo,
+      ];
 }

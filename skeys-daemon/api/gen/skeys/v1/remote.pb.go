@@ -78,6 +78,62 @@ func (RemoteStatus) EnumDescriptor() ([]byte, []int) {
 	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{0}
 }
 
+// Status of host key verification
+type HostKeyStatus int32
+
+const (
+	HostKeyStatus_HOST_KEY_STATUS_UNSPECIFIED HostKeyStatus = 0
+	HostKeyStatus_HOST_KEY_STATUS_VERIFIED    HostKeyStatus = 1 // Host key matched known_hosts
+	HostKeyStatus_HOST_KEY_STATUS_UNKNOWN     HostKeyStatus = 2 // Host not in known_hosts, needs user approval
+	HostKeyStatus_HOST_KEY_STATUS_MISMATCH    HostKeyStatus = 3 // Host key changed (possible MITM attack)
+	HostKeyStatus_HOST_KEY_STATUS_ADDED       HostKeyStatus = 4 // Host key was added to known_hosts (after trust_host_key=true)
+)
+
+// Enum value maps for HostKeyStatus.
+var (
+	HostKeyStatus_name = map[int32]string{
+		0: "HOST_KEY_STATUS_UNSPECIFIED",
+		1: "HOST_KEY_STATUS_VERIFIED",
+		2: "HOST_KEY_STATUS_UNKNOWN",
+		3: "HOST_KEY_STATUS_MISMATCH",
+		4: "HOST_KEY_STATUS_ADDED",
+	}
+	HostKeyStatus_value = map[string]int32{
+		"HOST_KEY_STATUS_UNSPECIFIED": 0,
+		"HOST_KEY_STATUS_VERIFIED":    1,
+		"HOST_KEY_STATUS_UNKNOWN":     2,
+		"HOST_KEY_STATUS_MISMATCH":    3,
+		"HOST_KEY_STATUS_ADDED":       4,
+	}
+)
+
+func (x HostKeyStatus) Enum() *HostKeyStatus {
+	p := new(HostKeyStatus)
+	*p = x
+	return p
+}
+
+func (x HostKeyStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (HostKeyStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_skeys_v1_remote_proto_enumTypes[1].Descriptor()
+}
+
+func (HostKeyStatus) Type() protoreflect.EnumType {
+	return &file_skeys_v1_remote_proto_enumTypes[1]
+}
+
+func (x HostKeyStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use HostKeyStatus.Descriptor instead.
+func (HostKeyStatus) EnumDescriptor() ([]byte, []int) {
+	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{1}
+}
+
 type Remote struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -646,7 +702,8 @@ type TestRemoteConnectionRequest struct {
 	User           string                 `protobuf:"bytes,4,opt,name=user,proto3" json:"user,omitempty"`
 	IdentityFile   string                 `protobuf:"bytes,5,opt,name=identity_file,json=identityFile,proto3" json:"identity_file,omitempty"`
 	TimeoutSeconds int32                  `protobuf:"varint,6,opt,name=timeout_seconds,json=timeoutSeconds,proto3" json:"timeout_seconds,omitempty"`
-	Passphrase     string                 `protobuf:"bytes,7,opt,name=passphrase,proto3" json:"passphrase,omitempty"` // Passphrase for encrypted key (optional)
+	Passphrase     string                 `protobuf:"bytes,7,opt,name=passphrase,proto3" json:"passphrase,omitempty"`                            // Passphrase for encrypted key (optional)
+	TrustHostKey   bool                   `protobuf:"varint,8,opt,name=trust_host_key,json=trustHostKey,proto3" json:"trust_host_key,omitempty"` // If true and host is unknown, add to known_hosts before connecting
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -730,19 +787,105 @@ func (x *TestRemoteConnectionRequest) GetPassphrase() string {
 	return ""
 }
 
+func (x *TestRemoteConnectionRequest) GetTrustHostKey() bool {
+	if x != nil {
+		return x.TrustHostKey
+	}
+	return false
+}
+
+// Information about an unknown or mismatched host key
+type HostKeyInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Hostname      string                 `protobuf:"bytes,1,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	Port          int32                  `protobuf:"varint,2,opt,name=port,proto3" json:"port,omitempty"`
+	KeyType       string                 `protobuf:"bytes,3,opt,name=key_type,json=keyType,proto3" json:"key_type,omitempty"`
+	Fingerprint   string                 `protobuf:"bytes,4,opt,name=fingerprint,proto3" json:"fingerprint,omitempty"`
+	PublicKey     string                 `protobuf:"bytes,5,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HostKeyInfo) Reset() {
+	*x = HostKeyInfo{}
+	mi := &file_skeys_v1_remote_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HostKeyInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HostKeyInfo) ProtoMessage() {}
+
+func (x *HostKeyInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_remote_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HostKeyInfo.ProtoReflect.Descriptor instead.
+func (*HostKeyInfo) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *HostKeyInfo) GetHostname() string {
+	if x != nil {
+		return x.Hostname
+	}
+	return ""
+}
+
+func (x *HostKeyInfo) GetPort() int32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+func (x *HostKeyInfo) GetKeyType() string {
+	if x != nil {
+		return x.KeyType
+	}
+	return ""
+}
+
+func (x *HostKeyInfo) GetFingerprint() string {
+	if x != nil {
+		return x.Fingerprint
+	}
+	return ""
+}
+
+func (x *HostKeyInfo) GetPublicKey() string {
+	if x != nil {
+		return x.PublicKey
+	}
+	return ""
+}
+
 type TestRemoteConnectionResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 	ServerVersion string                 `protobuf:"bytes,3,opt,name=server_version,json=serverVersion,proto3" json:"server_version,omitempty"`
 	LatencyMs     int32                  `protobuf:"varint,4,opt,name=latency_ms,json=latencyMs,proto3" json:"latency_ms,omitempty"`
+	HostKeyStatus HostKeyStatus          `protobuf:"varint,5,opt,name=host_key_status,json=hostKeyStatus,proto3,enum=skeys.v1.HostKeyStatus" json:"host_key_status,omitempty"`
+	HostKeyInfo   *HostKeyInfo           `protobuf:"bytes,6,opt,name=host_key_info,json=hostKeyInfo,proto3" json:"host_key_info,omitempty"` // Present when status is UNKNOWN or MISMATCH
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TestRemoteConnectionResponse) Reset() {
 	*x = TestRemoteConnectionResponse{}
-	mi := &file_skeys_v1_remote_proto_msgTypes[9]
+	mi := &file_skeys_v1_remote_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -754,7 +897,7 @@ func (x *TestRemoteConnectionResponse) String() string {
 func (*TestRemoteConnectionResponse) ProtoMessage() {}
 
 func (x *TestRemoteConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_remote_proto_msgTypes[9]
+	mi := &file_skeys_v1_remote_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -767,7 +910,7 @@ func (x *TestRemoteConnectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestRemoteConnectionResponse.ProtoReflect.Descriptor instead.
 func (*TestRemoteConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{9}
+	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *TestRemoteConnectionResponse) GetSuccess() bool {
@@ -798,6 +941,20 @@ func (x *TestRemoteConnectionResponse) GetLatencyMs() int32 {
 	return 0
 }
 
+func (x *TestRemoteConnectionResponse) GetHostKeyStatus() HostKeyStatus {
+	if x != nil {
+		return x.HostKeyStatus
+	}
+	return HostKeyStatus_HOST_KEY_STATUS_UNSPECIFIED
+}
+
+func (x *TestRemoteConnectionResponse) GetHostKeyInfo() *HostKeyInfo {
+	if x != nil {
+		return x.HostKeyInfo
+	}
+	return nil
+}
+
 type ConnectRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RemoteId      string                 `protobuf:"bytes,1,opt,name=remote_id,json=remoteId,proto3" json:"remote_id,omitempty"`
@@ -808,7 +965,7 @@ type ConnectRequest struct {
 
 func (x *ConnectRequest) Reset() {
 	*x = ConnectRequest{}
-	mi := &file_skeys_v1_remote_proto_msgTypes[10]
+	mi := &file_skeys_v1_remote_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -820,7 +977,7 @@ func (x *ConnectRequest) String() string {
 func (*ConnectRequest) ProtoMessage() {}
 
 func (x *ConnectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_remote_proto_msgTypes[10]
+	mi := &file_skeys_v1_remote_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -833,7 +990,7 @@ func (x *ConnectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectRequest.ProtoReflect.Descriptor instead.
 func (*ConnectRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{10}
+	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ConnectRequest) GetRemoteId() string {
@@ -859,7 +1016,7 @@ type ConnectResponse struct {
 
 func (x *ConnectResponse) Reset() {
 	*x = ConnectResponse{}
-	mi := &file_skeys_v1_remote_proto_msgTypes[11]
+	mi := &file_skeys_v1_remote_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -871,7 +1028,7 @@ func (x *ConnectResponse) String() string {
 func (*ConnectResponse) ProtoMessage() {}
 
 func (x *ConnectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_remote_proto_msgTypes[11]
+	mi := &file_skeys_v1_remote_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -884,7 +1041,7 @@ func (x *ConnectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectResponse.ProtoReflect.Descriptor instead.
 func (*ConnectResponse) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{11}
+	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ConnectResponse) GetConnection() *Connection {
@@ -903,7 +1060,7 @@ type DisconnectRequest struct {
 
 func (x *DisconnectRequest) Reset() {
 	*x = DisconnectRequest{}
-	mi := &file_skeys_v1_remote_proto_msgTypes[12]
+	mi := &file_skeys_v1_remote_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -915,7 +1072,7 @@ func (x *DisconnectRequest) String() string {
 func (*DisconnectRequest) ProtoMessage() {}
 
 func (x *DisconnectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_remote_proto_msgTypes[12]
+	mi := &file_skeys_v1_remote_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -928,7 +1085,7 @@ func (x *DisconnectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisconnectRequest.ProtoReflect.Descriptor instead.
 func (*DisconnectRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{12}
+	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *DisconnectRequest) GetConnectionId() string {
@@ -946,7 +1103,7 @@ type ListConnectionsRequest struct {
 
 func (x *ListConnectionsRequest) Reset() {
 	*x = ListConnectionsRequest{}
-	mi := &file_skeys_v1_remote_proto_msgTypes[13]
+	mi := &file_skeys_v1_remote_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -958,7 +1115,7 @@ func (x *ListConnectionsRequest) String() string {
 func (*ListConnectionsRequest) ProtoMessage() {}
 
 func (x *ListConnectionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_remote_proto_msgTypes[13]
+	mi := &file_skeys_v1_remote_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -971,7 +1128,7 @@ func (x *ListConnectionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConnectionsRequest.ProtoReflect.Descriptor instead.
 func (*ListConnectionsRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{13}
+	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{14}
 }
 
 type ListConnectionsResponse struct {
@@ -983,7 +1140,7 @@ type ListConnectionsResponse struct {
 
 func (x *ListConnectionsResponse) Reset() {
 	*x = ListConnectionsResponse{}
-	mi := &file_skeys_v1_remote_proto_msgTypes[14]
+	mi := &file_skeys_v1_remote_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -995,7 +1152,7 @@ func (x *ListConnectionsResponse) String() string {
 func (*ListConnectionsResponse) ProtoMessage() {}
 
 func (x *ListConnectionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_remote_proto_msgTypes[14]
+	mi := &file_skeys_v1_remote_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1008,7 +1165,7 @@ func (x *ListConnectionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConnectionsResponse.ProtoReflect.Descriptor instead.
 func (*ListConnectionsResponse) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{14}
+	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListConnectionsResponse) GetConnections() []*Connection {
@@ -1029,7 +1186,7 @@ type ExecuteCommandRequest struct {
 
 func (x *ExecuteCommandRequest) Reset() {
 	*x = ExecuteCommandRequest{}
-	mi := &file_skeys_v1_remote_proto_msgTypes[15]
+	mi := &file_skeys_v1_remote_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1041,7 +1198,7 @@ func (x *ExecuteCommandRequest) String() string {
 func (*ExecuteCommandRequest) ProtoMessage() {}
 
 func (x *ExecuteCommandRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_remote_proto_msgTypes[15]
+	mi := &file_skeys_v1_remote_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1054,7 +1211,7 @@ func (x *ExecuteCommandRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteCommandRequest.ProtoReflect.Descriptor instead.
 func (*ExecuteCommandRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{15}
+	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ExecuteCommandRequest) GetConnectionId() string {
@@ -1089,7 +1246,7 @@ type ExecuteCommandResponse struct {
 
 func (x *ExecuteCommandResponse) Reset() {
 	*x = ExecuteCommandResponse{}
-	mi := &file_skeys_v1_remote_proto_msgTypes[16]
+	mi := &file_skeys_v1_remote_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1101,7 +1258,7 @@ func (x *ExecuteCommandResponse) String() string {
 func (*ExecuteCommandResponse) ProtoMessage() {}
 
 func (x *ExecuteCommandResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_remote_proto_msgTypes[16]
+	mi := &file_skeys_v1_remote_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1114,7 +1271,7 @@ func (x *ExecuteCommandResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteCommandResponse.ProtoReflect.Descriptor instead.
 func (*ExecuteCommandResponse) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{16}
+	return file_skeys_v1_remote_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ExecuteCommandResponse) GetExitCode() int32 {
@@ -1187,7 +1344,7 @@ const file_skeys_v1_remote_proto_rawDesc = "" +
 	"\ridentity_file\x18\x06 \x01(\tR\fidentityFile\x12(\n" +
 	"\x10ssh_config_alias\x18\a \x01(\tR\x0esshConfigAlias\"%\n" +
 	"\x13DeleteRemoteRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\xe4\x01\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\x8a\x02\n" +
 	"\x1bTestRemoteConnectionRequest\x12\x1b\n" +
 	"\tremote_id\x18\x01 \x01(\tR\bremoteId\x12\x12\n" +
 	"\x04host\x18\x02 \x01(\tR\x04host\x12\x12\n" +
@@ -1197,13 +1354,23 @@ const file_skeys_v1_remote_proto_rawDesc = "" +
 	"\x0ftimeout_seconds\x18\x06 \x01(\x05R\x0etimeoutSeconds\x12\x1e\n" +
 	"\n" +
 	"passphrase\x18\a \x01(\tR\n" +
-	"passphrase\"\x98\x01\n" +
+	"passphrase\x12$\n" +
+	"\x0etrust_host_key\x18\b \x01(\bR\ftrustHostKey\"\x99\x01\n" +
+	"\vHostKeyInfo\x12\x1a\n" +
+	"\bhostname\x18\x01 \x01(\tR\bhostname\x12\x12\n" +
+	"\x04port\x18\x02 \x01(\x05R\x04port\x12\x19\n" +
+	"\bkey_type\x18\x03 \x01(\tR\akeyType\x12 \n" +
+	"\vfingerprint\x18\x04 \x01(\tR\vfingerprint\x12\x1d\n" +
+	"\n" +
+	"public_key\x18\x05 \x01(\tR\tpublicKey\"\x94\x02\n" +
 	"\x1cTestRemoteConnectionResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12%\n" +
 	"\x0eserver_version\x18\x03 \x01(\tR\rserverVersion\x12\x1d\n" +
 	"\n" +
-	"latency_ms\x18\x04 \x01(\x05R\tlatencyMs\"M\n" +
+	"latency_ms\x18\x04 \x01(\x05R\tlatencyMs\x12?\n" +
+	"\x0fhost_key_status\x18\x05 \x01(\x0e2\x17.skeys.v1.HostKeyStatusR\rhostKeyStatus\x129\n" +
+	"\rhost_key_info\x18\x06 \x01(\v2\x15.skeys.v1.HostKeyInfoR\vhostKeyInfo\"M\n" +
 	"\x0eConnectRequest\x12\x1b\n" +
 	"\tremote_id\x18\x01 \x01(\tR\bremoteId\x12\x1e\n" +
 	"\n" +
@@ -1231,7 +1398,13 @@ const file_skeys_v1_remote_proto_rawDesc = "" +
 	"\x1aREMOTE_STATUS_DISCONNECTED\x10\x01\x12\x1c\n" +
 	"\x18REMOTE_STATUS_CONNECTING\x10\x02\x12\x1b\n" +
 	"\x17REMOTE_STATUS_CONNECTED\x10\x03\x12\x17\n" +
-	"\x13REMOTE_STATUS_ERROR\x10\x042\xea\x05\n" +
+	"\x13REMOTE_STATUS_ERROR\x10\x04*\xa4\x01\n" +
+	"\rHostKeyStatus\x12\x1f\n" +
+	"\x1bHOST_KEY_STATUS_UNSPECIFIED\x10\x00\x12\x1c\n" +
+	"\x18HOST_KEY_STATUS_VERIFIED\x10\x01\x12\x1b\n" +
+	"\x17HOST_KEY_STATUS_UNKNOWN\x10\x02\x12\x1c\n" +
+	"\x18HOST_KEY_STATUS_MISMATCH\x10\x03\x12\x19\n" +
+	"\x15HOST_KEY_STATUS_ADDED\x10\x042\xea\x05\n" +
 	"\rRemoteService\x12J\n" +
 	"\vListRemotes\x12\x1c.skeys.v1.ListRemotesRequest\x1a\x1d.skeys.v1.ListRemotesResponse\x129\n" +
 	"\tGetRemote\x12\x1a.skeys.v1.GetRemoteRequest\x1a\x10.skeys.v1.Remote\x129\n" +
@@ -1257,64 +1430,68 @@ func file_skeys_v1_remote_proto_rawDescGZIP() []byte {
 	return file_skeys_v1_remote_proto_rawDescData
 }
 
-var file_skeys_v1_remote_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_skeys_v1_remote_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_skeys_v1_remote_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_skeys_v1_remote_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_skeys_v1_remote_proto_goTypes = []any{
 	(RemoteStatus)(0),                    // 0: skeys.v1.RemoteStatus
-	(*Remote)(nil),                       // 1: skeys.v1.Remote
-	(*Connection)(nil),                   // 2: skeys.v1.Connection
-	(*ListRemotesRequest)(nil),           // 3: skeys.v1.ListRemotesRequest
-	(*ListRemotesResponse)(nil),          // 4: skeys.v1.ListRemotesResponse
-	(*GetRemoteRequest)(nil),             // 5: skeys.v1.GetRemoteRequest
-	(*AddRemoteRequest)(nil),             // 6: skeys.v1.AddRemoteRequest
-	(*UpdateRemoteRequest)(nil),          // 7: skeys.v1.UpdateRemoteRequest
-	(*DeleteRemoteRequest)(nil),          // 8: skeys.v1.DeleteRemoteRequest
-	(*TestRemoteConnectionRequest)(nil),  // 9: skeys.v1.TestRemoteConnectionRequest
-	(*TestRemoteConnectionResponse)(nil), // 10: skeys.v1.TestRemoteConnectionResponse
-	(*ConnectRequest)(nil),               // 11: skeys.v1.ConnectRequest
-	(*ConnectResponse)(nil),              // 12: skeys.v1.ConnectResponse
-	(*DisconnectRequest)(nil),            // 13: skeys.v1.DisconnectRequest
-	(*ListConnectionsRequest)(nil),       // 14: skeys.v1.ListConnectionsRequest
-	(*ListConnectionsResponse)(nil),      // 15: skeys.v1.ListConnectionsResponse
-	(*ExecuteCommandRequest)(nil),        // 16: skeys.v1.ExecuteCommandRequest
-	(*ExecuteCommandResponse)(nil),       // 17: skeys.v1.ExecuteCommandResponse
-	(*timestamppb.Timestamp)(nil),        // 18: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),                // 19: google.protobuf.Empty
+	(HostKeyStatus)(0),                   // 1: skeys.v1.HostKeyStatus
+	(*Remote)(nil),                       // 2: skeys.v1.Remote
+	(*Connection)(nil),                   // 3: skeys.v1.Connection
+	(*ListRemotesRequest)(nil),           // 4: skeys.v1.ListRemotesRequest
+	(*ListRemotesResponse)(nil),          // 5: skeys.v1.ListRemotesResponse
+	(*GetRemoteRequest)(nil),             // 6: skeys.v1.GetRemoteRequest
+	(*AddRemoteRequest)(nil),             // 7: skeys.v1.AddRemoteRequest
+	(*UpdateRemoteRequest)(nil),          // 8: skeys.v1.UpdateRemoteRequest
+	(*DeleteRemoteRequest)(nil),          // 9: skeys.v1.DeleteRemoteRequest
+	(*TestRemoteConnectionRequest)(nil),  // 10: skeys.v1.TestRemoteConnectionRequest
+	(*HostKeyInfo)(nil),                  // 11: skeys.v1.HostKeyInfo
+	(*TestRemoteConnectionResponse)(nil), // 12: skeys.v1.TestRemoteConnectionResponse
+	(*ConnectRequest)(nil),               // 13: skeys.v1.ConnectRequest
+	(*ConnectResponse)(nil),              // 14: skeys.v1.ConnectResponse
+	(*DisconnectRequest)(nil),            // 15: skeys.v1.DisconnectRequest
+	(*ListConnectionsRequest)(nil),       // 16: skeys.v1.ListConnectionsRequest
+	(*ListConnectionsResponse)(nil),      // 17: skeys.v1.ListConnectionsResponse
+	(*ExecuteCommandRequest)(nil),        // 18: skeys.v1.ExecuteCommandRequest
+	(*ExecuteCommandResponse)(nil),       // 19: skeys.v1.ExecuteCommandResponse
+	(*timestamppb.Timestamp)(nil),        // 20: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),                // 21: google.protobuf.Empty
 }
 var file_skeys_v1_remote_proto_depIdxs = []int32{
-	18, // 0: skeys.v1.Remote.created_at:type_name -> google.protobuf.Timestamp
-	18, // 1: skeys.v1.Remote.last_connected_at:type_name -> google.protobuf.Timestamp
+	20, // 0: skeys.v1.Remote.created_at:type_name -> google.protobuf.Timestamp
+	20, // 1: skeys.v1.Remote.last_connected_at:type_name -> google.protobuf.Timestamp
 	0,  // 2: skeys.v1.Remote.status:type_name -> skeys.v1.RemoteStatus
-	18, // 3: skeys.v1.Connection.connected_at:type_name -> google.protobuf.Timestamp
-	18, // 4: skeys.v1.Connection.last_activity_at:type_name -> google.protobuf.Timestamp
-	1,  // 5: skeys.v1.ListRemotesResponse.remotes:type_name -> skeys.v1.Remote
-	2,  // 6: skeys.v1.ConnectResponse.connection:type_name -> skeys.v1.Connection
-	2,  // 7: skeys.v1.ListConnectionsResponse.connections:type_name -> skeys.v1.Connection
-	3,  // 8: skeys.v1.RemoteService.ListRemotes:input_type -> skeys.v1.ListRemotesRequest
-	5,  // 9: skeys.v1.RemoteService.GetRemote:input_type -> skeys.v1.GetRemoteRequest
-	6,  // 10: skeys.v1.RemoteService.AddRemote:input_type -> skeys.v1.AddRemoteRequest
-	7,  // 11: skeys.v1.RemoteService.UpdateRemote:input_type -> skeys.v1.UpdateRemoteRequest
-	8,  // 12: skeys.v1.RemoteService.DeleteRemote:input_type -> skeys.v1.DeleteRemoteRequest
-	9,  // 13: skeys.v1.RemoteService.TestConnection:input_type -> skeys.v1.TestRemoteConnectionRequest
-	11, // 14: skeys.v1.RemoteService.Connect:input_type -> skeys.v1.ConnectRequest
-	13, // 15: skeys.v1.RemoteService.Disconnect:input_type -> skeys.v1.DisconnectRequest
-	14, // 16: skeys.v1.RemoteService.ListConnections:input_type -> skeys.v1.ListConnectionsRequest
-	16, // 17: skeys.v1.RemoteService.ExecuteCommand:input_type -> skeys.v1.ExecuteCommandRequest
-	4,  // 18: skeys.v1.RemoteService.ListRemotes:output_type -> skeys.v1.ListRemotesResponse
-	1,  // 19: skeys.v1.RemoteService.GetRemote:output_type -> skeys.v1.Remote
-	1,  // 20: skeys.v1.RemoteService.AddRemote:output_type -> skeys.v1.Remote
-	1,  // 21: skeys.v1.RemoteService.UpdateRemote:output_type -> skeys.v1.Remote
-	19, // 22: skeys.v1.RemoteService.DeleteRemote:output_type -> google.protobuf.Empty
-	10, // 23: skeys.v1.RemoteService.TestConnection:output_type -> skeys.v1.TestRemoteConnectionResponse
-	12, // 24: skeys.v1.RemoteService.Connect:output_type -> skeys.v1.ConnectResponse
-	19, // 25: skeys.v1.RemoteService.Disconnect:output_type -> google.protobuf.Empty
-	15, // 26: skeys.v1.RemoteService.ListConnections:output_type -> skeys.v1.ListConnectionsResponse
-	17, // 27: skeys.v1.RemoteService.ExecuteCommand:output_type -> skeys.v1.ExecuteCommandResponse
-	18, // [18:28] is the sub-list for method output_type
-	8,  // [8:18] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	20, // 3: skeys.v1.Connection.connected_at:type_name -> google.protobuf.Timestamp
+	20, // 4: skeys.v1.Connection.last_activity_at:type_name -> google.protobuf.Timestamp
+	2,  // 5: skeys.v1.ListRemotesResponse.remotes:type_name -> skeys.v1.Remote
+	1,  // 6: skeys.v1.TestRemoteConnectionResponse.host_key_status:type_name -> skeys.v1.HostKeyStatus
+	11, // 7: skeys.v1.TestRemoteConnectionResponse.host_key_info:type_name -> skeys.v1.HostKeyInfo
+	3,  // 8: skeys.v1.ConnectResponse.connection:type_name -> skeys.v1.Connection
+	3,  // 9: skeys.v1.ListConnectionsResponse.connections:type_name -> skeys.v1.Connection
+	4,  // 10: skeys.v1.RemoteService.ListRemotes:input_type -> skeys.v1.ListRemotesRequest
+	6,  // 11: skeys.v1.RemoteService.GetRemote:input_type -> skeys.v1.GetRemoteRequest
+	7,  // 12: skeys.v1.RemoteService.AddRemote:input_type -> skeys.v1.AddRemoteRequest
+	8,  // 13: skeys.v1.RemoteService.UpdateRemote:input_type -> skeys.v1.UpdateRemoteRequest
+	9,  // 14: skeys.v1.RemoteService.DeleteRemote:input_type -> skeys.v1.DeleteRemoteRequest
+	10, // 15: skeys.v1.RemoteService.TestConnection:input_type -> skeys.v1.TestRemoteConnectionRequest
+	13, // 16: skeys.v1.RemoteService.Connect:input_type -> skeys.v1.ConnectRequest
+	15, // 17: skeys.v1.RemoteService.Disconnect:input_type -> skeys.v1.DisconnectRequest
+	16, // 18: skeys.v1.RemoteService.ListConnections:input_type -> skeys.v1.ListConnectionsRequest
+	18, // 19: skeys.v1.RemoteService.ExecuteCommand:input_type -> skeys.v1.ExecuteCommandRequest
+	5,  // 20: skeys.v1.RemoteService.ListRemotes:output_type -> skeys.v1.ListRemotesResponse
+	2,  // 21: skeys.v1.RemoteService.GetRemote:output_type -> skeys.v1.Remote
+	2,  // 22: skeys.v1.RemoteService.AddRemote:output_type -> skeys.v1.Remote
+	2,  // 23: skeys.v1.RemoteService.UpdateRemote:output_type -> skeys.v1.Remote
+	21, // 24: skeys.v1.RemoteService.DeleteRemote:output_type -> google.protobuf.Empty
+	12, // 25: skeys.v1.RemoteService.TestConnection:output_type -> skeys.v1.TestRemoteConnectionResponse
+	14, // 26: skeys.v1.RemoteService.Connect:output_type -> skeys.v1.ConnectResponse
+	21, // 27: skeys.v1.RemoteService.Disconnect:output_type -> google.protobuf.Empty
+	17, // 28: skeys.v1.RemoteService.ListConnections:output_type -> skeys.v1.ListConnectionsResponse
+	19, // 29: skeys.v1.RemoteService.ExecuteCommand:output_type -> skeys.v1.ExecuteCommandResponse
+	20, // [20:30] is the sub-list for method output_type
+	10, // [10:20] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_skeys_v1_remote_proto_init() }
@@ -1327,8 +1504,8 @@ func file_skeys_v1_remote_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skeys_v1_remote_proto_rawDesc), len(file_skeys_v1_remote_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   17,
+			NumEnums:      2,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

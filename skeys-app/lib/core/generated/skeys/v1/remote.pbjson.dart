@@ -1,15 +1,13 @@
-// This is a generated file - do not edit.
 //
-// Generated from skeys/v1/remote.proto.
-
-// @dart = 3.3
+//  Generated code. Do not modify.
+//  source: skeys/v1/remote.proto
+//
+// @dart = 2.12
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
-// ignore_for_file: unused_import
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -33,6 +31,24 @@ final $typed_data.Uint8List remoteStatusDescriptor = $convert.base64Decode(
     '9TVEFUVVNfRElTQ09OTkVDVEVEEAESHAoYUkVNT1RFX1NUQVRVU19DT05ORUNUSU5HEAISGwoX'
     'UkVNT1RFX1NUQVRVU19DT05ORUNURUQQAxIXChNSRU1PVEVfU1RBVFVTX0VSUk9SEAQ=');
 
+@$core.Deprecated('Use hostKeyStatusDescriptor instead')
+const HostKeyStatus$json = {
+  '1': 'HostKeyStatus',
+  '2': [
+    {'1': 'HOST_KEY_STATUS_UNSPECIFIED', '2': 0},
+    {'1': 'HOST_KEY_STATUS_VERIFIED', '2': 1},
+    {'1': 'HOST_KEY_STATUS_UNKNOWN', '2': 2},
+    {'1': 'HOST_KEY_STATUS_MISMATCH', '2': 3},
+    {'1': 'HOST_KEY_STATUS_ADDED', '2': 4},
+  ],
+};
+
+/// Descriptor for `HostKeyStatus`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List hostKeyStatusDescriptor = $convert.base64Decode(
+    'Cg1Ib3N0S2V5U3RhdHVzEh8KG0hPU1RfS0VZX1NUQVRVU19VTlNQRUNJRklFRBAAEhwKGEhPU1'
+    'RfS0VZX1NUQVRVU19WRVJJRklFRBABEhsKF0hPU1RfS0VZX1NUQVRVU19VTktOT1dOEAISHAoY'
+    'SE9TVF9LRVlfU1RBVFVTX01JU01BVENIEAMSGQoVSE9TVF9LRVlfU1RBVFVTX0FEREVEEAQ=');
+
 @$core.Deprecated('Use remoteDescriptor instead')
 const Remote$json = {
   '1': 'Remote',
@@ -44,30 +60,9 @@ const Remote$json = {
     {'1': 'user', '3': 5, '4': 1, '5': 9, '10': 'user'},
     {'1': 'identity_file', '3': 6, '4': 1, '5': 9, '10': 'identityFile'},
     {'1': 'ssh_config_alias', '3': 7, '4': 1, '5': 9, '10': 'sshConfigAlias'},
-    {
-      '1': 'created_at',
-      '3': 8,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'createdAt'
-    },
-    {
-      '1': 'last_connected_at',
-      '3': 9,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'lastConnectedAt'
-    },
-    {
-      '1': 'status',
-      '3': 10,
-      '4': 1,
-      '5': 14,
-      '6': '.skeys.v1.RemoteStatus',
-      '10': 'status'
-    },
+    {'1': 'created_at', '3': 8, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'createdAt'},
+    {'1': 'last_connected_at', '3': 9, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'lastConnectedAt'},
+    {'1': 'status', '3': 10, '4': 1, '5': 14, '6': '.skeys.v1.RemoteStatus', '10': 'status'},
   ],
 };
 
@@ -91,22 +86,8 @@ const Connection$json = {
     {'1': 'port', '3': 4, '4': 1, '5': 5, '10': 'port'},
     {'1': 'user', '3': 5, '4': 1, '5': 9, '10': 'user'},
     {'1': 'server_version', '3': 6, '4': 1, '5': 9, '10': 'serverVersion'},
-    {
-      '1': 'connected_at',
-      '3': 7,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'connectedAt'
-    },
-    {
-      '1': 'last_activity_at',
-      '3': 8,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'lastActivityAt'
-    },
+    {'1': 'connected_at', '3': 7, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'connectedAt'},
+    {'1': 'last_activity_at', '3': 8, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'lastActivityAt'},
   ],
 };
 
@@ -125,21 +106,14 @@ const ListRemotesRequest$json = {
 };
 
 /// Descriptor for `ListRemotesRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listRemotesRequestDescriptor =
-    $convert.base64Decode('ChJMaXN0UmVtb3Rlc1JlcXVlc3Q=');
+final $typed_data.Uint8List listRemotesRequestDescriptor = $convert.base64Decode(
+    'ChJMaXN0UmVtb3Rlc1JlcXVlc3Q=');
 
 @$core.Deprecated('Use listRemotesResponseDescriptor instead')
 const ListRemotesResponse$json = {
   '1': 'ListRemotesResponse',
   '2': [
-    {
-      '1': 'remotes',
-      '3': 1,
-      '4': 3,
-      '5': 11,
-      '6': '.skeys.v1.Remote',
-      '10': 'remotes'
-    },
+    {'1': 'remotes', '3': 1, '4': 3, '5': 11, '6': '.skeys.v1.Remote', '10': 'remotes'},
   ],
 };
 
@@ -157,8 +131,8 @@ const GetRemoteRequest$json = {
 };
 
 /// Descriptor for `GetRemoteRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List getRemoteRequestDescriptor =
-    $convert.base64Decode('ChBHZXRSZW1vdGVSZXF1ZXN0Eg4KAmlkGAEgASgJUgJpZA==');
+final $typed_data.Uint8List getRemoteRequestDescriptor = $convert.base64Decode(
+    'ChBHZXRSZW1vdGVSZXF1ZXN0Eg4KAmlkGAEgASgJUgJpZA==');
 
 @$core.Deprecated('Use addRemoteRequestDescriptor instead')
 const AddRemoteRequest$json = {
@@ -210,8 +184,8 @@ const DeleteRemoteRequest$json = {
 };
 
 /// Descriptor for `DeleteRemoteRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List deleteRemoteRequestDescriptor = $convert
-    .base64Decode('ChNEZWxldGVSZW1vdGVSZXF1ZXN0Eg4KAmlkGAEgASgJUgJpZA==');
+final $typed_data.Uint8List deleteRemoteRequestDescriptor = $convert.base64Decode(
+    'ChNEZWxldGVSZW1vdGVSZXF1ZXN0Eg4KAmlkGAEgASgJUgJpZA==');
 
 @$core.Deprecated('Use testRemoteConnectionRequestDescriptor instead')
 const TestRemoteConnectionRequest$json = {
@@ -224,6 +198,7 @@ const TestRemoteConnectionRequest$json = {
     {'1': 'identity_file', '3': 5, '4': 1, '5': 9, '10': 'identityFile'},
     {'1': 'timeout_seconds', '3': 6, '4': 1, '5': 5, '10': 'timeoutSeconds'},
     {'1': 'passphrase', '3': 7, '4': 1, '5': 9, '10': 'passphrase'},
+    {'1': 'trust_host_key', '3': 8, '4': 1, '5': 8, '10': 'trustHostKey'},
   ],
 };
 
@@ -233,7 +208,25 @@ final $typed_data.Uint8List testRemoteConnectionRequestDescriptor = $convert.bas
     'VJZBISCgRob3N0GAIgASgJUgRob3N0EhIKBHBvcnQYAyABKAVSBHBvcnQSEgoEdXNlchgEIAEo'
     'CVIEdXNlchIjCg1pZGVudGl0eV9maWxlGAUgASgJUgxpZGVudGl0eUZpbGUSJwoPdGltZW91dF'
     '9zZWNvbmRzGAYgASgFUg50aW1lb3V0U2Vjb25kcxIeCgpwYXNzcGhyYXNlGAcgASgJUgpwYXNz'
-    'cGhyYXNl');
+    'cGhyYXNlEiQKDnRydXN0X2hvc3Rfa2V5GAggASgIUgx0cnVzdEhvc3RLZXk=');
+
+@$core.Deprecated('Use hostKeyInfoDescriptor instead')
+const HostKeyInfo$json = {
+  '1': 'HostKeyInfo',
+  '2': [
+    {'1': 'hostname', '3': 1, '4': 1, '5': 9, '10': 'hostname'},
+    {'1': 'port', '3': 2, '4': 1, '5': 5, '10': 'port'},
+    {'1': 'key_type', '3': 3, '4': 1, '5': 9, '10': 'keyType'},
+    {'1': 'fingerprint', '3': 4, '4': 1, '5': 9, '10': 'fingerprint'},
+    {'1': 'public_key', '3': 5, '4': 1, '5': 9, '10': 'publicKey'},
+  ],
+};
+
+/// Descriptor for `HostKeyInfo`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List hostKeyInfoDescriptor = $convert.base64Decode(
+    'CgtIb3N0S2V5SW5mbxIaCghob3N0bmFtZRgBIAEoCVIIaG9zdG5hbWUSEgoEcG9ydBgCIAEoBV'
+    'IEcG9ydBIZCghrZXlfdHlwZRgDIAEoCVIHa2V5VHlwZRIgCgtmaW5nZXJwcmludBgEIAEoCVIL'
+    'ZmluZ2VycHJpbnQSHQoKcHVibGljX2tleRgFIAEoCVIJcHVibGljS2V5');
 
 @$core.Deprecated('Use testRemoteConnectionResponseDescriptor instead')
 const TestRemoteConnectionResponse$json = {
@@ -243,15 +236,18 @@ const TestRemoteConnectionResponse$json = {
     {'1': 'message', '3': 2, '4': 1, '5': 9, '10': 'message'},
     {'1': 'server_version', '3': 3, '4': 1, '5': 9, '10': 'serverVersion'},
     {'1': 'latency_ms', '3': 4, '4': 1, '5': 5, '10': 'latencyMs'},
+    {'1': 'host_key_status', '3': 5, '4': 1, '5': 14, '6': '.skeys.v1.HostKeyStatus', '10': 'hostKeyStatus'},
+    {'1': 'host_key_info', '3': 6, '4': 1, '5': 11, '6': '.skeys.v1.HostKeyInfo', '10': 'hostKeyInfo'},
   ],
 };
 
 /// Descriptor for `TestRemoteConnectionResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List testRemoteConnectionResponseDescriptor =
-    $convert.base64Decode(
-        'ChxUZXN0UmVtb3RlQ29ubmVjdGlvblJlc3BvbnNlEhgKB3N1Y2Nlc3MYASABKAhSB3N1Y2Nlc3'
-        'MSGAoHbWVzc2FnZRgCIAEoCVIHbWVzc2FnZRIlCg5zZXJ2ZXJfdmVyc2lvbhgDIAEoCVINc2Vy'
-        'dmVyVmVyc2lvbhIdCgpsYXRlbmN5X21zGAQgASgFUglsYXRlbmN5TXM=');
+final $typed_data.Uint8List testRemoteConnectionResponseDescriptor = $convert.base64Decode(
+    'ChxUZXN0UmVtb3RlQ29ubmVjdGlvblJlc3BvbnNlEhgKB3N1Y2Nlc3MYASABKAhSB3N1Y2Nlc3'
+    'MSGAoHbWVzc2FnZRgCIAEoCVIHbWVzc2FnZRIlCg5zZXJ2ZXJfdmVyc2lvbhgDIAEoCVINc2Vy'
+    'dmVyVmVyc2lvbhIdCgpsYXRlbmN5X21zGAQgASgFUglsYXRlbmN5TXMSPwoPaG9zdF9rZXlfc3'
+    'RhdHVzGAUgASgOMhcuc2tleXMudjEuSG9zdEtleVN0YXR1c1INaG9zdEtleVN0YXR1cxI5Cg1o'
+    'b3N0X2tleV9pbmZvGAYgASgLMhUuc2tleXMudjEuSG9zdEtleUluZm9SC2hvc3RLZXlJbmZv');
 
 @$core.Deprecated('Use connectRequestDescriptor instead')
 const ConnectRequest$json = {
@@ -271,14 +267,7 @@ final $typed_data.Uint8List connectRequestDescriptor = $convert.base64Decode(
 const ConnectResponse$json = {
   '1': 'ConnectResponse',
   '2': [
-    {
-      '1': 'connection',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Connection',
-      '10': 'connection'
-    },
+    {'1': 'connection', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Connection', '10': 'connection'},
   ],
 };
 
@@ -306,29 +295,21 @@ const ListConnectionsRequest$json = {
 };
 
 /// Descriptor for `ListConnectionsRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listConnectionsRequestDescriptor =
-    $convert.base64Decode('ChZMaXN0Q29ubmVjdGlvbnNSZXF1ZXN0');
+final $typed_data.Uint8List listConnectionsRequestDescriptor = $convert.base64Decode(
+    'ChZMaXN0Q29ubmVjdGlvbnNSZXF1ZXN0');
 
 @$core.Deprecated('Use listConnectionsResponseDescriptor instead')
 const ListConnectionsResponse$json = {
   '1': 'ListConnectionsResponse',
   '2': [
-    {
-      '1': 'connections',
-      '3': 1,
-      '4': 3,
-      '5': 11,
-      '6': '.skeys.v1.Connection',
-      '10': 'connections'
-    },
+    {'1': 'connections', '3': 1, '4': 3, '5': 11, '6': '.skeys.v1.Connection', '10': 'connections'},
   ],
 };
 
 /// Descriptor for `ListConnectionsResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listConnectionsResponseDescriptor =
-    $convert.base64Decode(
-        'ChdMaXN0Q29ubmVjdGlvbnNSZXNwb25zZRI2Cgtjb25uZWN0aW9ucxgBIAMoCzIULnNrZXlzLn'
-        'YxLkNvbm5lY3Rpb25SC2Nvbm5lY3Rpb25z');
+final $typed_data.Uint8List listConnectionsResponseDescriptor = $convert.base64Decode(
+    'ChdMaXN0Q29ubmVjdGlvbnNSZXNwb25zZRI2Cgtjb25uZWN0aW9ucxgBIAMoCzIULnNrZXlzLn'
+    'YxLkNvbm5lY3Rpb25SC2Nvbm5lY3Rpb25z');
 
 @$core.Deprecated('Use executeCommandRequestDescriptor instead')
 const ExecuteCommandRequest$json = {
@@ -357,7 +338,7 @@ const ExecuteCommandResponse$json = {
 };
 
 /// Descriptor for `ExecuteCommandResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List executeCommandResponseDescriptor =
-    $convert.base64Decode(
-        'ChZFeGVjdXRlQ29tbWFuZFJlc3BvbnNlEhsKCWV4aXRfY29kZRgBIAEoBVIIZXhpdENvZGUSFg'
-        'oGc3Rkb3V0GAIgASgJUgZzdGRvdXQSFgoGc3RkZXJyGAMgASgJUgZzdGRlcnI=');
+final $typed_data.Uint8List executeCommandResponseDescriptor = $convert.base64Decode(
+    'ChZFeGVjdXRlQ29tbWFuZFJlc3BvbnNlEhsKCWV4aXRfY29kZRgBIAEoBVIIZXhpdENvZGUSFg'
+    'oGc3Rkb3V0GAIgASgJUgZzdGRvdXQSFgoGc3RkZXJyGAMgASgJUgZzdGRlcnI=');
+

@@ -1,15 +1,13 @@
-// This is a generated file - do not edit.
 //
-// Generated from skeys/v1/keys.proto.
-
-// @dart = 3.3
+//  Generated code. Do not modify.
+//  source: skeys/v1/keys.proto
+//
+// @dart = 2.12
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
-// ignore_for_file: unused_import
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -58,43 +56,16 @@ const SSHKey$json = {
     {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
     {'1': 'private_key_path', '3': 3, '4': 1, '5': 9, '10': 'privateKeyPath'},
     {'1': 'public_key_path', '3': 4, '4': 1, '5': 9, '10': 'publicKeyPath'},
-    {
-      '1': 'type',
-      '3': 5,
-      '4': 1,
-      '5': 14,
-      '6': '.skeys.v1.KeyType',
-      '10': 'type'
-    },
+    {'1': 'type', '3': 5, '4': 1, '5': 14, '6': '.skeys.v1.KeyType', '10': 'type'},
     {'1': 'bits', '3': 6, '4': 1, '5': 5, '10': 'bits'},
     {'1': 'comment', '3': 7, '4': 1, '5': 9, '10': 'comment'},
-    {
-      '1': 'fingerprint_sha256',
-      '3': 8,
-      '4': 1,
-      '5': 9,
-      '10': 'fingerprintSha256'
-    },
+    {'1': 'fingerprint_sha256', '3': 8, '4': 1, '5': 9, '10': 'fingerprintSha256'},
     {'1': 'fingerprint_md5', '3': 9, '4': 1, '5': 9, '10': 'fingerprintMd5'},
     {'1': 'public_key', '3': 10, '4': 1, '5': 9, '10': 'publicKey'},
     {'1': 'has_passphrase', '3': 11, '4': 1, '5': 8, '10': 'hasPassphrase'},
     {'1': 'in_agent', '3': 12, '4': 1, '5': 8, '10': 'inAgent'},
-    {
-      '1': 'created_at',
-      '3': 13,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'createdAt'
-    },
-    {
-      '1': 'modified_at',
-      '3': 14,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'modifiedAt'
-    },
+    {'1': 'created_at', '3': 13, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'createdAt'},
+    {'1': 'modified_at', '3': 14, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'modifiedAt'},
   ],
 };
 
@@ -115,14 +86,7 @@ final $typed_data.Uint8List sSHKeyDescriptor = $convert.base64Decode(
 const ListKeysRequest$json = {
   '1': 'ListKeysRequest',
   '2': [
-    {
-      '1': 'target',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Target',
-      '10': 'target'
-    },
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
   ],
 };
 
@@ -135,14 +99,7 @@ final $typed_data.Uint8List listKeysRequestDescriptor = $convert.base64Decode(
 const ListKeysResponse$json = {
   '1': 'ListKeysResponse',
   '2': [
-    {
-      '1': 'keys',
-      '3': 1,
-      '4': 3,
-      '5': 11,
-      '6': '.skeys.v1.SSHKey',
-      '10': 'keys'
-    },
+    {'1': 'keys', '3': 1, '4': 3, '5': 11, '6': '.skeys.v1.SSHKey', '10': 'keys'},
   ],
 };
 
@@ -155,14 +112,7 @@ final $typed_data.Uint8List listKeysResponseDescriptor = $convert.base64Decode(
 const GetKeyRequest$json = {
   '1': 'GetKeyRequest',
   '2': [
-    {
-      '1': 'target',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Target',
-      '10': 'target'
-    },
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
     {'1': 'key_id', '3': 2, '4': 1, '5': 9, '10': 'keyId'},
   ],
 };
@@ -176,23 +126,9 @@ final $typed_data.Uint8List getKeyRequestDescriptor = $convert.base64Decode(
 const GenerateKeyRequest$json = {
   '1': 'GenerateKeyRequest',
   '2': [
-    {
-      '1': 'target',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Target',
-      '10': 'target'
-    },
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
     {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
-    {
-      '1': 'type',
-      '3': 3,
-      '4': 1,
-      '5': 14,
-      '6': '.skeys.v1.KeyType',
-      '10': 'type'
-    },
+    {'1': 'type', '3': 3, '4': 1, '5': 14, '6': '.skeys.v1.KeyType', '10': 'type'},
     {'1': 'bits', '3': 4, '4': 1, '5': 5, '10': 'bits'},
     {'1': 'comment', '3': 5, '4': 1, '5': 9, '10': 'comment'},
     {'1': 'passphrase', '3': 6, '4': 1, '5': 9, '10': 'passphrase'},
@@ -212,14 +148,7 @@ final $typed_data.Uint8List generateKeyRequestDescriptor = $convert.base64Decode
 const DeleteKeyRequest$json = {
   '1': 'DeleteKeyRequest',
   '2': [
-    {
-      '1': 'target',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Target',
-      '10': 'target'
-    },
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
     {'1': 'key_id', '3': 2, '4': 1, '5': 9, '10': 'keyId'},
   ],
 };
@@ -233,23 +162,9 @@ final $typed_data.Uint8List deleteKeyRequestDescriptor = $convert.base64Decode(
 const GetFingerprintRequest$json = {
   '1': 'GetFingerprintRequest',
   '2': [
-    {
-      '1': 'target',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Target',
-      '10': 'target'
-    },
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
     {'1': 'key_id', '3': 2, '4': 1, '5': 9, '10': 'keyId'},
-    {
-      '1': 'algorithm',
-      '3': 3,
-      '4': 1,
-      '5': 14,
-      '6': '.skeys.v1.FingerprintAlgorithm',
-      '10': 'algorithm'
-    },
+    {'1': 'algorithm', '3': 3, '4': 1, '5': 14, '6': '.skeys.v1.FingerprintAlgorithm', '10': 'algorithm'},
   ],
 };
 
@@ -264,14 +179,7 @@ const GetFingerprintResponse$json = {
   '1': 'GetFingerprintResponse',
   '2': [
     {'1': 'fingerprint', '3': 1, '4': 1, '5': 9, '10': 'fingerprint'},
-    {
-      '1': 'algorithm',
-      '3': 2,
-      '4': 1,
-      '5': 14,
-      '6': '.skeys.v1.FingerprintAlgorithm',
-      '10': 'algorithm'
-    },
+    {'1': 'algorithm', '3': 2, '4': 1, '5': 14, '6': '.skeys.v1.FingerprintAlgorithm', '10': 'algorithm'},
   ],
 };
 
@@ -285,14 +193,7 @@ final $typed_data.Uint8List getFingerprintResponseDescriptor = $convert.base64De
 const ChangePassphraseRequest$json = {
   '1': 'ChangePassphraseRequest',
   '2': [
-    {
-      '1': 'target',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.skeys.v1.Target',
-      '10': 'target'
-    },
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
     {'1': 'key_id', '3': 2, '4': 1, '5': 9, '10': 'keyId'},
     {'1': 'old_passphrase', '3': 3, '4': 1, '5': 9, '10': 'oldPassphrase'},
     {'1': 'new_passphrase', '3': 4, '4': 1, '5': 9, '10': 'newPassphrase'},
@@ -333,7 +234,7 @@ const PushKeyToRemoteResponse$json = {
 };
 
 /// Descriptor for `PushKeyToRemoteResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List pushKeyToRemoteResponseDescriptor =
-    $convert.base64Decode(
-        'ChdQdXNoS2V5VG9SZW1vdGVSZXNwb25zZRIYCgdzdWNjZXNzGAEgASgIUgdzdWNjZXNzEhgKB2'
-        '1lc3NhZ2UYAiABKAlSB21lc3NhZ2U=');
+final $typed_data.Uint8List pushKeyToRemoteResponseDescriptor = $convert.base64Decode(
+    'ChdQdXNoS2V5VG9SZW1vdGVSZXNwb25zZRIYCgdzdWNjZXNzGAEgASgIUgdzdWNjZXNzEhgKB2'
+    '1lc3NhZ2UYAiABKAlSB21lc3NhZ2U=');
+

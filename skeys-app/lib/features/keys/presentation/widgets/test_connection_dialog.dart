@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/notifications/app_toast.dart';
+import '../../../remote/domain/remote_entity.dart';
 import '../../bloc/keys_bloc.dart';
 import '../../domain/key_entity.dart';
 
@@ -67,9 +69,20 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
   bool _useCustom = false;
   bool _obscurePassphrase = true;
 
+  /// Cached value of whether passphrase is needed, updated during build.
+  bool _currentNeedsPassphrase = false;
+
   /// Whether to show the passphrase field - needed when key has passphrase and is not in agent.
-  bool get _needsPassphrase =>
-      widget.keyEntity.hasPassphrase && !widget.keyEntity.isInAgent;
+  /// We need to check the current KeysBloc state to get the up-to-date isInAgent status,
+  /// since the widget.keyEntity may be stale (e.g., key was added to agent after dialog opened).
+  bool _needsPassphrase(KeysState state) {
+    // Find the current state of this key in the bloc
+    final currentKey = state.keys.firstWhere(
+      (k) => k.path == widget.keyEntity.path,
+      orElse: () => widget.keyEntity,
+    );
+    return currentKey.hasPassphrase && !currentKey.isInAgent;
+  }
 
   @override
   void dispose() {
@@ -102,8 +115,22 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
     return BlocConsumer<KeysBloc, KeysState>(
       listener: (context, state) {
         if (state.testConnectionResult != null) {
-          // Show result as toast
           final result = state.testConnectionResult!;
+
+          // Handle host key verification states
+          if (result.needsHostKeyApproval && result.hostKeyInfo != null) {
+            // Show host key confirmation dialog
+            _showHostKeyConfirmationDialog(context, result.hostKeyInfo!);
+            return;
+          }
+
+          if (result.hasHostKeyMismatch && result.hostKeyInfo != null) {
+            // Show warning about host key mismatch
+            _showHostKeyMismatchWarning(context, result.hostKeyInfo!);
+            return;
+          }
+
+          // Show result as toast for normal cases
           AppToast.connectionResult(
             context,
             success: result.success,
@@ -111,10 +138,17 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
             serverVersion: result.serverVersion,
             latencyMs: result.latencyMs,
           );
+
+          // Close the dialog on successful connection
+          if (result.success) {
+            Navigator.of(context).pop();
+          }
         }
       },
       builder: (context, state) {
         final isLoading = state.status == KeysStatus.testingConnection;
+        // Update cached value for use in callbacks
+        _currentNeedsPassphrase = _needsPassphrase(state);
 
         return AlertDialog(
           title: const Text('Test SSH Connection'),
@@ -227,7 +261,7 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
                   ],
 
                   // Passphrase field - shown when key has passphrase and is not in agent
-                  if ((_selectedPreset != null || _useCustom) && _needsPassphrase) ...[
+                  if ((_selectedPreset != null || _useCustom) && _currentNeedsPassphrase) ...[
                     Form(
                       key: _selectedPreset != null ? _formKey : null,
                       child: TextFormField(
@@ -251,7 +285,7 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
                         obscureText: _obscurePassphrase,
                         enabled: !isLoading,
                         validator: (value) {
-                          if (_needsPassphrase &&
+                          if (_currentNeedsPassphrase &&
                               (value == null || value.isEmpty)) {
                             return 'Passphrase required for this key';
                           }
@@ -342,7 +376,251 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
       host: host,
       port: port,
       user: user,
-      passphrase: _needsPassphrase ? _passphraseController.text : null,
+      passphrase: _currentNeedsPassphrase ? _passphraseController.text : null,
+    ));
+  }
+
+  /// Shows a dialog asking the user to confirm an unknown host key.
+  void _showHostKeyConfirmationDialog(BuildContext context, HostKeyInfo hostKeyInfo) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.security, color: Colors.orange),
+        title: const Text('Unknown Host'),
+        content: SizedBox(
+          width: 450,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'The authenticity of host "${hostKeyInfo.hostname}" cannot be established.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHostKeyInfoRow(context, 'Host', hostKeyInfo.hostname),
+                    _buildHostKeyInfoRow(context, 'Port', hostKeyInfo.port.toString()),
+                    _buildHostKeyInfoRow(context, 'Key Type', hostKeyInfo.keyType),
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Fingerprint: ',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Expanded(
+                          child: SelectableText(
+                            hostKeyInfo.fingerprint,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.copy, size: 16),
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: hostKeyInfo.fingerprint));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Fingerprint copied to clipboard')),
+                            );
+                          },
+                          tooltip: 'Copy fingerprint',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Are you sure you want to continue connecting?',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'This will add the host key to your known_hosts file.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              _onTestWithTrustHostKey();
+            },
+            child: const Text('Trust & Connect'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Shows a warning dialog about a host key mismatch (possible MITM attack).
+  void _showHostKeyMismatchWarning(BuildContext context, HostKeyInfo hostKeyInfo) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.warning, color: Colors.red),
+        title: const Text('Host Key Mismatch'),
+        content: SizedBox(
+          width: 450,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.error,
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'It is possible that someone is doing something nasty! '
+                'Someone could be eavesdropping on you right now (man-in-the-middle attack)!',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'It is also possible that a host key has just been changed. '
+                'Contact your system administrator to verify.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'New Key Information:',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildHostKeyInfoRow(context, 'Host', hostKeyInfo.hostname),
+                    _buildHostKeyInfoRow(context, 'Key Type', hostKeyInfo.keyType),
+                    _buildHostKeyInfoRow(context, 'Fingerprint', hostKeyInfo.fingerprint),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'To fix this, you need to remove the old host key from your known_hosts file manually.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHostKeyInfoRow(BuildContext context, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              '$label:',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Expanded(
+            child: SelectableText(
+              value,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Retry the test connection with trustHostKey set to true.
+  void _onTestWithTrustHostKey() {
+    final String host;
+    final int port;
+    final String user;
+
+    if (_selectedPreset != null) {
+      host = _selectedPreset!.host;
+      port = _selectedPreset!.port;
+      user = _selectedPreset!.user;
+    } else {
+      host = _hostController.text;
+      port = int.parse(_portController.text);
+      user = _userController.text;
+    }
+
+    context.read<KeysBloc>().add(KeysTestConnectionRequested(
+      keyPath: widget.keyEntity.path,
+      host: host,
+      port: port,
+      user: user,
+      passphrase: _currentNeedsPassphrase ? _passphraseController.text : null,
+      trustHostKey: true,
     ));
   }
 }

@@ -16,6 +16,8 @@ class ConnectionTestResult {
   final String? serverVersion;
   final int? latencyMs;
   final String host;
+  final HostKeyVerificationStatus hostKeyStatus;
+  final HostKeyInfo? hostKeyInfo;
 
   const ConnectionTestResult({
     required this.success,
@@ -23,7 +25,17 @@ class ConnectionTestResult {
     this.serverVersion,
     this.latencyMs,
     required this.host,
+    this.hostKeyStatus = HostKeyVerificationStatus.unspecified,
+    this.hostKeyInfo,
   });
+
+  /// Whether the host key needs user approval (unknown host).
+  bool get needsHostKeyApproval =>
+      hostKeyStatus == HostKeyVerificationStatus.unknown;
+
+  /// Whether there is a host key mismatch (potential security issue).
+  bool get hasHostKeyMismatch =>
+      hostKeyStatus == HostKeyVerificationStatus.mismatch;
 }
 
 /// State for the keys feature.
