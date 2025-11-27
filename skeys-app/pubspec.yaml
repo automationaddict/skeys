@@ -36,18 +36,17 @@ dependencies:
   path_provider: ^2.1.5
   path: ^1.9.0
   fixnum: ^1.1.0
-  freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
 
   # Window Management
-  window_manager: ^0.4.3
+  window_manager: ^0.5.1
 
   # UI
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.0.10+1
   flutter_markdown: ^0.7.4+3
-  file_picker: ^8.0.0+1
-  toastification: ^2.3.0
+  file_picker: ^10.0.0
+  toastification: ^3.0.0
 
   # Backup/Archive
   archive: ^4.0.4
@@ -58,10 +57,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  build_runner: ^2.4.12
-  freezed: ^2.5.7
-  json_serializable: ^6.8.0
-  injectable_generator: ^2.7.0
+  build_runner: ^2.10.4
+  json_serializable: ^6.11.2
+  injectable_generator: ^2.9.1
 
 flutter:
   uses-material-design: true
