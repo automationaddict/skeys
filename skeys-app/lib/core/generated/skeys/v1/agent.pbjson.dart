@@ -164,3 +164,33 @@ final $typed_data.Uint8List unlockAgentRequestDescriptor = $convert.base64Decode
     'ChJVbmxvY2tBZ2VudFJlcXVlc3QSKAoGdGFyZ2V0GAEgASgLMhAuc2tleXMudjEuVGFyZ2V0Ug'
     'Z0YXJnZXQSHgoKcGFzc3BocmFzZRgCIAEoCVIKcGFzc3BocmFzZQ==');
 
+@$core.Deprecated('Use watchAgentRequestDescriptor instead')
+const WatchAgentRequest$json = {
+  '1': 'WatchAgentRequest',
+  '2': [
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
+  ],
+};
+
+/// Descriptor for `WatchAgentRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List watchAgentRequestDescriptor = $convert.base64Decode(
+    'ChFXYXRjaEFnZW50UmVxdWVzdBIoCgZ0YXJnZXQYASABKAsyEC5za2V5cy52MS5UYXJnZXRSBn'
+    'RhcmdldA==');
+
+@$core.Deprecated('Use watchAgentResponseDescriptor instead')
+const WatchAgentResponse$json = {
+  '1': 'WatchAgentResponse',
+  '2': [
+    {'1': 'running', '3': 1, '4': 1, '5': 8, '10': 'running'},
+    {'1': 'socket_path', '3': 2, '4': 1, '5': 9, '10': 'socketPath'},
+    {'1': 'is_locked', '3': 3, '4': 1, '5': 8, '10': 'isLocked'},
+    {'1': 'keys', '3': 4, '4': 3, '5': 11, '6': '.skeys.v1.AgentKey', '10': 'keys'},
+  ],
+};
+
+/// Descriptor for `WatchAgentResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List watchAgentResponseDescriptor = $convert.base64Decode(
+    'ChJXYXRjaEFnZW50UmVzcG9uc2USGAoHcnVubmluZxgBIAEoCFIHcnVubmluZxIfCgtzb2NrZX'
+    'RfcGF0aBgCIAEoCVIKc29ja2V0UGF0aBIbCglpc19sb2NrZWQYAyABKAhSCGlzTG9ja2VkEiYK'
+    'BGtleXMYBCADKAsyEi5za2V5cy52MS5BZ2VudEtleVIEa2V5cw==');
+

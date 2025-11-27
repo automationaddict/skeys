@@ -50,6 +50,10 @@ class KeyServiceClient extends $grpc.Client {
       '/skeys.v1.KeyService/PushKeyToRemote',
       ($4.PushKeyToRemoteRequest value) => value.writeToBuffer(),
       ($core.List<$core.int> value) => $4.PushKeyToRemoteResponse.fromBuffer(value));
+  static final _$watchKeys = $grpc.ClientMethod<$4.WatchKeysRequest, $4.ListKeysResponse>(
+      '/skeys.v1.KeyService/WatchKeys',
+      ($4.WatchKeysRequest value) => value.writeToBuffer(),
+      ($core.List<$core.int> value) => $4.ListKeysResponse.fromBuffer(value));
 
   KeyServiceClient($grpc.ClientChannel channel,
       {$grpc.CallOptions? options,
@@ -83,6 +87,10 @@ class KeyServiceClient extends $grpc.Client {
 
   $grpc.ResponseFuture<$4.PushKeyToRemoteResponse> pushKeyToRemote($4.PushKeyToRemoteRequest request, {$grpc.CallOptions? options}) {
     return $createUnaryCall(_$pushKeyToRemote, request, options: options);
+  }
+
+  $grpc.ResponseStream<$4.ListKeysResponse> watchKeys($4.WatchKeysRequest request, {$grpc.CallOptions? options}) {
+    return $createStreamingCall(_$watchKeys, $async.Stream.fromIterable([request]), options: options);
   }
 }
 
@@ -140,6 +148,13 @@ abstract class KeyServiceBase extends $grpc.Service {
         false,
         ($core.List<$core.int> value) => $4.PushKeyToRemoteRequest.fromBuffer(value),
         ($4.PushKeyToRemoteResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$4.WatchKeysRequest, $4.ListKeysResponse>(
+        'WatchKeys',
+        watchKeys_Pre,
+        false,
+        true,
+        ($core.List<$core.int> value) => $4.WatchKeysRequest.fromBuffer(value),
+        ($4.ListKeysResponse value) => value.writeToBuffer()));
   }
 
   $async.Future<$4.ListKeysResponse> listKeys_Pre($grpc.ServiceCall call, $async.Future<$4.ListKeysRequest> request) async {
@@ -170,6 +185,10 @@ abstract class KeyServiceBase extends $grpc.Service {
     return pushKeyToRemote(call, await request);
   }
 
+  $async.Stream<$4.ListKeysResponse> watchKeys_Pre($grpc.ServiceCall call, $async.Future<$4.WatchKeysRequest> request) async* {
+    yield* watchKeys(call, await request);
+  }
+
   $async.Future<$4.ListKeysResponse> listKeys($grpc.ServiceCall call, $4.ListKeysRequest request);
   $async.Future<$4.SSHKey> getKey($grpc.ServiceCall call, $4.GetKeyRequest request);
   $async.Future<$4.SSHKey> generateKey($grpc.ServiceCall call, $4.GenerateKeyRequest request);
@@ -177,4 +196,5 @@ abstract class KeyServiceBase extends $grpc.Service {
   $async.Future<$4.GetFingerprintResponse> getFingerprint($grpc.ServiceCall call, $4.GetFingerprintRequest request);
   $async.Future<$1.Empty> changePassphrase($grpc.ServiceCall call, $4.ChangePassphraseRequest request);
   $async.Future<$4.PushKeyToRemoteResponse> pushKeyToRemote($grpc.ServiceCall call, $4.PushKeyToRemoteRequest request);
+  $async.Stream<$4.ListKeysResponse> watchKeys($grpc.ServiceCall call, $4.WatchKeysRequest request);
 }

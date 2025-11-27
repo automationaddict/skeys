@@ -3,6 +3,14 @@ import '../../../core/grpc/grpc_client.dart';
 import '../../../core/generated/skeys/v1/agent.pb.dart' as pb;
 import '../../../core/generated/skeys/v1/common.pb.dart' as common;
 
+/// Combined status and keys from agent watch stream.
+class AgentWatchState {
+  final AgentStatus status;
+  final List<AgentKeyEntry> keys;
+
+  AgentWatchState({required this.status, required this.keys});
+}
+
 /// Abstract repository for SSH agent operations.
 abstract class AgentRepository {
   Future<AgentStatus> getStatus();
@@ -12,6 +20,10 @@ abstract class AgentRepository {
   Future<void> removeAllKeys();
   Future<void> lock(String passphrase);
   Future<void> unlock(String passphrase);
+
+  /// Returns a stream of agent status and key updates.
+  /// The stream emits whenever status or keys change on the server.
+  Stream<AgentWatchState> watchAgent();
 }
 
 /// Implementation adapting gRPC to domain.
@@ -97,5 +109,32 @@ class AgentRepositoryImpl implements AgentRepository {
       ..passphrase = passphrase;
 
     await _client.agent.unlockAgent(request);
+  }
+
+  @override
+  Stream<AgentWatchState> watchAgent() {
+    final request = pb.WatchAgentRequest()
+      ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL);
+
+    return _client.agent.watchAgent(request).map((response) {
+      final status = AgentStatus(
+        isRunning: response.running,
+        socketPath: response.socketPath,
+        isLocked: response.isLocked,
+        keyCount: response.keys.length,
+      );
+
+      final keys = response.keys.map((k) => AgentKeyEntry(
+        fingerprint: k.fingerprint,
+        comment: k.comment,
+        type: k.type,
+        bits: k.bits,
+        hasLifetime: k.hasLifetime,
+        lifetimeSeconds: k.lifetimeSeconds,
+        requiresConfirmation: k.isConfirm,
+      )).toList();
+
+      return AgentWatchState(status: status, keys: keys);
+    });
   }
 }

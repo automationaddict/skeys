@@ -27,6 +27,7 @@ const (
 	AgentService_RemoveAllKeysFromAgent_FullMethodName = "/skeys.v1.AgentService/RemoveAllKeysFromAgent"
 	AgentService_LockAgent_FullMethodName              = "/skeys.v1.AgentService/LockAgent"
 	AgentService_UnlockAgent_FullMethodName            = "/skeys.v1.AgentService/UnlockAgent"
+	AgentService_WatchAgent_FullMethodName             = "/skeys.v1.AgentService/WatchAgent"
 )
 
 // AgentServiceClient is the client API for AgentService service.
@@ -40,6 +41,8 @@ type AgentServiceClient interface {
 	RemoveAllKeysFromAgent(ctx context.Context, in *RemoveAllKeysFromAgentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	LockAgent(ctx context.Context, in *LockAgentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	UnlockAgent(ctx context.Context, in *UnlockAgentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Server streaming RPC - sends agent keys and status whenever they change
+	WatchAgent(ctx context.Context, in *WatchAgentRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WatchAgentResponse], error)
 }
 
 type agentServiceClient struct {
@@ -120,6 +123,25 @@ func (c *agentServiceClient) UnlockAgent(ctx context.Context, in *UnlockAgentReq
 	return out, nil
 }
 
+func (c *agentServiceClient) WatchAgent(ctx context.Context, in *WatchAgentRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WatchAgentResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &AgentService_ServiceDesc.Streams[0], AgentService_WatchAgent_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[WatchAgentRequest, WatchAgentResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type AgentService_WatchAgentClient = grpc.ServerStreamingClient[WatchAgentResponse]
+
 // AgentServiceServer is the server API for AgentService service.
 // All implementations must embed UnimplementedAgentServiceServer
 // for forward compatibility.
@@ -131,6 +153,8 @@ type AgentServiceServer interface {
 	RemoveAllKeysFromAgent(context.Context, *RemoveAllKeysFromAgentRequest) (*emptypb.Empty, error)
 	LockAgent(context.Context, *LockAgentRequest) (*emptypb.Empty, error)
 	UnlockAgent(context.Context, *UnlockAgentRequest) (*emptypb.Empty, error)
+	// Server streaming RPC - sends agent keys and status whenever they change
+	WatchAgent(*WatchAgentRequest, grpc.ServerStreamingServer[WatchAgentResponse]) error
 	mustEmbedUnimplementedAgentServiceServer()
 }
 
@@ -161,6 +185,9 @@ func (UnimplementedAgentServiceServer) LockAgent(context.Context, *LockAgentRequ
 }
 func (UnimplementedAgentServiceServer) UnlockAgent(context.Context, *UnlockAgentRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnlockAgent not implemented")
+}
+func (UnimplementedAgentServiceServer) WatchAgent(*WatchAgentRequest, grpc.ServerStreamingServer[WatchAgentResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method WatchAgent not implemented")
 }
 func (UnimplementedAgentServiceServer) mustEmbedUnimplementedAgentServiceServer() {}
 func (UnimplementedAgentServiceServer) testEmbeddedByValue()                      {}
@@ -309,6 +336,17 @@ func _AgentService_UnlockAgent_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentService_WatchAgent_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WatchAgentRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AgentServiceServer).WatchAgent(m, &grpc.GenericServerStream[WatchAgentRequest, WatchAgentResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type AgentService_WatchAgentServer = grpc.ServerStreamingServer[WatchAgentResponse]
+
 // AgentService_ServiceDesc is the grpc.ServiceDesc for AgentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -345,6 +383,12 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AgentService_UnlockAgent_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "WatchAgent",
+			Handler:       _AgentService_WatchAgent_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "skeys/v1/agent.proto",
 }

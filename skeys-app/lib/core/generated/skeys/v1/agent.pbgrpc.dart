@@ -50,6 +50,10 @@ class AgentServiceClient extends $grpc.Client {
       '/skeys.v1.AgentService/UnlockAgent',
       ($0.UnlockAgentRequest value) => value.writeToBuffer(),
       ($core.List<$core.int> value) => $1.Empty.fromBuffer(value));
+  static final _$watchAgent = $grpc.ClientMethod<$0.WatchAgentRequest, $0.WatchAgentResponse>(
+      '/skeys.v1.AgentService/WatchAgent',
+      ($0.WatchAgentRequest value) => value.writeToBuffer(),
+      ($core.List<$core.int> value) => $0.WatchAgentResponse.fromBuffer(value));
 
   AgentServiceClient($grpc.ClientChannel channel,
       {$grpc.CallOptions? options,
@@ -83,6 +87,10 @@ class AgentServiceClient extends $grpc.Client {
 
   $grpc.ResponseFuture<$1.Empty> unlockAgent($0.UnlockAgentRequest request, {$grpc.CallOptions? options}) {
     return $createUnaryCall(_$unlockAgent, request, options: options);
+  }
+
+  $grpc.ResponseStream<$0.WatchAgentResponse> watchAgent($0.WatchAgentRequest request, {$grpc.CallOptions? options}) {
+    return $createStreamingCall(_$watchAgent, $async.Stream.fromIterable([request]), options: options);
   }
 }
 
@@ -140,6 +148,13 @@ abstract class AgentServiceBase extends $grpc.Service {
         false,
         ($core.List<$core.int> value) => $0.UnlockAgentRequest.fromBuffer(value),
         ($1.Empty value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.WatchAgentRequest, $0.WatchAgentResponse>(
+        'WatchAgent',
+        watchAgent_Pre,
+        false,
+        true,
+        ($core.List<$core.int> value) => $0.WatchAgentRequest.fromBuffer(value),
+        ($0.WatchAgentResponse value) => value.writeToBuffer()));
   }
 
   $async.Future<$0.GetAgentStatusResponse> getAgentStatus_Pre($grpc.ServiceCall call, $async.Future<$0.GetAgentStatusRequest> request) async {
@@ -170,6 +185,10 @@ abstract class AgentServiceBase extends $grpc.Service {
     return unlockAgent(call, await request);
   }
 
+  $async.Stream<$0.WatchAgentResponse> watchAgent_Pre($grpc.ServiceCall call, $async.Future<$0.WatchAgentRequest> request) async* {
+    yield* watchAgent(call, await request);
+  }
+
   $async.Future<$0.GetAgentStatusResponse> getAgentStatus($grpc.ServiceCall call, $0.GetAgentStatusRequest request);
   $async.Future<$0.ListAgentKeysResponse> listAgentKeys($grpc.ServiceCall call, $0.ListAgentKeysRequest request);
   $async.Future<$1.Empty> addKeyToAgent($grpc.ServiceCall call, $0.AddKeyToAgentRequest request);
@@ -177,4 +196,5 @@ abstract class AgentServiceBase extends $grpc.Service {
   $async.Future<$1.Empty> removeAllKeysFromAgent($grpc.ServiceCall call, $0.RemoveAllKeysFromAgentRequest request);
   $async.Future<$1.Empty> lockAgent($grpc.ServiceCall call, $0.LockAgentRequest request);
   $async.Future<$1.Empty> unlockAgent($grpc.ServiceCall call, $0.UnlockAgentRequest request);
+  $async.Stream<$0.WatchAgentResponse> watchAgent($grpc.ServiceCall call, $0.WatchAgentRequest request);
 }

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../di/injection.dart';
+import '../settings/settings_dialog.dart';
 import '../settings/settings_service.dart';
 import 'help_context_service.dart';
+import 'help_navigation_service.dart';
 import 'help_service.dart';
 
 /// A flyout panel for displaying context-aware help documentation.
@@ -12,11 +14,16 @@ class HelpPanel extends StatefulWidget {
   final VoidCallback onClose;
   final HelpService helpService;
 
+  /// Optional override route to show instead of the base route.
+  /// Used when navigating to help from dialogs.
+  final String? overrideRoute;
+
   const HelpPanel({
     super.key,
     required this.baseRoute,
     required this.onClose,
     required this.helpService,
+    this.overrideRoute,
   });
 
   @override
@@ -27,6 +34,7 @@ class _HelpPanelState extends State<HelpPanel> {
   final _searchController = TextEditingController();
   final _settingsService = getIt<SettingsService>();
   final _helpContextService = getIt<HelpContextService>();
+  final _helpNavService = getIt<HelpNavigationService>();
   String _content = '';
   String _currentDocName = '';
   String _currentRoute = '';
@@ -35,28 +43,60 @@ class _HelpPanelState extends State<HelpPanel> {
   bool _isSearching = false;
   late double _panelWidth;
 
+  /// Temporary override route (cleared when user navigates normally).
+  String? _overrideRoute;
+
   @override
   void initState() {
     super.initState();
     _panelWidth = _settingsService.helpPanelWidth;
     _helpContextService.addListener(_onContextChanged);
+    _helpNavService.addListener(_onHelpNavigationChanged);
+    _overrideRoute = widget.overrideRoute;
     _updateCurrentRoute();
     _loadHelpForCurrentRoute();
   }
 
   void _onContextChanged() {
+    // Clear override when context changes (user navigated to different page)
+    _overrideRoute = null;
     _updateCurrentRoute();
     _loadHelpForCurrentRoute();
   }
 
+  void _onHelpNavigationChanged() {
+    // Check for pending help navigation
+    if (_helpNavService.pendingShowHelp && _helpNavService.pendingHelpRoute != null) {
+      final route = _helpNavService.pendingHelpRoute!;
+      _helpNavService.clearPendingHelp();
+
+      setState(() {
+        _overrideRoute = route;
+      });
+      _updateCurrentRoute();
+      _loadHelpForCurrentRoute();
+    }
+  }
+
   void _updateCurrentRoute() {
-    _currentRoute = _helpContextService.buildHelpRoute(widget.baseRoute);
+    if (_overrideRoute != null) {
+      _currentRoute = _overrideRoute!;
+    } else {
+      _currentRoute = _helpContextService.buildHelpRoute(widget.baseRoute);
+    }
   }
 
   @override
   void didUpdateWidget(HelpPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.baseRoute != widget.baseRoute) {
+      // Clear override when base route changes
+      _overrideRoute = null;
+      _updateCurrentRoute();
+      _loadHelpForCurrentRoute();
+    }
+    if (oldWidget.overrideRoute != widget.overrideRoute && widget.overrideRoute != null) {
+      _overrideRoute = widget.overrideRoute;
       _updateCurrentRoute();
       _loadHelpForCurrentRoute();
     }
@@ -124,6 +164,7 @@ class _HelpPanelState extends State<HelpPanel> {
   @override
   void dispose() {
     _helpContextService.removeListener(_onContextChanged);
+    _helpNavService.removeListener(_onHelpNavigationChanged);
     _searchController.dispose();
     super.dispose();
   }
@@ -387,7 +428,38 @@ class _HelpPanelState extends State<HelpPanel> {
           ),
         ),
       ),
+      onTapLink: (text, href, title) => _handleLinkTap(href),
     );
+  }
+
+  void _handleLinkTap(String? href) {
+    if (href == null) return;
+
+    // Handle skeys:// URLs
+    if (href.startsWith('skeys://')) {
+      final action = HelpNavigationService.parseLink(href);
+      if (action == null) return;
+
+      switch (action) {
+        case OpenSettingsAction(:final tabIndex):
+          // Close help and open settings dialog
+          widget.onClose();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final context = this.context;
+            if (context.mounted) {
+              SettingsDialog.show(context, initialTab: tabIndex);
+            }
+          });
+        case ShowHelpAction(:final route):
+          // Navigate to the help route
+          setState(() {
+            _overrideRoute = route;
+          });
+          _updateCurrentRoute();
+          _loadHelpForCurrentRoute();
+      }
+    }
+    // External URLs are ignored for now - could add url_launcher later if needed
   }
 
   Widget _buildTopicSelector(ThemeData theme, ColorScheme colorScheme) {
@@ -449,6 +521,16 @@ class _HelpPanelState extends State<HelpPanel> {
         return Icons.cloud;
       case 'backup':
         return Icons.backup;
+      case 'settings-display':
+        return Icons.text_fields;
+      case 'settings-security':
+        return Icons.shield;
+      case 'settings-backup':
+        return Icons.backup;
+      case 'settings-logging':
+        return Icons.article;
+      case 'settings-about':
+        return Icons.info;
       default:
         return Icons.help_outline;
     }

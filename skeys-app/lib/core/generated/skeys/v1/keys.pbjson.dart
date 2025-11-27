@@ -238,3 +238,16 @@ final $typed_data.Uint8List pushKeyToRemoteResponseDescriptor = $convert.base64D
     'ChdQdXNoS2V5VG9SZW1vdGVSZXNwb25zZRIYCgdzdWNjZXNzGAEgASgIUgdzdWNjZXNzEhgKB2'
     '1lc3NhZ2UYAiABKAlSB21lc3NhZ2U=');
 
+@$core.Deprecated('Use watchKeysRequestDescriptor instead')
+const WatchKeysRequest$json = {
+  '1': 'WatchKeysRequest',
+  '2': [
+    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
+  ],
+};
+
+/// Descriptor for `WatchKeysRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List watchKeysRequestDescriptor = $convert.base64Decode(
+    'ChBXYXRjaEtleXNSZXF1ZXN0EigKBnRhcmdldBgBIAEoCzIQLnNrZXlzLnYxLlRhcmdldFIGdG'
+    'FyZ2V0');
+

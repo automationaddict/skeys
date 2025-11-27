@@ -13,7 +13,7 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import '../../google/protobuf/timestamp.pb.dart' as $8;
+import '../../google/protobuf/timestamp.pb.dart' as $10;
 import 'remote.pbenum.dart';
 
 export 'remote.pbenum.dart';
@@ -27,8 +27,8 @@ class Remote extends $pb.GeneratedMessage {
     $core.String? user,
     $core.String? identityFile,
     $core.String? sshConfigAlias,
-    $8.Timestamp? createdAt,
-    $8.Timestamp? lastConnectedAt,
+    $10.Timestamp? createdAt,
+    $10.Timestamp? lastConnectedAt,
     RemoteStatus? status,
   }) {
     final $result = create();
@@ -76,8 +76,8 @@ class Remote extends $pb.GeneratedMessage {
     ..aOS(5, _omitFieldNames ? '' : 'user')
     ..aOS(6, _omitFieldNames ? '' : 'identityFile')
     ..aOS(7, _omitFieldNames ? '' : 'sshConfigAlias')
-    ..aOM<$8.Timestamp>(8, _omitFieldNames ? '' : 'createdAt', subBuilder: $8.Timestamp.create)
-    ..aOM<$8.Timestamp>(9, _omitFieldNames ? '' : 'lastConnectedAt', subBuilder: $8.Timestamp.create)
+    ..aOM<$10.Timestamp>(8, _omitFieldNames ? '' : 'createdAt', subBuilder: $10.Timestamp.create)
+    ..aOM<$10.Timestamp>(9, _omitFieldNames ? '' : 'lastConnectedAt', subBuilder: $10.Timestamp.create)
     ..e<RemoteStatus>(10, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: RemoteStatus.REMOTE_STATUS_UNSPECIFIED, valueOf: RemoteStatus.valueOf, enumValues: RemoteStatus.values)
     ..hasRequiredFields = false
   ;
@@ -167,26 +167,26 @@ class Remote extends $pb.GeneratedMessage {
   void clearSshConfigAlias() => clearField(7);
 
   @$pb.TagNumber(8)
-  $8.Timestamp get createdAt => $_getN(7);
+  $10.Timestamp get createdAt => $_getN(7);
   @$pb.TagNumber(8)
-  set createdAt($8.Timestamp v) { setField(8, v); }
+  set createdAt($10.Timestamp v) { setField(8, v); }
   @$pb.TagNumber(8)
   $core.bool hasCreatedAt() => $_has(7);
   @$pb.TagNumber(8)
   void clearCreatedAt() => clearField(8);
   @$pb.TagNumber(8)
-  $8.Timestamp ensureCreatedAt() => $_ensure(7);
+  $10.Timestamp ensureCreatedAt() => $_ensure(7);
 
   @$pb.TagNumber(9)
-  $8.Timestamp get lastConnectedAt => $_getN(8);
+  $10.Timestamp get lastConnectedAt => $_getN(8);
   @$pb.TagNumber(9)
-  set lastConnectedAt($8.Timestamp v) { setField(9, v); }
+  set lastConnectedAt($10.Timestamp v) { setField(9, v); }
   @$pb.TagNumber(9)
   $core.bool hasLastConnectedAt() => $_has(8);
   @$pb.TagNumber(9)
   void clearLastConnectedAt() => clearField(9);
   @$pb.TagNumber(9)
-  $8.Timestamp ensureLastConnectedAt() => $_ensure(8);
+  $10.Timestamp ensureLastConnectedAt() => $_ensure(8);
 
   @$pb.TagNumber(10)
   RemoteStatus get status => $_getN(9);
@@ -206,8 +206,8 @@ class Connection extends $pb.GeneratedMessage {
     $core.int? port,
     $core.String? user,
     $core.String? serverVersion,
-    $8.Timestamp? connectedAt,
-    $8.Timestamp? lastActivityAt,
+    $10.Timestamp? connectedAt,
+    $10.Timestamp? lastActivityAt,
   }) {
     final $result = create();
     if (id != null) {
@@ -247,8 +247,8 @@ class Connection extends $pb.GeneratedMessage {
     ..a<$core.int>(4, _omitFieldNames ? '' : 'port', $pb.PbFieldType.O3)
     ..aOS(5, _omitFieldNames ? '' : 'user')
     ..aOS(6, _omitFieldNames ? '' : 'serverVersion')
-    ..aOM<$8.Timestamp>(7, _omitFieldNames ? '' : 'connectedAt', subBuilder: $8.Timestamp.create)
-    ..aOM<$8.Timestamp>(8, _omitFieldNames ? '' : 'lastActivityAt', subBuilder: $8.Timestamp.create)
+    ..aOM<$10.Timestamp>(7, _omitFieldNames ? '' : 'connectedAt', subBuilder: $10.Timestamp.create)
+    ..aOM<$10.Timestamp>(8, _omitFieldNames ? '' : 'lastActivityAt', subBuilder: $10.Timestamp.create)
     ..hasRequiredFields = false
   ;
 
@@ -328,26 +328,26 @@ class Connection extends $pb.GeneratedMessage {
   void clearServerVersion() => clearField(6);
 
   @$pb.TagNumber(7)
-  $8.Timestamp get connectedAt => $_getN(6);
+  $10.Timestamp get connectedAt => $_getN(6);
   @$pb.TagNumber(7)
-  set connectedAt($8.Timestamp v) { setField(7, v); }
+  set connectedAt($10.Timestamp v) { setField(7, v); }
   @$pb.TagNumber(7)
   $core.bool hasConnectedAt() => $_has(6);
   @$pb.TagNumber(7)
   void clearConnectedAt() => clearField(7);
   @$pb.TagNumber(7)
-  $8.Timestamp ensureConnectedAt() => $_ensure(6);
+  $10.Timestamp ensureConnectedAt() => $_ensure(6);
 
   @$pb.TagNumber(8)
-  $8.Timestamp get lastActivityAt => $_getN(7);
+  $10.Timestamp get lastActivityAt => $_getN(7);
   @$pb.TagNumber(8)
-  set lastActivityAt($8.Timestamp v) { setField(8, v); }
+  set lastActivityAt($10.Timestamp v) { setField(8, v); }
   @$pb.TagNumber(8)
   $core.bool hasLastActivityAt() => $_has(7);
   @$pb.TagNumber(8)
   void clearLastActivityAt() => clearField(8);
   @$pb.TagNumber(8)
-  $8.Timestamp ensureLastActivityAt() => $_ensure(7);
+  $10.Timestamp ensureLastActivityAt() => $_ensure(7);
 }
 
 class ListRemotesRequest extends $pb.GeneratedMessage {

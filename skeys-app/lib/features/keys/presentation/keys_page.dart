@@ -4,15 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/di/injection.dart';
 import '../../../core/notifications/app_toast.dart';
-import '../../../core/settings/settings_service.dart';
 import '../../agent/bloc/agent_bloc.dart';
-import '../../agent/service/agent_key_tracker.dart';
+import '../../metadata/repository/metadata_repository.dart';
 import '../bloc/keys_bloc.dart';
 import '../domain/key_entity.dart';
 import 'widgets/key_list_tile.dart';
 import 'widgets/generate_key_dialog.dart';
-import 'widgets/passphrase_dialog.dart';
-import 'widgets/test_connection_dialog.dart';
+import 'widgets/add_to_agent_dialog.dart';
 
 /// Page displaying SSH keys.
 class KeysPage extends StatefulWidget {
@@ -26,7 +24,7 @@ class _KeysPageState extends State<KeysPage> {
   @override
   void initState() {
     super.initState();
-    context.read<KeysBloc>().add(const KeysLoadRequested());
+    context.read<KeysBloc>().add(const KeysWatchRequested());
   }
 
   @override
@@ -38,9 +36,10 @@ class _KeysPageState extends State<KeysPage> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              context.read<KeysBloc>().add(const KeysLoadRequested());
+              // Restart stream subscription if it errored
+              context.read<KeysBloc>().add(const KeysWatchRequested());
             },
-            tooltip: 'Refresh',
+            tooltip: 'Reconnect',
           ),
         ],
       ),
@@ -52,6 +51,23 @@ class _KeysPageState extends State<KeysPage> {
           }
           if (state.status == KeysStatus.failure && state.errorMessage != null) {
             AppToast.error(context, message: state.errorMessage!);
+          }
+          // Handle test connection result from immediate tests
+          if (state.testConnectionResult != null) {
+            final result = state.testConnectionResult!;
+            // Only show toast for immediate tests (not ones from dialog)
+            // The dialog handles its own toast
+            if (!result.needsHostKeyApproval && !result.hasHostKeyMismatch) {
+              AppToast.connectionResult(
+                context,
+                success: result.success,
+                message: result.message,
+                serverVersion: result.serverVersion,
+                latencyMs: result.latencyMs,
+              );
+              // Clear the result
+              context.read<KeysBloc>().add(const KeysTestConnectionCleared());
+            }
           }
         },
         builder: (context, state) {
@@ -88,7 +104,8 @@ class _KeysPageState extends State<KeysPage> {
 
           return RefreshIndicator(
             onRefresh: () async {
-              context.read<KeysBloc>().add(const KeysLoadRequested());
+              // Restart stream subscription if it errored
+              context.read<KeysBloc>().add(const KeysWatchRequested());
             },
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
@@ -102,7 +119,8 @@ class _KeysPageState extends State<KeysPage> {
                   },
                   onDelete: () => _confirmDelete(context, key),
                   onAddToAgent: () => _addToAgent(context, key),
-                  onTestConnection: () => _showTestConnectionDialog(context, key),
+                  // Only show Test Connection when key is in agent
+                  onTestConnection: key.isInAgent ? () => _testConnection(context, key) : null,
                 );
               },
             ),
@@ -153,55 +171,48 @@ class _KeysPageState extends State<KeysPage> {
     );
   }
 
-  void _addToAgent(BuildContext context, KeyEntity key) async {
-    String? passphrase;
+  void _addToAgent(BuildContext context, KeyEntity key) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: context.read<KeysBloc>()),
+          BlocProvider.value(value: context.read<AgentBloc>()),
+        ],
+        child: AddToAgentDialog(keyEntity: key),
+      ),
+    );
+  }
 
-    // If the key has a passphrase, prompt for it
-    if (key.hasPassphrase) {
-      passphrase = await showDialog<String>(
-        context: context,
-        builder: (dialogContext) => PassphraseDialog(keyName: key.name),
-      );
-
-      // User cancelled
-      if (passphrase == null) return;
-    }
+  /// Test connection immediately using stored metadata (no dialog).
+  void _testConnection(BuildContext context, KeyEntity key) async {
+    // Get stored metadata for this key
+    final metadataRepo = getIt<MetadataRepository>();
+    final metadata = await metadataRepo.getKeyMetadata(key.path);
 
     if (!context.mounted) return;
 
-    final settingsService = getIt<SettingsService>();
-    final timeoutMinutes = settingsService.agentKeyTimeoutMinutes;
-
-    // Add the key to the agent
-    context.read<AgentBloc>().add(AgentAddKeyRequested(
-      keyPath: key.path,
-      passphrase: passphrase,
-    ));
-
-    // Track the key for countdown display
-    if (timeoutMinutes > 0) {
-      final tracker = getIt<AgentKeyTracker>();
-      tracker.keyAdded(key.fingerprint, timeoutMinutes * 60);
+    if (metadata == null || metadata.verifiedHost == null) {
+      AppToast.error(
+        context,
+        message: 'No verified service found for this key. Re-add to agent to set up.',
+      );
+      return;
     }
 
-    // Show feedback
-    AppToast.info(context, message: 'Adding "${key.name}" to agent...');
-
-    // Reload keys to update isInAgent status
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (context.mounted) {
-        context.read<KeysBloc>().add(const KeysLoadRequested());
-      }
-    });
-  }
-
-  void _showTestConnectionDialog(BuildContext context, KeyEntity key) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => BlocProvider.value(
-        value: context.read<KeysBloc>(),
-        child: TestConnectionDialog(keyEntity: key),
-      ),
+    // Show testing toast
+    AppToast.info(
+      context,
+      message: 'Testing connection to ${metadata.verifiedService ?? metadata.verifiedHost}...',
     );
+
+    // Test the connection
+    context.read<KeysBloc>().add(KeysTestConnectionRequested(
+      keyPath: key.path,
+      host: metadata.verifiedHost!,
+      port: metadata.verifiedPort ?? 22,
+      user: metadata.verifiedUser ?? 'git',
+      // No passphrase needed - key is already in agent
+    ));
   }
 }

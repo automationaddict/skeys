@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../di/injection.dart';
 import '../generated/skeys/v1/config.pb.dart';
 import '../grpc/grpc_client.dart';
+import '../help/help_navigation_service.dart';
 import '../help/help_panel.dart';
 import '../help/help_service.dart';
 import '../logging/app_logger.dart';
@@ -27,16 +28,49 @@ class _AppShellState extends State<AppShell> {
   final _helpService = HelpService();
   final _settingsService = getIt<SettingsService>();
   final _grpcClient = getIt<GrpcClient>();
+  final _helpNavService = getIt<HelpNavigationService>();
   bool _showHelp = false;
   bool _checkedSshConfig = false;
 
   @override
   void initState() {
     super.initState();
+    // Listen for help navigation requests
+    _helpNavService.addListener(_onHelpNavigationChanged);
+
     // Check SSH config on first run after frame is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkSshConfigPrompt();
     });
+  }
+
+  @override
+  void dispose() {
+    _helpNavService.removeListener(_onHelpNavigationChanged);
+    super.dispose();
+  }
+
+  void _onHelpNavigationChanged() {
+    // Handle pending help request - just show the help panel
+    // The help panel itself listens for the specific route
+    if (_helpNavService.pendingShowHelp) {
+      setState(() {
+        _showHelp = true;
+      });
+      // Note: The help panel will pick up the pending route and navigate to it
+    }
+
+    // Handle pending settings request
+    if (_helpNavService.pendingOpenSettings) {
+      final tabIndex = _helpNavService.pendingSettingsTab;
+      _helpNavService.clearPendingSettings();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          SettingsDialog.show(context, initialTab: tabIndex);
+        }
+      });
+    }
   }
 
   Future<void> _checkSshConfigPrompt() async {

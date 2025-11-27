@@ -21,6 +21,10 @@ abstract class KeysRepository {
   Future<void> deleteKey(String keyId);
   Future<void> changePassphrase(String keyId, String oldPassphrase, String newPassphrase);
   Future<String> getFingerprint(String keyId);
+
+  /// Returns a stream of key list updates.
+  /// The stream emits the full list whenever keys change on the server.
+  Stream<List<KeyEntity>> watchKeys();
 }
 
 /// Implementation of KeysRepository that adapts gRPC to domain interface.
@@ -104,6 +108,16 @@ class KeysRepositoryImpl implements KeysRepository {
 
     final response = await _client.keys.getFingerprint(request);
     return response.fingerprint;
+  }
+
+  @override
+  Stream<List<KeyEntity>> watchKeys() {
+    final request = pb.WatchKeysRequest()
+      ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL);
+
+    return _client.keys.watchKeys(request).map(
+      (response) => response.keys.map(_mapToEntity).toList(),
+    );
   }
 
   KeyEntity _mapToEntity(pb.SSHKey key) {

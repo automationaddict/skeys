@@ -591,6 +591,120 @@ func (x *UnlockAgentRequest) GetPassphrase() string {
 	return ""
 }
 
+type WatchAgentRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Target        *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WatchAgentRequest) Reset() {
+	*x = WatchAgentRequest{}
+	mi := &file_skeys_v1_agent_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WatchAgentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WatchAgentRequest) ProtoMessage() {}
+
+func (x *WatchAgentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_agent_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WatchAgentRequest.ProtoReflect.Descriptor instead.
+func (*WatchAgentRequest) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_agent_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *WatchAgentRequest) GetTarget() *Target {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+type WatchAgentResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Status info
+	Running    bool   `protobuf:"varint,1,opt,name=running,proto3" json:"running,omitempty"`
+	SocketPath string `protobuf:"bytes,2,opt,name=socket_path,json=socketPath,proto3" json:"socket_path,omitempty"`
+	IsLocked   bool   `protobuf:"varint,3,opt,name=is_locked,json=isLocked,proto3" json:"is_locked,omitempty"`
+	// Keys currently loaded
+	Keys          []*AgentKey `protobuf:"bytes,4,rep,name=keys,proto3" json:"keys,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WatchAgentResponse) Reset() {
+	*x = WatchAgentResponse{}
+	mi := &file_skeys_v1_agent_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WatchAgentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WatchAgentResponse) ProtoMessage() {}
+
+func (x *WatchAgentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_agent_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WatchAgentResponse.ProtoReflect.Descriptor instead.
+func (*WatchAgentResponse) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_agent_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *WatchAgentResponse) GetRunning() bool {
+	if x != nil {
+		return x.Running
+	}
+	return false
+}
+
+func (x *WatchAgentResponse) GetSocketPath() string {
+	if x != nil {
+		return x.SocketPath
+	}
+	return ""
+}
+
+func (x *WatchAgentResponse) GetIsLocked() bool {
+	if x != nil {
+		return x.IsLocked
+	}
+	return false
+}
+
+func (x *WatchAgentResponse) GetKeys() []*AgentKey {
+	if x != nil {
+		return x.Keys
+	}
+	return nil
+}
+
 var File_skeys_v1_agent_proto protoreflect.FileDescriptor
 
 const file_skeys_v1_agent_proto_rawDesc = "" +
@@ -639,7 +753,15 @@ const file_skeys_v1_agent_proto_rawDesc = "" +
 	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\x12\x1e\n" +
 	"\n" +
 	"passphrase\x18\x02 \x01(\tR\n" +
-	"passphrase2\xb2\x04\n" +
+	"passphrase\"=\n" +
+	"\x11WatchAgentRequest\x12(\n" +
+	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\"\x94\x01\n" +
+	"\x12WatchAgentResponse\x12\x18\n" +
+	"\arunning\x18\x01 \x01(\bR\arunning\x12\x1f\n" +
+	"\vsocket_path\x18\x02 \x01(\tR\n" +
+	"socketPath\x12\x1b\n" +
+	"\tis_locked\x18\x03 \x01(\bR\bisLocked\x12&\n" +
+	"\x04keys\x18\x04 \x03(\v2\x12.skeys.v1.AgentKeyR\x04keys2\xfd\x04\n" +
 	"\fAgentService\x12S\n" +
 	"\x0eGetAgentStatus\x12\x1f.skeys.v1.GetAgentStatusRequest\x1a .skeys.v1.GetAgentStatusResponse\x12P\n" +
 	"\rListAgentKeys\x12\x1e.skeys.v1.ListAgentKeysRequest\x1a\x1f.skeys.v1.ListAgentKeysResponse\x12G\n" +
@@ -647,7 +769,9 @@ const file_skeys_v1_agent_proto_rawDesc = "" +
 	"\x12RemoveKeyFromAgent\x12#.skeys.v1.RemoveKeyFromAgentRequest\x1a\x16.google.protobuf.Empty\x12Y\n" +
 	"\x16RemoveAllKeysFromAgent\x12'.skeys.v1.RemoveAllKeysFromAgentRequest\x1a\x16.google.protobuf.Empty\x12?\n" +
 	"\tLockAgent\x12\x1a.skeys.v1.LockAgentRequest\x1a\x16.google.protobuf.Empty\x12C\n" +
-	"\vUnlockAgent\x12\x1c.skeys.v1.UnlockAgentRequest\x1a\x16.google.protobuf.EmptyB7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"
+	"\vUnlockAgent\x12\x1c.skeys.v1.UnlockAgentRequest\x1a\x16.google.protobuf.Empty\x12I\n" +
+	"\n" +
+	"WatchAgent\x12\x1b.skeys.v1.WatchAgentRequest\x1a\x1c.skeys.v1.WatchAgentResponse0\x01B7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"
 
 var (
 	file_skeys_v1_agent_proto_rawDescOnce sync.Once
@@ -661,7 +785,7 @@ func file_skeys_v1_agent_proto_rawDescGZIP() []byte {
 	return file_skeys_v1_agent_proto_rawDescData
 }
 
-var file_skeys_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_skeys_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_skeys_v1_agent_proto_goTypes = []any{
 	(*AgentKey)(nil),                      // 0: skeys.v1.AgentKey
 	(*GetAgentStatusRequest)(nil),         // 1: skeys.v1.GetAgentStatusRequest
@@ -673,39 +797,45 @@ var file_skeys_v1_agent_proto_goTypes = []any{
 	(*RemoveAllKeysFromAgentRequest)(nil), // 7: skeys.v1.RemoveAllKeysFromAgentRequest
 	(*LockAgentRequest)(nil),              // 8: skeys.v1.LockAgentRequest
 	(*UnlockAgentRequest)(nil),            // 9: skeys.v1.UnlockAgentRequest
-	(*Target)(nil),                        // 10: skeys.v1.Target
-	(*durationpb.Duration)(nil),           // 11: google.protobuf.Duration
-	(*emptypb.Empty)(nil),                 // 12: google.protobuf.Empty
+	(*WatchAgentRequest)(nil),             // 10: skeys.v1.WatchAgentRequest
+	(*WatchAgentResponse)(nil),            // 11: skeys.v1.WatchAgentResponse
+	(*Target)(nil),                        // 12: skeys.v1.Target
+	(*durationpb.Duration)(nil),           // 13: google.protobuf.Duration
+	(*emptypb.Empty)(nil),                 // 14: google.protobuf.Empty
 }
 var file_skeys_v1_agent_proto_depIdxs = []int32{
-	10, // 0: skeys.v1.GetAgentStatusRequest.target:type_name -> skeys.v1.Target
-	10, // 1: skeys.v1.ListAgentKeysRequest.target:type_name -> skeys.v1.Target
+	12, // 0: skeys.v1.GetAgentStatusRequest.target:type_name -> skeys.v1.Target
+	12, // 1: skeys.v1.ListAgentKeysRequest.target:type_name -> skeys.v1.Target
 	0,  // 2: skeys.v1.ListAgentKeysResponse.keys:type_name -> skeys.v1.AgentKey
-	10, // 3: skeys.v1.AddKeyToAgentRequest.target:type_name -> skeys.v1.Target
-	11, // 4: skeys.v1.AddKeyToAgentRequest.lifetime:type_name -> google.protobuf.Duration
-	10, // 5: skeys.v1.RemoveKeyFromAgentRequest.target:type_name -> skeys.v1.Target
-	10, // 6: skeys.v1.RemoveAllKeysFromAgentRequest.target:type_name -> skeys.v1.Target
-	10, // 7: skeys.v1.LockAgentRequest.target:type_name -> skeys.v1.Target
-	10, // 8: skeys.v1.UnlockAgentRequest.target:type_name -> skeys.v1.Target
-	1,  // 9: skeys.v1.AgentService.GetAgentStatus:input_type -> skeys.v1.GetAgentStatusRequest
-	3,  // 10: skeys.v1.AgentService.ListAgentKeys:input_type -> skeys.v1.ListAgentKeysRequest
-	5,  // 11: skeys.v1.AgentService.AddKeyToAgent:input_type -> skeys.v1.AddKeyToAgentRequest
-	6,  // 12: skeys.v1.AgentService.RemoveKeyFromAgent:input_type -> skeys.v1.RemoveKeyFromAgentRequest
-	7,  // 13: skeys.v1.AgentService.RemoveAllKeysFromAgent:input_type -> skeys.v1.RemoveAllKeysFromAgentRequest
-	8,  // 14: skeys.v1.AgentService.LockAgent:input_type -> skeys.v1.LockAgentRequest
-	9,  // 15: skeys.v1.AgentService.UnlockAgent:input_type -> skeys.v1.UnlockAgentRequest
-	2,  // 16: skeys.v1.AgentService.GetAgentStatus:output_type -> skeys.v1.GetAgentStatusResponse
-	4,  // 17: skeys.v1.AgentService.ListAgentKeys:output_type -> skeys.v1.ListAgentKeysResponse
-	12, // 18: skeys.v1.AgentService.AddKeyToAgent:output_type -> google.protobuf.Empty
-	12, // 19: skeys.v1.AgentService.RemoveKeyFromAgent:output_type -> google.protobuf.Empty
-	12, // 20: skeys.v1.AgentService.RemoveAllKeysFromAgent:output_type -> google.protobuf.Empty
-	12, // 21: skeys.v1.AgentService.LockAgent:output_type -> google.protobuf.Empty
-	12, // 22: skeys.v1.AgentService.UnlockAgent:output_type -> google.protobuf.Empty
-	16, // [16:23] is the sub-list for method output_type
-	9,  // [9:16] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	12, // 3: skeys.v1.AddKeyToAgentRequest.target:type_name -> skeys.v1.Target
+	13, // 4: skeys.v1.AddKeyToAgentRequest.lifetime:type_name -> google.protobuf.Duration
+	12, // 5: skeys.v1.RemoveKeyFromAgentRequest.target:type_name -> skeys.v1.Target
+	12, // 6: skeys.v1.RemoveAllKeysFromAgentRequest.target:type_name -> skeys.v1.Target
+	12, // 7: skeys.v1.LockAgentRequest.target:type_name -> skeys.v1.Target
+	12, // 8: skeys.v1.UnlockAgentRequest.target:type_name -> skeys.v1.Target
+	12, // 9: skeys.v1.WatchAgentRequest.target:type_name -> skeys.v1.Target
+	0,  // 10: skeys.v1.WatchAgentResponse.keys:type_name -> skeys.v1.AgentKey
+	1,  // 11: skeys.v1.AgentService.GetAgentStatus:input_type -> skeys.v1.GetAgentStatusRequest
+	3,  // 12: skeys.v1.AgentService.ListAgentKeys:input_type -> skeys.v1.ListAgentKeysRequest
+	5,  // 13: skeys.v1.AgentService.AddKeyToAgent:input_type -> skeys.v1.AddKeyToAgentRequest
+	6,  // 14: skeys.v1.AgentService.RemoveKeyFromAgent:input_type -> skeys.v1.RemoveKeyFromAgentRequest
+	7,  // 15: skeys.v1.AgentService.RemoveAllKeysFromAgent:input_type -> skeys.v1.RemoveAllKeysFromAgentRequest
+	8,  // 16: skeys.v1.AgentService.LockAgent:input_type -> skeys.v1.LockAgentRequest
+	9,  // 17: skeys.v1.AgentService.UnlockAgent:input_type -> skeys.v1.UnlockAgentRequest
+	10, // 18: skeys.v1.AgentService.WatchAgent:input_type -> skeys.v1.WatchAgentRequest
+	2,  // 19: skeys.v1.AgentService.GetAgentStatus:output_type -> skeys.v1.GetAgentStatusResponse
+	4,  // 20: skeys.v1.AgentService.ListAgentKeys:output_type -> skeys.v1.ListAgentKeysResponse
+	14, // 21: skeys.v1.AgentService.AddKeyToAgent:output_type -> google.protobuf.Empty
+	14, // 22: skeys.v1.AgentService.RemoveKeyFromAgent:output_type -> google.protobuf.Empty
+	14, // 23: skeys.v1.AgentService.RemoveAllKeysFromAgent:output_type -> google.protobuf.Empty
+	14, // 24: skeys.v1.AgentService.LockAgent:output_type -> google.protobuf.Empty
+	14, // 25: skeys.v1.AgentService.UnlockAgent:output_type -> google.protobuf.Empty
+	11, // 26: skeys.v1.AgentService.WatchAgent:output_type -> skeys.v1.WatchAgentResponse
+	19, // [19:27] is the sub-list for method output_type
+	11, // [11:19] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_skeys_v1_agent_proto_init() }
@@ -720,7 +850,7 @@ func file_skeys_v1_agent_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skeys_v1_agent_proto_rawDesc), len(file_skeys_v1_agent_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

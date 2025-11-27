@@ -16,6 +16,8 @@ service AgentService {
   rpc RemoveAllKeysFromAgent(RemoveAllKeysFromAgentRequest) returns (google.protobuf.Empty);
   rpc LockAgent(LockAgentRequest) returns (google.protobuf.Empty);
   rpc UnlockAgent(UnlockAgentRequest) returns (google.protobuf.Empty);
+  // Server streaming RPC - sends agent keys and status whenever they change
+  rpc WatchAgent(WatchAgentRequest) returns (stream WatchAgentResponse);
 }
 
 message AgentKey {
@@ -72,4 +74,17 @@ message LockAgentRequest {
 message UnlockAgentRequest {
   Target target = 1;
   string passphrase = 2;
+}
+
+message WatchAgentRequest {
+  Target target = 1;
+}
+
+message WatchAgentResponse {
+  // Status info
+  bool running = 1;
+  string socket_path = 2;
+  bool is_locked = 3;
+  // Keys currently loaded
+  repeated AgentKey keys = 4;
 }

@@ -16,6 +16,8 @@ service KeyService {
   rpc GetFingerprint(GetFingerprintRequest) returns (GetFingerprintResponse);
   rpc ChangePassphrase(ChangePassphraseRequest) returns (google.protobuf.Empty);
   rpc PushKeyToRemote(PushKeyToRemoteRequest) returns (PushKeyToRemoteResponse);
+  // Server streaming RPC - sends full key list whenever keys change
+  rpc WatchKeys(WatchKeysRequest) returns (stream ListKeysResponse);
 }
 
 message SSHKey {
@@ -106,4 +108,8 @@ message PushKeyToRemoteRequest {
 message PushKeyToRemoteResponse {
   bool success = 1;
   string message = 2;
+}
+
+message WatchKeysRequest {
+  Target target = 1;
 }

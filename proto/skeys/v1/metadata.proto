@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package skeys.v1;
+
+option go_package = "github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1";
+
+import "google/protobuf/empty.proto";
+
+// MetadataService manages persistent metadata about SSH keys
+service MetadataService {
+  // GetKeyMetadata retrieves metadata for a specific key
+  rpc GetKeyMetadata(GetKeyMetadataRequest) returns (KeyMetadata);
+
+  // SetKeyMetadata stores metadata for a key
+  rpc SetKeyMetadata(SetKeyMetadataRequest) returns (google.protobuf.Empty);
+
+  // DeleteKeyMetadata removes metadata for a key
+  rpc DeleteKeyMetadata(DeleteKeyMetadataRequest) returns (google.protobuf.Empty);
+
+  // ListKeyMetadata returns all stored key metadata
+  rpc ListKeyMetadata(ListKeyMetadataRequest) returns (ListKeyMetadataResponse);
+}
+
+// KeyMetadata contains metadata associated with an SSH key
+message KeyMetadata {
+  // key_path is the absolute path to the private key file
+  string key_path = 1;
+
+  // verified_service is the service name (e.g., "github.com") used for verification
+  string verified_service = 2;
+
+  // verified_host is the host used for verification
+  string verified_host = 3;
+
+  // verified_port is the port used for verification
+  int32 verified_port = 4;
+
+  // verified_user is the user used for verification
+  string verified_user = 5;
+}
+
+message GetKeyMetadataRequest {
+  string key_path = 1;
+}
+
+message SetKeyMetadataRequest {
+  KeyMetadata metadata = 1;
+}
+
+message DeleteKeyMetadataRequest {
+  string key_path = 1;
+}
+
+message ListKeyMetadataRequest {}
+
+message ListKeyMetadataResponse {
+  repeated KeyMetadata metadata = 1;
+}

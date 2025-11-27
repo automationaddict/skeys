@@ -1,25 +1,40 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../backup/export_dialog.dart';
 import '../backup/import_dialog.dart';
 import '../di/injection.dart';
+import '../generated/google/protobuf/empty.pb.dart';
 import '../generated/skeys/v1/config.pb.dart';
+import '../generated/skeys/v1/version.pb.dart';
 import '../grpc/grpc_client.dart';
+import '../help/help_navigation_service.dart';
 import '../logging/app_logger.dart';
 import '../notifications/app_toast.dart';
 import 'settings_service.dart';
 
 /// Settings dialog with tabbed interface.
 class SettingsDialog extends StatefulWidget {
-  const SettingsDialog({super.key});
+  final int initialTab;
 
-  static Future<void> show(BuildContext context) {
+  const SettingsDialog({super.key, this.initialTab = 0});
+
+  static Future<void> show(BuildContext context, {int initialTab = 0}) {
     return showDialog(
       context: context,
-      builder: (context) => const SettingsDialog(),
+      builder: (context) => SettingsDialog(initialTab: initialTab),
     );
   }
+
+  /// Tab index constants for external use.
+  static const int tabDisplay = 0;
+  static const int tabSecurity = 1;
+  static const int tabBackup = 2;
+  static const int tabLogging = 3;
+  static const int tabAbout = 4;
 
   @override
   State<SettingsDialog> createState() => _SettingsDialogState();
@@ -31,13 +46,36 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(
+      length: 5,
+      vsync: this,
+      initialIndex: widget.initialTab,
+    );
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _showHelpForCurrentTab() {
+    // Map tab index to help route
+    final helpRoutes = [
+      'settings/display',
+      'settings/security',
+      'settings/backup',
+      'settings/logging',
+      'settings/about',
+    ];
+
+    final route = helpRoutes[_tabController.index];
+
+    // Request help to be shown, then close the dialog
+    final helpNav = getIt<HelpNavigationService>();
+    helpNav.requestHelp(route);
+
+    Navigator.of(context).pop();
   }
 
   @override
@@ -73,6 +111,11 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.help_outline),
+                    tooltip: 'Help for this tab',
+                    onPressed: _showHelpForCurrentTab,
+                  ),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.of(context).pop(),
@@ -374,6 +417,37 @@ class _SecurityTabState extends State<_SecurityTab> {
             },
           ),
 
+          const SizedBox(height: 16),
+
+          // Info box for key rotation thresholds
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Keys older than the warning threshold will show a yellow indicator. '
+                    'Keys older than the critical threshold will show a pulsing red indicator.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           const SizedBox(height: 32),
 
           // Agent timeout section
@@ -411,37 +485,6 @@ class _SecurityTabState extends State<_SecurityTab> {
 
           // SSH config toggle
           _buildSshConfigToggle(context),
-
-          const SizedBox(height: 24),
-
-          // Info box
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Keys older than the warning threshold will show a yellow indicator. '
-                    'Keys older than the critical threshold will show a pulsing red indicator.',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -778,82 +821,260 @@ class _LoggingTabState extends State<_LoggingTab> {
   }
 }
 
-/// About tab.
-class _AboutTab extends StatelessWidget {
+/// About tab with version cards for Flutter app and Go backend.
+class _AboutTab extends StatefulWidget {
   const _AboutTab();
 
   @override
+  State<_AboutTab> createState() => _AboutTabState();
+}
+
+class _AboutTabState extends State<_AboutTab> {
+  final _log = AppLogger('settings_about');
+  final _grpcClient = getIt<GrpcClient>();
+
+  PackageInfo? _packageInfo;
+  VersionInfo? _backendVersion;
+  bool _loadingApp = true;
+  bool _loadingBackend = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersions();
+  }
+
+  Future<void> _loadVersions() async {
+    // Load app version
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      if (mounted) {
+        setState(() {
+          _packageInfo = packageInfo;
+          _loadingApp = false;
+        });
+      }
+    } catch (e, st) {
+      _log.error('error loading app version', e, st);
+      if (mounted) {
+        setState(() => _loadingApp = false);
+      }
+    }
+
+    // Load backend version
+    try {
+      final versionInfo = await _grpcClient.version.getVersion(Empty());
+      if (mounted) {
+        setState(() {
+          _backendVersion = versionInfo;
+          _loadingBackend = false;
+        });
+      }
+    } catch (e, st) {
+      _log.error('error loading backend version', e, st);
+      if (mounted) {
+        setState(() => _loadingBackend = false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Padding(
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // App header
           Row(
             children: [
               Icon(
                 Icons.vpn_key,
-                size: 48,
-                color: Theme.of(context).colorScheme.primary,
+                size: 40,
+                color: colorScheme.primary,
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'SKeys',
-                    style: Theme.of(context).textTheme.headlineSmall,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     'SSH Key Manager',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          _buildInfoRow(context, 'Version', '1.0.0'),
-          _buildInfoRow(context, 'Flutter', 'SDK ${_getFlutterVersion()}'),
-          const Spacer(),
-          Text(
-            'Keep your SSH keys on track!',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontStyle: FontStyle.italic,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
+          const SizedBox(height: 20),
 
-  Widget _buildInfoRow(BuildContext context, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 100,
+          // Flutter App Card
+          _buildVersionCard(
+            context: context,
+            icon: Icons.flutter_dash,
+            iconColor: const Color(0xFF02569B),
+            title: 'Flutter App',
+            isLoading: _loadingApp,
+            rows: _packageInfo != null
+                ? [
+                    _VersionRow('Version', _packageInfo!.version),
+                    _VersionRow('Build', _packageInfo!.buildNumber),
+                    _VersionRow('Dart', _getDartVersion()),
+                  ]
+                : [],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Go Backend Card
+          _buildVersionCard(
+            context: context,
+            icon: Icons.dns_outlined,
+            iconColor: const Color(0xFF00ADD8),
+            title: 'Go Backend',
+            isLoading: _loadingBackend,
+            rows: _backendVersion != null
+                ? [
+                    _VersionRow('Version', _backendVersion!.daemonVersion),
+                    _VersionRow('Commit', _formatCommit(_backendVersion!.daemonCommit)),
+                    _VersionRow('Go', _backendVersion!.goVersion),
+                  ]
+                : [],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Tagline
+          Center(
             child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              'Keep your SSH keys on track!',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontStyle: FontStyle.italic,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
-          Text(value),
         ],
       ),
     );
   }
 
-  String _getFlutterVersion() {
-    // This would ideally come from package_info_plus
-    return '3.x';
+  Widget _buildVersionCard({
+    required BuildContext context,
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required bool isLoading,
+    required List<_VersionRow> rows,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: iconColor, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (isLoading)
+            const Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else if (rows.isEmpty)
+            Text(
+              'Unable to load version info',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.error,
+              ),
+            )
+          else
+            ...rows.map((row) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 70,
+                        child: Text(
+                          row.label,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          row.value,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+        ],
+      ),
+    );
   }
+
+  String _getDartVersion() {
+    // Extract Dart version from Platform
+    final version = Platform.version;
+    // Format: "3.5.0 (stable) ..." - extract just the version number
+    final match = RegExp(r'^(\d+\.\d+\.\d+)').firstMatch(version);
+    return match?.group(1) ?? version.split(' ').first;
+  }
+
+  String _formatCommit(String commit) {
+    // Show first 7 characters of commit hash
+    if (commit.length > 7) {
+      return commit.substring(0, 7);
+    }
+    return commit;
+  }
+}
+
+class _VersionRow {
+  final String label;
+  final String value;
+  const _VersionRow(this.label, this.value);
 }
 
 /// Backup tab.

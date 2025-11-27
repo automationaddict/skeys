@@ -13,8 +13,8 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import '../../google/protobuf/timestamp.pb.dart' as $8;
-import 'common.pb.dart' as $6;
+import '../../google/protobuf/timestamp.pb.dart' as $10;
+import 'common.pb.dart' as $8;
 import 'keys.pbenum.dart';
 
 export 'keys.pbenum.dart';
@@ -33,8 +33,8 @@ class SSHKey extends $pb.GeneratedMessage {
     $core.String? publicKey,
     $core.bool? hasPassphrase,
     $core.bool? inAgent,
-    $8.Timestamp? createdAt,
-    $8.Timestamp? modifiedAt,
+    $10.Timestamp? createdAt,
+    $10.Timestamp? modifiedAt,
   }) {
     final $result = create();
     if (id != null) {
@@ -98,8 +98,8 @@ class SSHKey extends $pb.GeneratedMessage {
     ..aOS(10, _omitFieldNames ? '' : 'publicKey')
     ..aOB(11, _omitFieldNames ? '' : 'hasPassphrase')
     ..aOB(12, _omitFieldNames ? '' : 'inAgent')
-    ..aOM<$8.Timestamp>(13, _omitFieldNames ? '' : 'createdAt', subBuilder: $8.Timestamp.create)
-    ..aOM<$8.Timestamp>(14, _omitFieldNames ? '' : 'modifiedAt', subBuilder: $8.Timestamp.create)
+    ..aOM<$10.Timestamp>(13, _omitFieldNames ? '' : 'createdAt', subBuilder: $10.Timestamp.create)
+    ..aOM<$10.Timestamp>(14, _omitFieldNames ? '' : 'modifiedAt', subBuilder: $10.Timestamp.create)
     ..hasRequiredFields = false
   ;
 
@@ -233,31 +233,31 @@ class SSHKey extends $pb.GeneratedMessage {
   void clearInAgent() => clearField(12);
 
   @$pb.TagNumber(13)
-  $8.Timestamp get createdAt => $_getN(12);
+  $10.Timestamp get createdAt => $_getN(12);
   @$pb.TagNumber(13)
-  set createdAt($8.Timestamp v) { setField(13, v); }
+  set createdAt($10.Timestamp v) { setField(13, v); }
   @$pb.TagNumber(13)
   $core.bool hasCreatedAt() => $_has(12);
   @$pb.TagNumber(13)
   void clearCreatedAt() => clearField(13);
   @$pb.TagNumber(13)
-  $8.Timestamp ensureCreatedAt() => $_ensure(12);
+  $10.Timestamp ensureCreatedAt() => $_ensure(12);
 
   @$pb.TagNumber(14)
-  $8.Timestamp get modifiedAt => $_getN(13);
+  $10.Timestamp get modifiedAt => $_getN(13);
   @$pb.TagNumber(14)
-  set modifiedAt($8.Timestamp v) { setField(14, v); }
+  set modifiedAt($10.Timestamp v) { setField(14, v); }
   @$pb.TagNumber(14)
   $core.bool hasModifiedAt() => $_has(13);
   @$pb.TagNumber(14)
   void clearModifiedAt() => clearField(14);
   @$pb.TagNumber(14)
-  $8.Timestamp ensureModifiedAt() => $_ensure(13);
+  $10.Timestamp ensureModifiedAt() => $_ensure(13);
 }
 
 class ListKeysRequest extends $pb.GeneratedMessage {
   factory ListKeysRequest({
-    $6.Target? target,
+    $8.Target? target,
   }) {
     final $result = create();
     if (target != null) {
@@ -270,7 +270,7 @@ class ListKeysRequest extends $pb.GeneratedMessage {
   factory ListKeysRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListKeysRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
-    ..aOM<$6.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $6.Target.create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
     ..hasRequiredFields = false
   ;
 
@@ -296,15 +296,15 @@ class ListKeysRequest extends $pb.GeneratedMessage {
   static ListKeysRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $6.Target get target => $_getN(0);
+  $8.Target get target => $_getN(0);
   @$pb.TagNumber(1)
-  set target($6.Target v) { setField(1, v); }
+  set target($8.Target v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasTarget() => $_has(0);
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
   @$pb.TagNumber(1)
-  $6.Target ensureTarget() => $_ensure(0);
+  $8.Target ensureTarget() => $_ensure(0);
 }
 
 class ListKeysResponse extends $pb.GeneratedMessage {
@@ -353,7 +353,7 @@ class ListKeysResponse extends $pb.GeneratedMessage {
 
 class GetKeyRequest extends $pb.GeneratedMessage {
   factory GetKeyRequest({
-    $6.Target? target,
+    $8.Target? target,
     $core.String? keyId,
   }) {
     final $result = create();
@@ -370,7 +370,7 @@ class GetKeyRequest extends $pb.GeneratedMessage {
   factory GetKeyRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetKeyRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
-    ..aOM<$6.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $6.Target.create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
     ..aOS(2, _omitFieldNames ? '' : 'keyId')
     ..hasRequiredFields = false
   ;
@@ -397,15 +397,15 @@ class GetKeyRequest extends $pb.GeneratedMessage {
   static GetKeyRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $6.Target get target => $_getN(0);
+  $8.Target get target => $_getN(0);
   @$pb.TagNumber(1)
-  set target($6.Target v) { setField(1, v); }
+  set target($8.Target v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasTarget() => $_has(0);
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
   @$pb.TagNumber(1)
-  $6.Target ensureTarget() => $_ensure(0);
+  $8.Target ensureTarget() => $_ensure(0);
 
   @$pb.TagNumber(2)
   $core.String get keyId => $_getSZ(1);
@@ -419,7 +419,7 @@ class GetKeyRequest extends $pb.GeneratedMessage {
 
 class GenerateKeyRequest extends $pb.GeneratedMessage {
   factory GenerateKeyRequest({
-    $6.Target? target,
+    $8.Target? target,
     $core.String? name,
     KeyType? type,
     $core.int? bits,
@@ -456,7 +456,7 @@ class GenerateKeyRequest extends $pb.GeneratedMessage {
   factory GenerateKeyRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GenerateKeyRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
-    ..aOM<$6.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $6.Target.create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
     ..aOS(2, _omitFieldNames ? '' : 'name')
     ..e<KeyType>(3, _omitFieldNames ? '' : 'type', $pb.PbFieldType.OE, defaultOrMaker: KeyType.KEY_TYPE_UNSPECIFIED, valueOf: KeyType.valueOf, enumValues: KeyType.values)
     ..a<$core.int>(4, _omitFieldNames ? '' : 'bits', $pb.PbFieldType.O3)
@@ -488,15 +488,15 @@ class GenerateKeyRequest extends $pb.GeneratedMessage {
   static GenerateKeyRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $6.Target get target => $_getN(0);
+  $8.Target get target => $_getN(0);
   @$pb.TagNumber(1)
-  set target($6.Target v) { setField(1, v); }
+  set target($8.Target v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasTarget() => $_has(0);
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
   @$pb.TagNumber(1)
-  $6.Target ensureTarget() => $_ensure(0);
+  $8.Target ensureTarget() => $_ensure(0);
 
   @$pb.TagNumber(2)
   $core.String get name => $_getSZ(1);
@@ -555,7 +555,7 @@ class GenerateKeyRequest extends $pb.GeneratedMessage {
 
 class DeleteKeyRequest extends $pb.GeneratedMessage {
   factory DeleteKeyRequest({
-    $6.Target? target,
+    $8.Target? target,
     $core.String? keyId,
   }) {
     final $result = create();
@@ -572,7 +572,7 @@ class DeleteKeyRequest extends $pb.GeneratedMessage {
   factory DeleteKeyRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DeleteKeyRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
-    ..aOM<$6.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $6.Target.create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
     ..aOS(2, _omitFieldNames ? '' : 'keyId')
     ..hasRequiredFields = false
   ;
@@ -599,15 +599,15 @@ class DeleteKeyRequest extends $pb.GeneratedMessage {
   static DeleteKeyRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $6.Target get target => $_getN(0);
+  $8.Target get target => $_getN(0);
   @$pb.TagNumber(1)
-  set target($6.Target v) { setField(1, v); }
+  set target($8.Target v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasTarget() => $_has(0);
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
   @$pb.TagNumber(1)
-  $6.Target ensureTarget() => $_ensure(0);
+  $8.Target ensureTarget() => $_ensure(0);
 
   @$pb.TagNumber(2)
   $core.String get keyId => $_getSZ(1);
@@ -621,7 +621,7 @@ class DeleteKeyRequest extends $pb.GeneratedMessage {
 
 class GetFingerprintRequest extends $pb.GeneratedMessage {
   factory GetFingerprintRequest({
-    $6.Target? target,
+    $8.Target? target,
     $core.String? keyId,
     FingerprintAlgorithm? algorithm,
   }) {
@@ -642,7 +642,7 @@ class GetFingerprintRequest extends $pb.GeneratedMessage {
   factory GetFingerprintRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetFingerprintRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
-    ..aOM<$6.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $6.Target.create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
     ..aOS(2, _omitFieldNames ? '' : 'keyId')
     ..e<FingerprintAlgorithm>(3, _omitFieldNames ? '' : 'algorithm', $pb.PbFieldType.OE, defaultOrMaker: FingerprintAlgorithm.FINGERPRINT_ALGORITHM_UNSPECIFIED, valueOf: FingerprintAlgorithm.valueOf, enumValues: FingerprintAlgorithm.values)
     ..hasRequiredFields = false
@@ -670,15 +670,15 @@ class GetFingerprintRequest extends $pb.GeneratedMessage {
   static GetFingerprintRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $6.Target get target => $_getN(0);
+  $8.Target get target => $_getN(0);
   @$pb.TagNumber(1)
-  set target($6.Target v) { setField(1, v); }
+  set target($8.Target v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasTarget() => $_has(0);
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
   @$pb.TagNumber(1)
-  $6.Target ensureTarget() => $_ensure(0);
+  $8.Target ensureTarget() => $_ensure(0);
 
   @$pb.TagNumber(2)
   $core.String get keyId => $_getSZ(1);
@@ -765,7 +765,7 @@ class GetFingerprintResponse extends $pb.GeneratedMessage {
 
 class ChangePassphraseRequest extends $pb.GeneratedMessage {
   factory ChangePassphraseRequest({
-    $6.Target? target,
+    $8.Target? target,
     $core.String? keyId,
     $core.String? oldPassphrase,
     $core.String? newPassphrase,
@@ -790,7 +790,7 @@ class ChangePassphraseRequest extends $pb.GeneratedMessage {
   factory ChangePassphraseRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ChangePassphraseRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
-    ..aOM<$6.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $6.Target.create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
     ..aOS(2, _omitFieldNames ? '' : 'keyId')
     ..aOS(3, _omitFieldNames ? '' : 'oldPassphrase')
     ..aOS(4, _omitFieldNames ? '' : 'newPassphrase')
@@ -819,15 +819,15 @@ class ChangePassphraseRequest extends $pb.GeneratedMessage {
   static ChangePassphraseRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $6.Target get target => $_getN(0);
+  $8.Target get target => $_getN(0);
   @$pb.TagNumber(1)
-  set target($6.Target v) { setField(1, v); }
+  set target($8.Target v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasTarget() => $_has(0);
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
   @$pb.TagNumber(1)
-  $6.Target ensureTarget() => $_ensure(0);
+  $8.Target ensureTarget() => $_ensure(0);
 
   @$pb.TagNumber(2)
   $core.String get keyId => $_getSZ(1);
@@ -1011,6 +1011,58 @@ class PushKeyToRemoteResponse extends $pb.GeneratedMessage {
   $core.bool hasMessage() => $_has(1);
   @$pb.TagNumber(2)
   void clearMessage() => clearField(2);
+}
+
+class WatchKeysRequest extends $pb.GeneratedMessage {
+  factory WatchKeysRequest({
+    $8.Target? target,
+  }) {
+    final $result = create();
+    if (target != null) {
+      $result.target = target;
+    }
+    return $result;
+  }
+  WatchKeysRequest._() : super();
+  factory WatchKeysRequest.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory WatchKeysRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'WatchKeysRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  WatchKeysRequest clone() => WatchKeysRequest()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  WatchKeysRequest copyWith(void Function(WatchKeysRequest) updates) => super.copyWith((message) => updates(message as WatchKeysRequest)) as WatchKeysRequest;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static WatchKeysRequest create() => WatchKeysRequest._();
+  WatchKeysRequest createEmptyInstance() => create();
+  static $pb.PbList<WatchKeysRequest> createRepeated() => $pb.PbList<WatchKeysRequest>();
+  @$core.pragma('dart2js:noInline')
+  static WatchKeysRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<WatchKeysRequest>(create);
+  static WatchKeysRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $8.Target get target => $_getN(0);
+  @$pb.TagNumber(1)
+  set target($8.Target v) { setField(1, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasTarget() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTarget() => clearField(1);
+  @$pb.TagNumber(1)
+  $8.Target ensureTarget() => $_ensure(0);
 }
 
 

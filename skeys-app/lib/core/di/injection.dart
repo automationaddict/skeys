@@ -4,6 +4,7 @@ import '../backend/backend_launcher.dart';
 import '../backend/daemon_status_service.dart';
 import '../grpc/grpc_client.dart';
 import '../help/help_context_service.dart';
+import '../help/help_navigation_service.dart';
 import '../logging/app_logger.dart';
 import '../settings/settings_service.dart';
 import '../../features/keys/bloc/keys_bloc.dart';
@@ -17,6 +18,7 @@ import '../../features/agent/repository/agent_repository.dart';
 import '../../features/agent/service/agent_key_tracker.dart';
 import '../../features/remote/bloc/remote_bloc.dart';
 import '../../features/remote/repository/remote_repository.dart';
+import '../../features/metadata/repository/metadata_repository.dart';
 
 final getIt = GetIt.instance;
 
@@ -34,6 +36,11 @@ Future<void> configureDependencies() async {
   _log.debug('creating help context service');
   final helpContextService = HelpContextService();
   getIt.registerSingleton<HelpContextService>(helpContextService);
+
+  // Help navigation service (for dialog-to-help communication)
+  _log.debug('creating help navigation service');
+  final helpNavigationService = HelpNavigationService();
+  getIt.registerSingleton<HelpNavigationService>(helpNavigationService);
 
   // Apply persisted log level
   AppLogger.configure(level: settingsService.logLevel);
@@ -93,6 +100,9 @@ Future<void> configureDependencies() async {
   getIt.registerSingleton<AgentKeyTracker>(agentKeyTracker);
   getIt.registerLazySingleton<RemoteRepository>(
     () => RemoteRepositoryImpl(grpcClient),
+  );
+  getIt.registerLazySingleton<MetadataRepository>(
+    () => MetadataRepositoryImpl(grpcClient),
   );
 
   // BLoCs

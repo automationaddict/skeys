@@ -43,7 +43,7 @@ func main() {
 	})
 
 	// Create the gRPC server
-	srv, err := server.New(server.WithLogger(log))
+	srv, err := server.New(server.WithLogger(log), server.WithVersion(version, commit))
 	if err != nil {
 		log.FatalErr(err, "failed to create server")
 	}

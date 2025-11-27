@@ -13,7 +13,7 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'common.pb.dart' as $6;
+import 'common.pb.dart' as $8;
 
 class HostConfig extends $pb.GeneratedMessage {
   factory HostConfig({
@@ -251,7 +251,7 @@ class HostConfig extends $pb.GeneratedMessage {
 
 class ListHostConfigsRequest extends $pb.GeneratedMessage {
   factory ListHostConfigsRequest({
-    $6.Target? target,
+    $8.Target? target,
   }) {
     final $result = create();
     if (target != null) {
@@ -264,7 +264,7 @@ class ListHostConfigsRequest extends $pb.GeneratedMessage {
   factory ListHostConfigsRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListHostConfigsRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
-    ..aOM<$6.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $6.Target.create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
     ..hasRequiredFields = false
   ;
 
@@ -290,15 +290,15 @@ class ListHostConfigsRequest extends $pb.GeneratedMessage {
   static ListHostConfigsRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $6.Target get target => $_getN(0);
+  $8.Target get target => $_getN(0);
   @$pb.TagNumber(1)
-  set target($6.Target v) { setField(1, v); }
+  set target($8.Target v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasTarget() => $_has(0);
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
   @$pb.TagNumber(1)
-  $6.Target ensureTarget() => $_ensure(0);
+  $8.Target ensureTarget() => $_ensure(0);
 }
 
 class ListHostConfigsResponse extends $pb.GeneratedMessage {
@@ -347,7 +347,7 @@ class ListHostConfigsResponse extends $pb.GeneratedMessage {
 
 class GetHostConfigRequest extends $pb.GeneratedMessage {
   factory GetHostConfigRequest({
-    $6.Target? target,
+    $8.Target? target,
     $core.String? alias,
   }) {
     final $result = create();
@@ -364,7 +364,7 @@ class GetHostConfigRequest extends $pb.GeneratedMessage {
   factory GetHostConfigRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetHostConfigRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
-    ..aOM<$6.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $6.Target.create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
     ..aOS(2, _omitFieldNames ? '' : 'alias')
     ..hasRequiredFields = false
   ;
@@ -391,15 +391,15 @@ class GetHostConfigRequest extends $pb.GeneratedMessage {
   static GetHostConfigRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $6.Target get target => $_getN(0);
+  $8.Target get target => $_getN(0);
   @$pb.TagNumber(1)
-  set target($6.Target v) { setField(1, v); }
+  set target($8.Target v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasTarget() => $_has(0);
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
   @$pb.TagNumber(1)
-  $6.Target ensureTarget() => $_ensure(0);
+  $8.Target ensureTarget() => $_ensure(0);
 
   @$pb.TagNumber(2)
   $core.String get alias => $_getSZ(1);
@@ -413,7 +413,7 @@ class GetHostConfigRequest extends $pb.GeneratedMessage {
 
 class CreateHostConfigRequest extends $pb.GeneratedMessage {
   factory CreateHostConfigRequest({
-    $6.Target? target,
+    $8.Target? target,
     HostConfig? config,
   }) {
     final $result = create();
@@ -430,7 +430,7 @@ class CreateHostConfigRequest extends $pb.GeneratedMessage {
   factory CreateHostConfigRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CreateHostConfigRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
-    ..aOM<$6.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $6.Target.create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
     ..aOM<HostConfig>(2, _omitFieldNames ? '' : 'config', subBuilder: HostConfig.create)
     ..hasRequiredFields = false
   ;
@@ -457,15 +457,15 @@ class CreateHostConfigRequest extends $pb.GeneratedMessage {
   static CreateHostConfigRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $6.Target get target => $_getN(0);
+  $8.Target get target => $_getN(0);
   @$pb.TagNumber(1)
-  set target($6.Target v) { setField(1, v); }
+  set target($8.Target v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasTarget() => $_has(0);
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
   @$pb.TagNumber(1)
-  $6.Target ensureTarget() => $_ensure(0);
+  $8.Target ensureTarget() => $_ensure(0);
 
   @$pb.TagNumber(2)
   HostConfig get config => $_getN(1);
@@ -481,7 +481,7 @@ class CreateHostConfigRequest extends $pb.GeneratedMessage {
 
 class UpdateHostConfigRequest extends $pb.GeneratedMessage {
   factory UpdateHostConfigRequest({
-    $6.Target? target,
+    $8.Target? target,
     $core.String? alias,
     HostConfig? config,
   }) {
@@ -502,7 +502,7 @@ class UpdateHostConfigRequest extends $pb.GeneratedMessage {
   factory UpdateHostConfigRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UpdateHostConfigRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
-    ..aOM<$6.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $6.Target.create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
     ..aOS(2, _omitFieldNames ? '' : 'alias')
     ..aOM<HostConfig>(3, _omitFieldNames ? '' : 'config', subBuilder: HostConfig.create)
     ..hasRequiredFields = false
@@ -530,15 +530,15 @@ class UpdateHostConfigRequest extends $pb.GeneratedMessage {
   static UpdateHostConfigRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $6.Target get target => $_getN(0);
+  $8.Target get target => $_getN(0);
   @$pb.TagNumber(1)
-  set target($6.Target v) { setField(1, v); }
+  set target($8.Target v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasTarget() => $_has(0);
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
   @$pb.TagNumber(1)
-  $6.Target ensureTarget() => $_ensure(0);
+  $8.Target ensureTarget() => $_ensure(0);
 
   @$pb.TagNumber(2)
   $core.String get alias => $_getSZ(1);
@@ -563,7 +563,7 @@ class UpdateHostConfigRequest extends $pb.GeneratedMessage {
 
 class DeleteHostConfigRequest extends $pb.GeneratedMessage {
   factory DeleteHostConfigRequest({
-    $6.Target? target,
+    $8.Target? target,
     $core.String? alias,
   }) {
     final $result = create();
@@ -580,7 +580,7 @@ class DeleteHostConfigRequest extends $pb.GeneratedMessage {
   factory DeleteHostConfigRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DeleteHostConfigRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
-    ..aOM<$6.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $6.Target.create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
     ..aOS(2, _omitFieldNames ? '' : 'alias')
     ..hasRequiredFields = false
   ;
@@ -607,15 +607,15 @@ class DeleteHostConfigRequest extends $pb.GeneratedMessage {
   static DeleteHostConfigRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $6.Target get target => $_getN(0);
+  $8.Target get target => $_getN(0);
   @$pb.TagNumber(1)
-  set target($6.Target v) { setField(1, v); }
+  set target($8.Target v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasTarget() => $_has(0);
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
   @$pb.TagNumber(1)
-  $6.Target ensureTarget() => $_ensure(0);
+  $8.Target ensureTarget() => $_ensure(0);
 
   @$pb.TagNumber(2)
   $core.String get alias => $_getSZ(1);
@@ -629,7 +629,7 @@ class DeleteHostConfigRequest extends $pb.GeneratedMessage {
 
 class TestConnectionRequest extends $pb.GeneratedMessage {
   factory TestConnectionRequest({
-    $6.Target? target,
+    $8.Target? target,
     $core.String? alias,
     $core.int? timeoutSeconds,
   }) {
@@ -650,7 +650,7 @@ class TestConnectionRequest extends $pb.GeneratedMessage {
   factory TestConnectionRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TestConnectionRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
-    ..aOM<$6.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $6.Target.create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
     ..aOS(2, _omitFieldNames ? '' : 'alias')
     ..a<$core.int>(3, _omitFieldNames ? '' : 'timeoutSeconds', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
@@ -678,15 +678,15 @@ class TestConnectionRequest extends $pb.GeneratedMessage {
   static TestConnectionRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $6.Target get target => $_getN(0);
+  $8.Target get target => $_getN(0);
   @$pb.TagNumber(1)
-  set target($6.Target v) { setField(1, v); }
+  set target($8.Target v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasTarget() => $_has(0);
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
   @$pb.TagNumber(1)
-  $6.Target ensureTarget() => $_ensure(0);
+  $8.Target ensureTarget() => $_ensure(0);
 
   @$pb.TagNumber(2)
   $core.String get alias => $_getSZ(1);
@@ -965,7 +965,7 @@ class ServerConfigDirective extends $pb.GeneratedMessage {
 
 class GetServerConfigRequest extends $pb.GeneratedMessage {
   factory GetServerConfigRequest({
-    $6.Target? target,
+    $8.Target? target,
   }) {
     final $result = create();
     if (target != null) {
@@ -978,7 +978,7 @@ class GetServerConfigRequest extends $pb.GeneratedMessage {
   factory GetServerConfigRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetServerConfigRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
-    ..aOM<$6.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $6.Target.create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
     ..hasRequiredFields = false
   ;
 
@@ -1004,20 +1004,20 @@ class GetServerConfigRequest extends $pb.GeneratedMessage {
   static GetServerConfigRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $6.Target get target => $_getN(0);
+  $8.Target get target => $_getN(0);
   @$pb.TagNumber(1)
-  set target($6.Target v) { setField(1, v); }
+  set target($8.Target v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasTarget() => $_has(0);
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
   @$pb.TagNumber(1)
-  $6.Target ensureTarget() => $_ensure(0);
+  $8.Target ensureTarget() => $_ensure(0);
 }
 
 class UpdateServerConfigRequest extends $pb.GeneratedMessage {
   factory UpdateServerConfigRequest({
-    $6.Target? target,
+    $8.Target? target,
     $core.Iterable<ServerConfigUpdate>? updates,
   }) {
     final $result = create();
@@ -1034,7 +1034,7 @@ class UpdateServerConfigRequest extends $pb.GeneratedMessage {
   factory UpdateServerConfigRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UpdateServerConfigRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
-    ..aOM<$6.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $6.Target.create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
     ..pc<ServerConfigUpdate>(2, _omitFieldNames ? '' : 'updates', $pb.PbFieldType.PM, subBuilder: ServerConfigUpdate.create)
     ..hasRequiredFields = false
   ;
@@ -1061,15 +1061,15 @@ class UpdateServerConfigRequest extends $pb.GeneratedMessage {
   static UpdateServerConfigRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $6.Target get target => $_getN(0);
+  $8.Target get target => $_getN(0);
   @$pb.TagNumber(1)
-  set target($6.Target v) { setField(1, v); }
+  set target($8.Target v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasTarget() => $_has(0);
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
   @$pb.TagNumber(1)
-  $6.Target ensureTarget() => $_ensure(0);
+  $8.Target ensureTarget() => $_ensure(0);
 
   @$pb.TagNumber(2)
   $core.List<ServerConfigUpdate> get updates => $_getList(1);
@@ -1155,7 +1155,7 @@ class ServerConfigUpdate extends $pb.GeneratedMessage {
 
 class ValidateServerConfigRequest extends $pb.GeneratedMessage {
   factory ValidateServerConfigRequest({
-    $6.Target? target,
+    $8.Target? target,
     $core.String? content,
   }) {
     final $result = create();
@@ -1172,7 +1172,7 @@ class ValidateServerConfigRequest extends $pb.GeneratedMessage {
   factory ValidateServerConfigRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ValidateServerConfigRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
-    ..aOM<$6.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $6.Target.create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
     ..aOS(2, _omitFieldNames ? '' : 'content')
     ..hasRequiredFields = false
   ;
@@ -1199,15 +1199,15 @@ class ValidateServerConfigRequest extends $pb.GeneratedMessage {
   static ValidateServerConfigRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $6.Target get target => $_getN(0);
+  $8.Target get target => $_getN(0);
   @$pb.TagNumber(1)
-  set target($6.Target v) { setField(1, v); }
+  set target($8.Target v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasTarget() => $_has(0);
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
   @$pb.TagNumber(1)
-  $6.Target ensureTarget() => $_ensure(0);
+  $8.Target ensureTarget() => $_ensure(0);
 
   @$pb.TagNumber(2)
   $core.String get content => $_getSZ(1);
@@ -1285,7 +1285,7 @@ class ValidateServerConfigResponse extends $pb.GeneratedMessage {
 
 class RestartSSHServiceRequest extends $pb.GeneratedMessage {
   factory RestartSSHServiceRequest({
-    $6.Target? target,
+    $8.Target? target,
     $core.bool? reloadOnly,
   }) {
     final $result = create();
@@ -1302,7 +1302,7 @@ class RestartSSHServiceRequest extends $pb.GeneratedMessage {
   factory RestartSSHServiceRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RestartSSHServiceRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'), createEmptyInstance: create)
-    ..aOM<$6.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $6.Target.create)
+    ..aOM<$8.Target>(1, _omitFieldNames ? '' : 'target', subBuilder: $8.Target.create)
     ..aOB(2, _omitFieldNames ? '' : 'reloadOnly')
     ..hasRequiredFields = false
   ;
@@ -1329,15 +1329,15 @@ class RestartSSHServiceRequest extends $pb.GeneratedMessage {
   static RestartSSHServiceRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $6.Target get target => $_getN(0);
+  $8.Target get target => $_getN(0);
   @$pb.TagNumber(1)
-  set target($6.Target v) { setField(1, v); }
+  set target($8.Target v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasTarget() => $_has(0);
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
   @$pb.TagNumber(1)
-  $6.Target ensureTarget() => $_ensure(0);
+  $8.Target ensureTarget() => $_ensure(0);
 
   @$pb.TagNumber(2)
   $core.bool get reloadOnly => $_getBF(1);

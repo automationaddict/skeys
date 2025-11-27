@@ -52,6 +52,7 @@ dependencies:
   # Backup/Archive
   archive: ^4.0.4
   cryptography: ^2.7.0
+  package_info_plus: ^9.0.0
 
 dev_dependencies:
   flutter_test:

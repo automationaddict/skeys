@@ -7,6 +7,8 @@ import '../generated/skeys/v1/config.pbgrpc.dart';
 import '../generated/skeys/v1/hosts.pbgrpc.dart';
 import '../generated/skeys/v1/agent.pbgrpc.dart';
 import '../generated/skeys/v1/remote.pbgrpc.dart';
+import '../generated/skeys/v1/metadata.pbgrpc.dart';
+import '../generated/skeys/v1/version.pbgrpc.dart';
 import '../logging/app_logger.dart';
 
 /// gRPC client for communicating with skeys-daemon.
@@ -24,6 +26,8 @@ class GrpcClient {
   HostsServiceClient? _hosts;
   AgentServiceClient? _agent;
   RemoteServiceClient? _remote;
+  MetadataServiceClient? _metadata;
+  VersionServiceClient? _version;
 
   KeyServiceClient get keys {
     if (_keys == null) {
@@ -60,6 +64,20 @@ class GrpcClient {
     return _remote!;
   }
 
+  MetadataServiceClient get metadata {
+    if (_metadata == null) {
+      throw StateError('gRPC client not connected. Call connect() first.');
+    }
+    return _metadata!;
+  }
+
+  VersionServiceClient get version {
+    if (_version == null) {
+      throw StateError('gRPC client not connected. Call connect() first.');
+    }
+    return _version!;
+  }
+
   GrpcClient(this.socketPath) {
     _log.debug('gRPC client created', {'socket_path': socketPath});
   }
@@ -93,6 +111,8 @@ class GrpcClient {
       _hosts = HostsServiceClient(_channel!);
       _agent = AgentServiceClient(_channel!);
       _remote = RemoteServiceClient(_channel!);
+      _metadata = MetadataServiceClient(_channel!);
+      _version = VersionServiceClient(_channel!);
 
       _log.info('gRPC client connected successfully');
     } catch (e, st) {
@@ -123,6 +143,8 @@ class GrpcClient {
     _hosts = null;
     _agent = null;
     _remote = null;
+    _metadata = null;
+    _version = null;
   }
 
   /// Checks if the connection is healthy.

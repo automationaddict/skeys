@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package skeys.v1;
+
+option go_package = "github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1";
+
+import "google/protobuf/empty.proto";
+
+// VersionService provides version information about the daemon
+service VersionService {
+  // GetVersion returns version information about the daemon and Go runtime
+  rpc GetVersion(google.protobuf.Empty) returns (VersionInfo);
+}
+
+// VersionInfo contains version information about the daemon
+message VersionInfo {
+  // daemon_version is the version of skeys-daemon (e.g., "0.0.1")
+  string daemon_version = 1;
+
+  // daemon_commit is the git commit hash of the build
+  string daemon_commit = 2;
+
+  // go_version is the Go runtime version (e.g., "go1.22.0")
+  string go_version = 3;
+}

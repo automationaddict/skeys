@@ -14,6 +14,7 @@ import (
 	"github.com/johnnelson/skeys-core/logging"
 	"github.com/johnnelson/skeys-core/remote"
 	"github.com/johnnelson/skeys-core/sshconfig"
+	"github.com/johnnelson/skeys-core/storage"
 
 	pb "github.com/johnnelson/skeys-daemon/api/gen/skeys/v1"
 	"github.com/johnnelson/skeys-daemon/internal/adapter"
@@ -25,6 +26,10 @@ type Server struct {
 
 	log *logging.Logger
 
+	// Version info
+	version string
+	commit  string
+
 	// Core library services
 	keyService     *keys.Service
 	clientConfig   *config.ClientConfig
@@ -34,13 +39,16 @@ type Server struct {
 	agentService   *agent.Service
 	managedAgent   *agent.ManagedAgent
 	connectionPool *remote.ConnectionPool
+	metadataStore  *storage.Store
 
 	// gRPC service adapters
-	keyAdapter    *adapter.KeyServiceAdapter
-	configAdapter *adapter.ConfigServiceAdapter
-	hostsAdapter  *adapter.HostsServiceAdapter
-	agentAdapter  *adapter.AgentServiceAdapter
-	remoteAdapter *adapter.RemoteServiceAdapter
+	keyAdapter      *adapter.KeyServiceAdapter
+	configAdapter   *adapter.ConfigServiceAdapter
+	hostsAdapter    *adapter.HostsServiceAdapter
+	agentAdapter    *adapter.AgentServiceAdapter
+	remoteAdapter   *adapter.RemoteServiceAdapter
+	metadataAdapter *adapter.MetadataServiceAdapter
+	versionAdapter  *adapter.VersionServiceAdapter
 }
 
 // ServerOption is a functional option for configuring the Server
@@ -50,6 +58,14 @@ type ServerOption func(*Server)
 func WithLogger(log *logging.Logger) ServerOption {
 	return func(s *Server) {
 		s.log = log
+	}
+}
+
+// WithVersion sets the version and commit for the server
+func WithVersion(version, commit string) ServerOption {
+	return func(s *Server) {
+		s.version = version
+		s.commit = commit
 	}
 }
 
@@ -138,6 +154,16 @@ func New(opts ...ServerOption) (*Server, error) {
 	s.connectionPool = connectionPool
 	s.log.Debug("connection pool initialized")
 
+	// Initialize metadata storage
+	storageLog := s.log.WithComponent("storage")
+	metadataStore, err := storage.NewStore(storage.WithLogger(storageLog))
+	if err != nil {
+		s.log.Err(err, "failed to initialize metadata store")
+		return nil, err
+	}
+	s.metadataStore = metadataStore
+	s.log.Debug("metadata store initialized")
+
 	// Initialize SSH config manager for skeys agent integration
 	sshConfigLog := s.log.WithComponent("sshconfig")
 	sshConfigMgr, err := sshconfig.NewManager(
@@ -156,6 +182,8 @@ func New(opts ...ServerOption) (*Server, error) {
 	s.hostsAdapter = adapter.NewHostsServiceAdapter(knownHosts, authorizedKeys)
 	s.agentAdapter = adapter.NewAgentServiceAdapter(agentService, managedAgent)
 	s.remoteAdapter = adapter.NewRemoteServiceAdapter(connectionPool, agentSocketPath)
+	s.metadataAdapter = adapter.NewMetadataServiceAdapter(metadataStore)
+	s.versionAdapter = adapter.NewVersionServiceAdapter(s.version, s.commit)
 
 	// Register gRPC services
 	pb.RegisterKeyServiceServer(grpcServer, s.keyAdapter)
@@ -163,6 +191,8 @@ func New(opts ...ServerOption) (*Server, error) {
 	pb.RegisterHostsServiceServer(grpcServer, s.hostsAdapter)
 	pb.RegisterAgentServiceServer(grpcServer, s.agentAdapter)
 	pb.RegisterRemoteServiceServer(grpcServer, s.remoteAdapter)
+	pb.RegisterMetadataServiceServer(grpcServer, s.metadataAdapter)
+	pb.RegisterVersionServiceServer(grpcServer, s.versionAdapter)
 
 	// Enable reflection for debugging
 	reflection.Register(grpcServer)

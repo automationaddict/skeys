@@ -18,6 +18,7 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
 
   KeysBloc(this._repository, this._remoteRepository) : super(const KeysState()) {
     on<KeysLoadRequested>(_onLoadRequested);
+    on<KeysWatchRequested>(_onWatchRequested);
     on<KeysGenerateRequested>(_onGenerateRequested);
     on<KeysDeleteRequested>(_onDeleteRequested);
     on<KeysChangePassphraseRequested>(_onChangePassphraseRequested);
@@ -48,6 +49,32 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
         errorMessage: e.toString(),
       ));
     }
+  }
+
+  Future<void> _onWatchRequested(
+    KeysWatchRequested event,
+    Emitter<KeysState> emit,
+  ) async {
+    _log.debug('subscribing to keys stream');
+    emit(state.copyWith(status: KeysStatus.loading));
+
+    await emit.forEach<List<KeyEntity>>(
+      _repository.watchKeys(),
+      onData: (keys) {
+        _log.debug('keys stream update', {'count': keys.length});
+        return state.copyWith(
+          status: KeysStatus.success,
+          keys: keys,
+        );
+      },
+      onError: (error, stackTrace) {
+        _log.error('keys stream error', error, stackTrace);
+        return state.copyWith(
+          status: KeysStatus.failure,
+          errorMessage: error.toString(),
+        );
+      },
+    );
   }
 
   Future<void> _onGenerateRequested(

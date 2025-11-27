@@ -862,6 +862,50 @@ func (x *PushKeyToRemoteResponse) GetMessage() string {
 	return ""
 }
 
+type WatchKeysRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Target        *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WatchKeysRequest) Reset() {
+	*x = WatchKeysRequest{}
+	mi := &file_skeys_v1_keys_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WatchKeysRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WatchKeysRequest) ProtoMessage() {}
+
+func (x *WatchKeysRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_keys_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WatchKeysRequest.ProtoReflect.Descriptor instead.
+func (*WatchKeysRequest) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_keys_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *WatchKeysRequest) GetTarget() *Target {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
 var File_skeys_v1_keys_proto protoreflect.FileDescriptor
 
 const file_skeys_v1_keys_proto_rawDesc = "" +
@@ -927,7 +971,9 @@ const file_skeys_v1_keys_proto_rawDesc = "" +
 	"\x06append\x18\x04 \x01(\bR\x06append\"M\n" +
 	"\x17PushKeyToRemoteResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage*\x8f\x01\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"<\n" +
+	"\x10WatchKeysRequest\x12(\n" +
+	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target*\x8f\x01\n" +
 	"\aKeyType\x12\x18\n" +
 	"\x14KEY_TYPE_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fKEY_TYPE_RSA\x10\x01\x12\x14\n" +
@@ -938,7 +984,7 @@ const file_skeys_v1_keys_proto_rawDesc = "" +
 	"\x14FingerprintAlgorithm\x12%\n" +
 	"!FINGERPRINT_ALGORITHM_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cFINGERPRINT_ALGORITHM_SHA256\x10\x01\x12\x1d\n" +
-	"\x19FINGERPRINT_ALGORITHM_MD5\x10\x022\x80\x04\n" +
+	"\x19FINGERPRINT_ALGORITHM_MD5\x10\x022\xc7\x04\n" +
 	"\n" +
 	"KeyService\x12A\n" +
 	"\bListKeys\x12\x19.skeys.v1.ListKeysRequest\x1a\x1a.skeys.v1.ListKeysResponse\x123\n" +
@@ -947,7 +993,8 @@ const file_skeys_v1_keys_proto_rawDesc = "" +
 	"\tDeleteKey\x12\x1a.skeys.v1.DeleteKeyRequest\x1a\x16.google.protobuf.Empty\x12S\n" +
 	"\x0eGetFingerprint\x12\x1f.skeys.v1.GetFingerprintRequest\x1a .skeys.v1.GetFingerprintResponse\x12M\n" +
 	"\x10ChangePassphrase\x12!.skeys.v1.ChangePassphraseRequest\x1a\x16.google.protobuf.Empty\x12V\n" +
-	"\x0fPushKeyToRemote\x12 .skeys.v1.PushKeyToRemoteRequest\x1a!.skeys.v1.PushKeyToRemoteResponseB7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"
+	"\x0fPushKeyToRemote\x12 .skeys.v1.PushKeyToRemoteRequest\x1a!.skeys.v1.PushKeyToRemoteResponse\x12E\n" +
+	"\tWatchKeys\x12\x1a.skeys.v1.WatchKeysRequest\x1a\x1a.skeys.v1.ListKeysResponse0\x01B7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"
 
 var (
 	file_skeys_v1_keys_proto_rawDescOnce sync.Once
@@ -962,7 +1009,7 @@ func file_skeys_v1_keys_proto_rawDescGZIP() []byte {
 }
 
 var file_skeys_v1_keys_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_skeys_v1_keys_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_skeys_v1_keys_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_skeys_v1_keys_proto_goTypes = []any{
 	(KeyType)(0),                    // 0: skeys.v1.KeyType
 	(FingerprintAlgorithm)(0),       // 1: skeys.v1.FingerprintAlgorithm
@@ -977,43 +1024,47 @@ var file_skeys_v1_keys_proto_goTypes = []any{
 	(*ChangePassphraseRequest)(nil), // 10: skeys.v1.ChangePassphraseRequest
 	(*PushKeyToRemoteRequest)(nil),  // 11: skeys.v1.PushKeyToRemoteRequest
 	(*PushKeyToRemoteResponse)(nil), // 12: skeys.v1.PushKeyToRemoteResponse
-	(*timestamppb.Timestamp)(nil),   // 13: google.protobuf.Timestamp
-	(*Target)(nil),                  // 14: skeys.v1.Target
-	(*emptypb.Empty)(nil),           // 15: google.protobuf.Empty
+	(*WatchKeysRequest)(nil),        // 13: skeys.v1.WatchKeysRequest
+	(*timestamppb.Timestamp)(nil),   // 14: google.protobuf.Timestamp
+	(*Target)(nil),                  // 15: skeys.v1.Target
+	(*emptypb.Empty)(nil),           // 16: google.protobuf.Empty
 }
 var file_skeys_v1_keys_proto_depIdxs = []int32{
 	0,  // 0: skeys.v1.SSHKey.type:type_name -> skeys.v1.KeyType
-	13, // 1: skeys.v1.SSHKey.created_at:type_name -> google.protobuf.Timestamp
-	13, // 2: skeys.v1.SSHKey.modified_at:type_name -> google.protobuf.Timestamp
-	14, // 3: skeys.v1.ListKeysRequest.target:type_name -> skeys.v1.Target
+	14, // 1: skeys.v1.SSHKey.created_at:type_name -> google.protobuf.Timestamp
+	14, // 2: skeys.v1.SSHKey.modified_at:type_name -> google.protobuf.Timestamp
+	15, // 3: skeys.v1.ListKeysRequest.target:type_name -> skeys.v1.Target
 	2,  // 4: skeys.v1.ListKeysResponse.keys:type_name -> skeys.v1.SSHKey
-	14, // 5: skeys.v1.GetKeyRequest.target:type_name -> skeys.v1.Target
-	14, // 6: skeys.v1.GenerateKeyRequest.target:type_name -> skeys.v1.Target
+	15, // 5: skeys.v1.GetKeyRequest.target:type_name -> skeys.v1.Target
+	15, // 6: skeys.v1.GenerateKeyRequest.target:type_name -> skeys.v1.Target
 	0,  // 7: skeys.v1.GenerateKeyRequest.type:type_name -> skeys.v1.KeyType
-	14, // 8: skeys.v1.DeleteKeyRequest.target:type_name -> skeys.v1.Target
-	14, // 9: skeys.v1.GetFingerprintRequest.target:type_name -> skeys.v1.Target
+	15, // 8: skeys.v1.DeleteKeyRequest.target:type_name -> skeys.v1.Target
+	15, // 9: skeys.v1.GetFingerprintRequest.target:type_name -> skeys.v1.Target
 	1,  // 10: skeys.v1.GetFingerprintRequest.algorithm:type_name -> skeys.v1.FingerprintAlgorithm
 	1,  // 11: skeys.v1.GetFingerprintResponse.algorithm:type_name -> skeys.v1.FingerprintAlgorithm
-	14, // 12: skeys.v1.ChangePassphraseRequest.target:type_name -> skeys.v1.Target
-	3,  // 13: skeys.v1.KeyService.ListKeys:input_type -> skeys.v1.ListKeysRequest
-	5,  // 14: skeys.v1.KeyService.GetKey:input_type -> skeys.v1.GetKeyRequest
-	6,  // 15: skeys.v1.KeyService.GenerateKey:input_type -> skeys.v1.GenerateKeyRequest
-	7,  // 16: skeys.v1.KeyService.DeleteKey:input_type -> skeys.v1.DeleteKeyRequest
-	8,  // 17: skeys.v1.KeyService.GetFingerprint:input_type -> skeys.v1.GetFingerprintRequest
-	10, // 18: skeys.v1.KeyService.ChangePassphrase:input_type -> skeys.v1.ChangePassphraseRequest
-	11, // 19: skeys.v1.KeyService.PushKeyToRemote:input_type -> skeys.v1.PushKeyToRemoteRequest
-	4,  // 20: skeys.v1.KeyService.ListKeys:output_type -> skeys.v1.ListKeysResponse
-	2,  // 21: skeys.v1.KeyService.GetKey:output_type -> skeys.v1.SSHKey
-	2,  // 22: skeys.v1.KeyService.GenerateKey:output_type -> skeys.v1.SSHKey
-	15, // 23: skeys.v1.KeyService.DeleteKey:output_type -> google.protobuf.Empty
-	9,  // 24: skeys.v1.KeyService.GetFingerprint:output_type -> skeys.v1.GetFingerprintResponse
-	15, // 25: skeys.v1.KeyService.ChangePassphrase:output_type -> google.protobuf.Empty
-	12, // 26: skeys.v1.KeyService.PushKeyToRemote:output_type -> skeys.v1.PushKeyToRemoteResponse
-	20, // [20:27] is the sub-list for method output_type
-	13, // [13:20] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	15, // 12: skeys.v1.ChangePassphraseRequest.target:type_name -> skeys.v1.Target
+	15, // 13: skeys.v1.WatchKeysRequest.target:type_name -> skeys.v1.Target
+	3,  // 14: skeys.v1.KeyService.ListKeys:input_type -> skeys.v1.ListKeysRequest
+	5,  // 15: skeys.v1.KeyService.GetKey:input_type -> skeys.v1.GetKeyRequest
+	6,  // 16: skeys.v1.KeyService.GenerateKey:input_type -> skeys.v1.GenerateKeyRequest
+	7,  // 17: skeys.v1.KeyService.DeleteKey:input_type -> skeys.v1.DeleteKeyRequest
+	8,  // 18: skeys.v1.KeyService.GetFingerprint:input_type -> skeys.v1.GetFingerprintRequest
+	10, // 19: skeys.v1.KeyService.ChangePassphrase:input_type -> skeys.v1.ChangePassphraseRequest
+	11, // 20: skeys.v1.KeyService.PushKeyToRemote:input_type -> skeys.v1.PushKeyToRemoteRequest
+	13, // 21: skeys.v1.KeyService.WatchKeys:input_type -> skeys.v1.WatchKeysRequest
+	4,  // 22: skeys.v1.KeyService.ListKeys:output_type -> skeys.v1.ListKeysResponse
+	2,  // 23: skeys.v1.KeyService.GetKey:output_type -> skeys.v1.SSHKey
+	2,  // 24: skeys.v1.KeyService.GenerateKey:output_type -> skeys.v1.SSHKey
+	16, // 25: skeys.v1.KeyService.DeleteKey:output_type -> google.protobuf.Empty
+	9,  // 26: skeys.v1.KeyService.GetFingerprint:output_type -> skeys.v1.GetFingerprintResponse
+	16, // 27: skeys.v1.KeyService.ChangePassphrase:output_type -> google.protobuf.Empty
+	12, // 28: skeys.v1.KeyService.PushKeyToRemote:output_type -> skeys.v1.PushKeyToRemoteResponse
+	4,  // 29: skeys.v1.KeyService.WatchKeys:output_type -> skeys.v1.ListKeysResponse
+	22, // [22:30] is the sub-list for method output_type
+	14, // [14:22] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_skeys_v1_keys_proto_init() }
@@ -1028,7 +1079,7 @@ func file_skeys_v1_keys_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skeys_v1_keys_proto_rawDesc), len(file_skeys_v1_keys_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

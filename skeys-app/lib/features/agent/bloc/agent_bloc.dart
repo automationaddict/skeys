@@ -19,6 +19,7 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
   AgentBloc(this._repository) : super(const AgentState()) {
     on<AgentLoadStatusRequested>(_onLoadStatus);
     on<AgentLoadKeysRequested>(_onLoadKeys);
+    on<AgentWatchRequested>(_onWatchRequested);
     on<AgentAddKeyRequested>(_onAddKey);
     on<AgentRemoveKeyRequested>(_onRemoveKey);
     on<AgentRemoveAllKeysRequested>(_onRemoveAllKeys);
@@ -75,6 +76,37 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
         errorMessage: e.toString(),
       ));
     }
+  }
+
+  Future<void> _onWatchRequested(
+    AgentWatchRequested event,
+    Emitter<AgentState> emit,
+  ) async {
+    _log.debug('subscribing to agent stream');
+    emit(state.copyWith(status: AgentBlocStatus.loading));
+
+    await emit.forEach<AgentWatchState>(
+      _repository.watchAgent(),
+      onData: (watchState) {
+        _log.debug('agent stream update', {
+          'running': watchState.status.isRunning,
+          'locked': watchState.status.isLocked,
+          'key_count': watchState.keys.length,
+        });
+        return state.copyWith(
+          status: AgentBlocStatus.success,
+          agentStatus: watchState.status,
+          loadedKeys: watchState.keys,
+        );
+      },
+      onError: (error, stackTrace) {
+        _log.error('agent stream error', error, stackTrace);
+        return state.copyWith(
+          status: AgentBlocStatus.failure,
+          errorMessage: error.toString(),
+        );
+      },
+    );
   }
 
   Future<void> _onAddKey(

@@ -19,8 +19,7 @@ class _AgentPageState extends State<AgentPage> {
   @override
   void initState() {
     super.initState();
-    context.read<AgentBloc>().add(const AgentLoadStatusRequested());
-    context.read<AgentBloc>().add(const AgentLoadKeysRequested());
+    context.read<AgentBloc>().add(const AgentWatchRequested());
   }
 
   @override
@@ -32,10 +31,10 @@ class _AgentPageState extends State<AgentPage> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              context.read<AgentBloc>().add(const AgentLoadStatusRequested());
-              context.read<AgentBloc>().add(const AgentLoadKeysRequested());
+              // Restart stream subscription if it errored
+              context.read<AgentBloc>().add(const AgentWatchRequested());
             },
-            tooltip: 'Refresh',
+            tooltip: 'Reconnect',
           ),
         ],
       ),

@@ -13,6 +13,11 @@ final class KeysLoadRequested extends KeysEvent {
   const KeysLoadRequested();
 }
 
+/// Subscribe to key list updates via streaming.
+final class KeysWatchRequested extends KeysEvent {
+  const KeysWatchRequested();
+}
+
 /// Generate a new SSH key.
 final class KeysGenerateRequested extends KeysEvent {
   final String name;

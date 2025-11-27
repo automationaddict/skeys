@@ -15,6 +15,11 @@ final class AgentLoadKeysRequested extends AgentEvent {
   const AgentLoadKeysRequested();
 }
 
+/// Subscribe to agent status and key updates via streaming.
+final class AgentWatchRequested extends AgentEvent {
+  const AgentWatchRequested();
+}
+
 final class AgentAddKeyRequested extends AgentEvent {
   final String keyPath;
   final String? passphrase;

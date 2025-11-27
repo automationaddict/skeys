@@ -17,6 +17,13 @@ class HelpService {
     'agent': 'agent',
     'remotes': 'remotes',
     'backup': 'backup',
+    // Settings documentation
+    'settings': 'settings-display', // Default to display
+    'settings/display': 'settings-display',
+    'settings/security': 'settings-security',
+    'settings/backup': 'settings-backup',
+    'settings/logging': 'settings-logging',
+    'settings/about': 'settings-about',
   };
 
   /// Get the documentation file name for a route.

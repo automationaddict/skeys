@@ -27,6 +27,7 @@ const (
 	KeyService_GetFingerprint_FullMethodName   = "/skeys.v1.KeyService/GetFingerprint"
 	KeyService_ChangePassphrase_FullMethodName = "/skeys.v1.KeyService/ChangePassphrase"
 	KeyService_PushKeyToRemote_FullMethodName  = "/skeys.v1.KeyService/PushKeyToRemote"
+	KeyService_WatchKeys_FullMethodName        = "/skeys.v1.KeyService/WatchKeys"
 )
 
 // KeyServiceClient is the client API for KeyService service.
@@ -40,6 +41,8 @@ type KeyServiceClient interface {
 	GetFingerprint(ctx context.Context, in *GetFingerprintRequest, opts ...grpc.CallOption) (*GetFingerprintResponse, error)
 	ChangePassphrase(ctx context.Context, in *ChangePassphraseRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	PushKeyToRemote(ctx context.Context, in *PushKeyToRemoteRequest, opts ...grpc.CallOption) (*PushKeyToRemoteResponse, error)
+	// Server streaming RPC - sends full key list whenever keys change
+	WatchKeys(ctx context.Context, in *WatchKeysRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ListKeysResponse], error)
 }
 
 type keyServiceClient struct {
@@ -120,6 +123,25 @@ func (c *keyServiceClient) PushKeyToRemote(ctx context.Context, in *PushKeyToRem
 	return out, nil
 }
 
+func (c *keyServiceClient) WatchKeys(ctx context.Context, in *WatchKeysRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ListKeysResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &KeyService_ServiceDesc.Streams[0], KeyService_WatchKeys_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[WatchKeysRequest, ListKeysResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type KeyService_WatchKeysClient = grpc.ServerStreamingClient[ListKeysResponse]
+
 // KeyServiceServer is the server API for KeyService service.
 // All implementations must embed UnimplementedKeyServiceServer
 // for forward compatibility.
@@ -131,6 +153,8 @@ type KeyServiceServer interface {
 	GetFingerprint(context.Context, *GetFingerprintRequest) (*GetFingerprintResponse, error)
 	ChangePassphrase(context.Context, *ChangePassphraseRequest) (*emptypb.Empty, error)
 	PushKeyToRemote(context.Context, *PushKeyToRemoteRequest) (*PushKeyToRemoteResponse, error)
+	// Server streaming RPC - sends full key list whenever keys change
+	WatchKeys(*WatchKeysRequest, grpc.ServerStreamingServer[ListKeysResponse]) error
 	mustEmbedUnimplementedKeyServiceServer()
 }
 
@@ -161,6 +185,9 @@ func (UnimplementedKeyServiceServer) ChangePassphrase(context.Context, *ChangePa
 }
 func (UnimplementedKeyServiceServer) PushKeyToRemote(context.Context, *PushKeyToRemoteRequest) (*PushKeyToRemoteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PushKeyToRemote not implemented")
+}
+func (UnimplementedKeyServiceServer) WatchKeys(*WatchKeysRequest, grpc.ServerStreamingServer[ListKeysResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method WatchKeys not implemented")
 }
 func (UnimplementedKeyServiceServer) mustEmbedUnimplementedKeyServiceServer() {}
 func (UnimplementedKeyServiceServer) testEmbeddedByValue()                    {}
@@ -309,6 +336,17 @@ func _KeyService_PushKeyToRemote_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KeyService_WatchKeys_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WatchKeysRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(KeyServiceServer).WatchKeys(m, &grpc.GenericServerStream[WatchKeysRequest, ListKeysResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type KeyService_WatchKeysServer = grpc.ServerStreamingServer[ListKeysResponse]
+
 // KeyService_ServiceDesc is the grpc.ServiceDesc for KeyService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -345,6 +383,12 @@ var KeyService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _KeyService_PushKeyToRemote_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "WatchKeys",
+			Handler:       _KeyService_WatchKeys_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "skeys/v1/keys.proto",
 }
