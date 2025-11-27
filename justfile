@@ -124,7 +124,11 @@ clean: proto-clean
 # ============================================================
 
 # Start the full dev environment (daemon container + Flutter app)
+# Builds the daemon image if source files have changed
 tilt-up:
+    @echo "Building daemon image..."
+    COMMIT=$(git rev-parse --short HEAD) docker compose build daemon
+    @echo "Starting Tilt..."
     COMMIT=$(git rev-parse --short HEAD) tilt up
 
 # Stop the dev environment

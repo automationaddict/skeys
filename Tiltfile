@@ -2,10 +2,11 @@
 # Run with: tilt up
 
 # Use docker-compose for the daemon
+# docker-compose handles building the image
 docker_compose('docker-compose.yml')
 
-# Only rebuild daemon when manually triggered (press space in Tilt UI)
-# This prevents unwanted restarts during Flutter development
+# Manual trigger mode prevents unwanted restarts during Flutter development
+# Rebuilds still happen on tilt down/up cycle
 dc_resource('daemon', trigger_mode=TRIGGER_MODE_MANUAL)
 
 # Instructions

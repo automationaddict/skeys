@@ -22,6 +22,638 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// New unified SSH config entry supporting both Host and Match blocks
+type SSHConfigEntryType int32
+
+const (
+	SSHConfigEntryType_SSH_CONFIG_ENTRY_TYPE_UNSPECIFIED SSHConfigEntryType = 0
+	SSHConfigEntryType_SSH_CONFIG_ENTRY_TYPE_HOST        SSHConfigEntryType = 1
+	SSHConfigEntryType_SSH_CONFIG_ENTRY_TYPE_MATCH       SSHConfigEntryType = 2
+)
+
+// Enum value maps for SSHConfigEntryType.
+var (
+	SSHConfigEntryType_name = map[int32]string{
+		0: "SSH_CONFIG_ENTRY_TYPE_UNSPECIFIED",
+		1: "SSH_CONFIG_ENTRY_TYPE_HOST",
+		2: "SSH_CONFIG_ENTRY_TYPE_MATCH",
+	}
+	SSHConfigEntryType_value = map[string]int32{
+		"SSH_CONFIG_ENTRY_TYPE_UNSPECIFIED": 0,
+		"SSH_CONFIG_ENTRY_TYPE_HOST":        1,
+		"SSH_CONFIG_ENTRY_TYPE_MATCH":       2,
+	}
+)
+
+func (x SSHConfigEntryType) Enum() *SSHConfigEntryType {
+	p := new(SSHConfigEntryType)
+	*p = x
+	return p
+}
+
+func (x SSHConfigEntryType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SSHConfigEntryType) Descriptor() protoreflect.EnumDescriptor {
+	return file_skeys_v1_config_proto_enumTypes[0].Descriptor()
+}
+
+func (SSHConfigEntryType) Type() protoreflect.EnumType {
+	return &file_skeys_v1_config_proto_enumTypes[0]
+}
+
+func (x SSHConfigEntryType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SSHConfigEntryType.Descriptor instead.
+func (SSHConfigEntryType) EnumDescriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{0}
+}
+
+type SSHConfigEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`                                       // Stable hash-based ID
+	Type          SSHConfigEntryType     `protobuf:"varint,2,opt,name=type,proto3,enum=skeys.v1.SSHConfigEntryType" json:"type,omitempty"` // Host or Match
+	Position      int32                  `protobuf:"varint,3,opt,name=position,proto3" json:"position,omitempty"`                          // Order in config file (0-based)
+	Patterns      []string               `protobuf:"bytes,4,rep,name=patterns,proto3" json:"patterns,omitempty"`                           // Host patterns or Match criteria parts
+	Options       *SSHOptions            `protobuf:"bytes,5,opt,name=options,proto3" json:"options,omitempty"`                             // Configuration options
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SSHConfigEntry) Reset() {
+	*x = SSHConfigEntry{}
+	mi := &file_skeys_v1_config_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SSHConfigEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SSHConfigEntry) ProtoMessage() {}
+
+func (x *SSHConfigEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SSHConfigEntry.ProtoReflect.Descriptor instead.
+func (*SSHConfigEntry) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *SSHConfigEntry) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SSHConfigEntry) GetType() SSHConfigEntryType {
+	if x != nil {
+		return x.Type
+	}
+	return SSHConfigEntryType_SSH_CONFIG_ENTRY_TYPE_UNSPECIFIED
+}
+
+func (x *SSHConfigEntry) GetPosition() int32 {
+	if x != nil {
+		return x.Position
+	}
+	return 0
+}
+
+func (x *SSHConfigEntry) GetPatterns() []string {
+	if x != nil {
+		return x.Patterns
+	}
+	return nil
+}
+
+func (x *SSHConfigEntry) GetOptions() *SSHOptions {
+	if x != nil {
+		return x.Options
+	}
+	return nil
+}
+
+type SSHOptions struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Hostname              string                 `protobuf:"bytes,1,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	Port                  int32                  `protobuf:"varint,2,opt,name=port,proto3" json:"port,omitempty"`
+	User                  string                 `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	IdentityFiles         []string               `protobuf:"bytes,4,rep,name=identity_files,json=identityFiles,proto3" json:"identity_files,omitempty"`
+	ProxyJump             string                 `protobuf:"bytes,5,opt,name=proxy_jump,json=proxyJump,proto3" json:"proxy_jump,omitempty"`
+	ProxyCommand          string                 `protobuf:"bytes,6,opt,name=proxy_command,json=proxyCommand,proto3" json:"proxy_command,omitempty"`
+	ForwardAgent          bool                   `protobuf:"varint,7,opt,name=forward_agent,json=forwardAgent,proto3" json:"forward_agent,omitempty"`
+	IdentitiesOnly        bool                   `protobuf:"varint,8,opt,name=identities_only,json=identitiesOnly,proto3" json:"identities_only,omitempty"`
+	StrictHostKeyChecking string                 `protobuf:"bytes,9,opt,name=strict_host_key_checking,json=strictHostKeyChecking,proto3" json:"strict_host_key_checking,omitempty"`
+	ServerAliveInterval   int32                  `protobuf:"varint,10,opt,name=server_alive_interval,json=serverAliveInterval,proto3" json:"server_alive_interval,omitempty"`
+	ServerAliveCountMax   int32                  `protobuf:"varint,11,opt,name=server_alive_count_max,json=serverAliveCountMax,proto3" json:"server_alive_count_max,omitempty"`
+	Compression           bool                   `protobuf:"varint,12,opt,name=compression,proto3" json:"compression,omitempty"`
+	ExtraOptions          map[string]string      `protobuf:"bytes,100,rep,name=extra_options,json=extraOptions,proto3" json:"extra_options,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *SSHOptions) Reset() {
+	*x = SSHOptions{}
+	mi := &file_skeys_v1_config_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SSHOptions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SSHOptions) ProtoMessage() {}
+
+func (x *SSHOptions) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SSHOptions.ProtoReflect.Descriptor instead.
+func (*SSHOptions) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *SSHOptions) GetHostname() string {
+	if x != nil {
+		return x.Hostname
+	}
+	return ""
+}
+
+func (x *SSHOptions) GetPort() int32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+func (x *SSHOptions) GetUser() string {
+	if x != nil {
+		return x.User
+	}
+	return ""
+}
+
+func (x *SSHOptions) GetIdentityFiles() []string {
+	if x != nil {
+		return x.IdentityFiles
+	}
+	return nil
+}
+
+func (x *SSHOptions) GetProxyJump() string {
+	if x != nil {
+		return x.ProxyJump
+	}
+	return ""
+}
+
+func (x *SSHOptions) GetProxyCommand() string {
+	if x != nil {
+		return x.ProxyCommand
+	}
+	return ""
+}
+
+func (x *SSHOptions) GetForwardAgent() bool {
+	if x != nil {
+		return x.ForwardAgent
+	}
+	return false
+}
+
+func (x *SSHOptions) GetIdentitiesOnly() bool {
+	if x != nil {
+		return x.IdentitiesOnly
+	}
+	return false
+}
+
+func (x *SSHOptions) GetStrictHostKeyChecking() string {
+	if x != nil {
+		return x.StrictHostKeyChecking
+	}
+	return ""
+}
+
+func (x *SSHOptions) GetServerAliveInterval() int32 {
+	if x != nil {
+		return x.ServerAliveInterval
+	}
+	return 0
+}
+
+func (x *SSHOptions) GetServerAliveCountMax() int32 {
+	if x != nil {
+		return x.ServerAliveCountMax
+	}
+	return 0
+}
+
+func (x *SSHOptions) GetCompression() bool {
+	if x != nil {
+		return x.Compression
+	}
+	return false
+}
+
+func (x *SSHOptions) GetExtraOptions() map[string]string {
+	if x != nil {
+		return x.ExtraOptions
+	}
+	return nil
+}
+
+// New API request/response messages
+type ListSSHConfigEntriesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Target        *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSSHConfigEntriesRequest) Reset() {
+	*x = ListSSHConfigEntriesRequest{}
+	mi := &file_skeys_v1_config_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSSHConfigEntriesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSSHConfigEntriesRequest) ProtoMessage() {}
+
+func (x *ListSSHConfigEntriesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSSHConfigEntriesRequest.ProtoReflect.Descriptor instead.
+func (*ListSSHConfigEntriesRequest) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ListSSHConfigEntriesRequest) GetTarget() *Target {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+type ListSSHConfigEntriesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Entries       []*SSHConfigEntry      `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSSHConfigEntriesResponse) Reset() {
+	*x = ListSSHConfigEntriesResponse{}
+	mi := &file_skeys_v1_config_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSSHConfigEntriesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSSHConfigEntriesResponse) ProtoMessage() {}
+
+func (x *ListSSHConfigEntriesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSSHConfigEntriesResponse.ProtoReflect.Descriptor instead.
+func (*ListSSHConfigEntriesResponse) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ListSSHConfigEntriesResponse) GetEntries() []*SSHConfigEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+type GetSSHConfigEntryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Target        *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSSHConfigEntryRequest) Reset() {
+	*x = GetSSHConfigEntryRequest{}
+	mi := &file_skeys_v1_config_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSSHConfigEntryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSSHConfigEntryRequest) ProtoMessage() {}
+
+func (x *GetSSHConfigEntryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSSHConfigEntryRequest.ProtoReflect.Descriptor instead.
+func (*GetSSHConfigEntryRequest) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetSSHConfigEntryRequest) GetTarget() *Target {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+func (x *GetSSHConfigEntryRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type CreateSSHConfigEntryRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Target         *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	Entry          *SSHConfigEntry        `protobuf:"bytes,2,opt,name=entry,proto3" json:"entry,omitempty"`
+	InsertPosition int32                  `protobuf:"varint,3,opt,name=insert_position,json=insertPosition,proto3" json:"insert_position,omitempty"` // -1 means append at end
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *CreateSSHConfigEntryRequest) Reset() {
+	*x = CreateSSHConfigEntryRequest{}
+	mi := &file_skeys_v1_config_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSSHConfigEntryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSSHConfigEntryRequest) ProtoMessage() {}
+
+func (x *CreateSSHConfigEntryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSSHConfigEntryRequest.ProtoReflect.Descriptor instead.
+func (*CreateSSHConfigEntryRequest) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *CreateSSHConfigEntryRequest) GetTarget() *Target {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+func (x *CreateSSHConfigEntryRequest) GetEntry() *SSHConfigEntry {
+	if x != nil {
+		return x.Entry
+	}
+	return nil
+}
+
+func (x *CreateSSHConfigEntryRequest) GetInsertPosition() int32 {
+	if x != nil {
+		return x.InsertPosition
+	}
+	return 0
+}
+
+type UpdateSSHConfigEntryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Target        *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	Entry         *SSHConfigEntry        `protobuf:"bytes,3,opt,name=entry,proto3" json:"entry,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSSHConfigEntryRequest) Reset() {
+	*x = UpdateSSHConfigEntryRequest{}
+	mi := &file_skeys_v1_config_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSSHConfigEntryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSSHConfigEntryRequest) ProtoMessage() {}
+
+func (x *UpdateSSHConfigEntryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSSHConfigEntryRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSSHConfigEntryRequest) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *UpdateSSHConfigEntryRequest) GetTarget() *Target {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+func (x *UpdateSSHConfigEntryRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateSSHConfigEntryRequest) GetEntry() *SSHConfigEntry {
+	if x != nil {
+		return x.Entry
+	}
+	return nil
+}
+
+type DeleteSSHConfigEntryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Target        *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSSHConfigEntryRequest) Reset() {
+	*x = DeleteSSHConfigEntryRequest{}
+	mi := &file_skeys_v1_config_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSSHConfigEntryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSSHConfigEntryRequest) ProtoMessage() {}
+
+func (x *DeleteSSHConfigEntryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSSHConfigEntryRequest.ProtoReflect.Descriptor instead.
+func (*DeleteSSHConfigEntryRequest) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *DeleteSSHConfigEntryRequest) GetTarget() *Target {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+func (x *DeleteSSHConfigEntryRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type ReorderSSHConfigEntriesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Target        *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	EntryIds      []string               `protobuf:"bytes,2,rep,name=entry_ids,json=entryIds,proto3" json:"entry_ids,omitempty"` // Entry IDs in new order
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReorderSSHConfigEntriesRequest) Reset() {
+	*x = ReorderSSHConfigEntriesRequest{}
+	mi := &file_skeys_v1_config_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReorderSSHConfigEntriesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReorderSSHConfigEntriesRequest) ProtoMessage() {}
+
+func (x *ReorderSSHConfigEntriesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReorderSSHConfigEntriesRequest.ProtoReflect.Descriptor instead.
+func (*ReorderSSHConfigEntriesRequest) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ReorderSSHConfigEntriesRequest) GetTarget() *Target {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+func (x *ReorderSSHConfigEntriesRequest) GetEntryIds() []string {
+	if x != nil {
+		return x.EntryIds
+	}
+	return nil
+}
+
+// Legacy HostConfig message (backward compatibility)
 type HostConfig struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
 	Alias                 string                 `protobuf:"bytes,1,opt,name=alias,proto3" json:"alias,omitempty"`
@@ -45,7 +677,7 @@ type HostConfig struct {
 
 func (x *HostConfig) Reset() {
 	*x = HostConfig{}
-	mi := &file_skeys_v1_config_proto_msgTypes[0]
+	mi := &file_skeys_v1_config_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -57,7 +689,7 @@ func (x *HostConfig) String() string {
 func (*HostConfig) ProtoMessage() {}
 
 func (x *HostConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[0]
+	mi := &file_skeys_v1_config_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -70,7 +702,7 @@ func (x *HostConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HostConfig.ProtoReflect.Descriptor instead.
 func (*HostConfig) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{0}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *HostConfig) GetAlias() string {
@@ -187,7 +819,7 @@ type ListHostConfigsRequest struct {
 
 func (x *ListHostConfigsRequest) Reset() {
 	*x = ListHostConfigsRequest{}
-	mi := &file_skeys_v1_config_proto_msgTypes[1]
+	mi := &file_skeys_v1_config_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -199,7 +831,7 @@ func (x *ListHostConfigsRequest) String() string {
 func (*ListHostConfigsRequest) ProtoMessage() {}
 
 func (x *ListHostConfigsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[1]
+	mi := &file_skeys_v1_config_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -212,7 +844,7 @@ func (x *ListHostConfigsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListHostConfigsRequest.ProtoReflect.Descriptor instead.
 func (*ListHostConfigsRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{1}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListHostConfigsRequest) GetTarget() *Target {
@@ -231,7 +863,7 @@ type ListHostConfigsResponse struct {
 
 func (x *ListHostConfigsResponse) Reset() {
 	*x = ListHostConfigsResponse{}
-	mi := &file_skeys_v1_config_proto_msgTypes[2]
+	mi := &file_skeys_v1_config_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -243,7 +875,7 @@ func (x *ListHostConfigsResponse) String() string {
 func (*ListHostConfigsResponse) ProtoMessage() {}
 
 func (x *ListHostConfigsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[2]
+	mi := &file_skeys_v1_config_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -256,7 +888,7 @@ func (x *ListHostConfigsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListHostConfigsResponse.ProtoReflect.Descriptor instead.
 func (*ListHostConfigsResponse) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{2}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListHostConfigsResponse) GetHosts() []*HostConfig {
@@ -276,7 +908,7 @@ type GetHostConfigRequest struct {
 
 func (x *GetHostConfigRequest) Reset() {
 	*x = GetHostConfigRequest{}
-	mi := &file_skeys_v1_config_proto_msgTypes[3]
+	mi := &file_skeys_v1_config_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -288,7 +920,7 @@ func (x *GetHostConfigRequest) String() string {
 func (*GetHostConfigRequest) ProtoMessage() {}
 
 func (x *GetHostConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[3]
+	mi := &file_skeys_v1_config_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -301,7 +933,7 @@ func (x *GetHostConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetHostConfigRequest.ProtoReflect.Descriptor instead.
 func (*GetHostConfigRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{3}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetHostConfigRequest) GetTarget() *Target {
@@ -328,7 +960,7 @@ type CreateHostConfigRequest struct {
 
 func (x *CreateHostConfigRequest) Reset() {
 	*x = CreateHostConfigRequest{}
-	mi := &file_skeys_v1_config_proto_msgTypes[4]
+	mi := &file_skeys_v1_config_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -340,7 +972,7 @@ func (x *CreateHostConfigRequest) String() string {
 func (*CreateHostConfigRequest) ProtoMessage() {}
 
 func (x *CreateHostConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[4]
+	mi := &file_skeys_v1_config_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -353,7 +985,7 @@ func (x *CreateHostConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateHostConfigRequest.ProtoReflect.Descriptor instead.
 func (*CreateHostConfigRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{4}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CreateHostConfigRequest) GetTarget() *Target {
@@ -381,7 +1013,7 @@ type UpdateHostConfigRequest struct {
 
 func (x *UpdateHostConfigRequest) Reset() {
 	*x = UpdateHostConfigRequest{}
-	mi := &file_skeys_v1_config_proto_msgTypes[5]
+	mi := &file_skeys_v1_config_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -393,7 +1025,7 @@ func (x *UpdateHostConfigRequest) String() string {
 func (*UpdateHostConfigRequest) ProtoMessage() {}
 
 func (x *UpdateHostConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[5]
+	mi := &file_skeys_v1_config_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -406,7 +1038,7 @@ func (x *UpdateHostConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateHostConfigRequest.ProtoReflect.Descriptor instead.
 func (*UpdateHostConfigRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{5}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *UpdateHostConfigRequest) GetTarget() *Target {
@@ -440,7 +1072,7 @@ type DeleteHostConfigRequest struct {
 
 func (x *DeleteHostConfigRequest) Reset() {
 	*x = DeleteHostConfigRequest{}
-	mi := &file_skeys_v1_config_proto_msgTypes[6]
+	mi := &file_skeys_v1_config_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -452,7 +1084,7 @@ func (x *DeleteHostConfigRequest) String() string {
 func (*DeleteHostConfigRequest) ProtoMessage() {}
 
 func (x *DeleteHostConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[6]
+	mi := &file_skeys_v1_config_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -465,7 +1097,7 @@ func (x *DeleteHostConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteHostConfigRequest.ProtoReflect.Descriptor instead.
 func (*DeleteHostConfigRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{6}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *DeleteHostConfigRequest) GetTarget() *Target {
@@ -493,7 +1125,7 @@ type TestConnectionRequest struct {
 
 func (x *TestConnectionRequest) Reset() {
 	*x = TestConnectionRequest{}
-	mi := &file_skeys_v1_config_proto_msgTypes[7]
+	mi := &file_skeys_v1_config_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -505,7 +1137,7 @@ func (x *TestConnectionRequest) String() string {
 func (*TestConnectionRequest) ProtoMessage() {}
 
 func (x *TestConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[7]
+	mi := &file_skeys_v1_config_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -518,7 +1150,7 @@ func (x *TestConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestConnectionRequest.ProtoReflect.Descriptor instead.
 func (*TestConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{7}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *TestConnectionRequest) GetTarget() *Target {
@@ -554,7 +1186,7 @@ type TestConnectionResponse struct {
 
 func (x *TestConnectionResponse) Reset() {
 	*x = TestConnectionResponse{}
-	mi := &file_skeys_v1_config_proto_msgTypes[8]
+	mi := &file_skeys_v1_config_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -566,7 +1198,7 @@ func (x *TestConnectionResponse) String() string {
 func (*TestConnectionResponse) ProtoMessage() {}
 
 func (x *TestConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[8]
+	mi := &file_skeys_v1_config_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -579,7 +1211,7 @@ func (x *TestConnectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestConnectionResponse.ProtoReflect.Descriptor instead.
 func (*TestConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{8}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *TestConnectionResponse) GetSuccess() bool {
@@ -620,7 +1252,7 @@ type ServerConfig struct {
 
 func (x *ServerConfig) Reset() {
 	*x = ServerConfig{}
-	mi := &file_skeys_v1_config_proto_msgTypes[9]
+	mi := &file_skeys_v1_config_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -632,7 +1264,7 @@ func (x *ServerConfig) String() string {
 func (*ServerConfig) ProtoMessage() {}
 
 func (x *ServerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[9]
+	mi := &file_skeys_v1_config_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -645,7 +1277,7 @@ func (x *ServerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServerConfig.ProtoReflect.Descriptor instead.
 func (*ServerConfig) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{9}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ServerConfig) GetDirectives() []*ServerConfigDirective {
@@ -675,7 +1307,7 @@ type ServerConfigDirective struct {
 
 func (x *ServerConfigDirective) Reset() {
 	*x = ServerConfigDirective{}
-	mi := &file_skeys_v1_config_proto_msgTypes[10]
+	mi := &file_skeys_v1_config_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -687,7 +1319,7 @@ func (x *ServerConfigDirective) String() string {
 func (*ServerConfigDirective) ProtoMessage() {}
 
 func (x *ServerConfigDirective) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[10]
+	mi := &file_skeys_v1_config_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -700,7 +1332,7 @@ func (x *ServerConfigDirective) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServerConfigDirective.ProtoReflect.Descriptor instead.
 func (*ServerConfigDirective) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{10}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ServerConfigDirective) GetKey() string {
@@ -747,7 +1379,7 @@ type GetServerConfigRequest struct {
 
 func (x *GetServerConfigRequest) Reset() {
 	*x = GetServerConfigRequest{}
-	mi := &file_skeys_v1_config_proto_msgTypes[11]
+	mi := &file_skeys_v1_config_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -759,7 +1391,7 @@ func (x *GetServerConfigRequest) String() string {
 func (*GetServerConfigRequest) ProtoMessage() {}
 
 func (x *GetServerConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[11]
+	mi := &file_skeys_v1_config_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -772,7 +1404,7 @@ func (x *GetServerConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetServerConfigRequest.ProtoReflect.Descriptor instead.
 func (*GetServerConfigRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{11}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetServerConfigRequest) GetTarget() *Target {
@@ -792,7 +1424,7 @@ type UpdateServerConfigRequest struct {
 
 func (x *UpdateServerConfigRequest) Reset() {
 	*x = UpdateServerConfigRequest{}
-	mi := &file_skeys_v1_config_proto_msgTypes[12]
+	mi := &file_skeys_v1_config_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -804,7 +1436,7 @@ func (x *UpdateServerConfigRequest) String() string {
 func (*UpdateServerConfigRequest) ProtoMessage() {}
 
 func (x *UpdateServerConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[12]
+	mi := &file_skeys_v1_config_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -817,7 +1449,7 @@ func (x *UpdateServerConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateServerConfigRequest.ProtoReflect.Descriptor instead.
 func (*UpdateServerConfigRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{12}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *UpdateServerConfigRequest) GetTarget() *Target {
@@ -845,7 +1477,7 @@ type ServerConfigUpdate struct {
 
 func (x *ServerConfigUpdate) Reset() {
 	*x = ServerConfigUpdate{}
-	mi := &file_skeys_v1_config_proto_msgTypes[13]
+	mi := &file_skeys_v1_config_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -857,7 +1489,7 @@ func (x *ServerConfigUpdate) String() string {
 func (*ServerConfigUpdate) ProtoMessage() {}
 
 func (x *ServerConfigUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[13]
+	mi := &file_skeys_v1_config_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -870,7 +1502,7 @@ func (x *ServerConfigUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServerConfigUpdate.ProtoReflect.Descriptor instead.
 func (*ServerConfigUpdate) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{13}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ServerConfigUpdate) GetKey() string {
@@ -904,7 +1536,7 @@ type ValidateServerConfigRequest struct {
 
 func (x *ValidateServerConfigRequest) Reset() {
 	*x = ValidateServerConfigRequest{}
-	mi := &file_skeys_v1_config_proto_msgTypes[14]
+	mi := &file_skeys_v1_config_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -916,7 +1548,7 @@ func (x *ValidateServerConfigRequest) String() string {
 func (*ValidateServerConfigRequest) ProtoMessage() {}
 
 func (x *ValidateServerConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[14]
+	mi := &file_skeys_v1_config_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -929,7 +1561,7 @@ func (x *ValidateServerConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateServerConfigRequest.ProtoReflect.Descriptor instead.
 func (*ValidateServerConfigRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{14}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ValidateServerConfigRequest) GetTarget() *Target {
@@ -956,7 +1588,7 @@ type ValidateServerConfigResponse struct {
 
 func (x *ValidateServerConfigResponse) Reset() {
 	*x = ValidateServerConfigResponse{}
-	mi := &file_skeys_v1_config_proto_msgTypes[15]
+	mi := &file_skeys_v1_config_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -968,7 +1600,7 @@ func (x *ValidateServerConfigResponse) String() string {
 func (*ValidateServerConfigResponse) ProtoMessage() {}
 
 func (x *ValidateServerConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[15]
+	mi := &file_skeys_v1_config_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -981,7 +1613,7 @@ func (x *ValidateServerConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateServerConfigResponse.ProtoReflect.Descriptor instead.
 func (*ValidateServerConfigResponse) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{15}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ValidateServerConfigResponse) GetValid() bool {
@@ -1008,7 +1640,7 @@ type RestartSSHServiceRequest struct {
 
 func (x *RestartSSHServiceRequest) Reset() {
 	*x = RestartSSHServiceRequest{}
-	mi := &file_skeys_v1_config_proto_msgTypes[16]
+	mi := &file_skeys_v1_config_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1020,7 +1652,7 @@ func (x *RestartSSHServiceRequest) String() string {
 func (*RestartSSHServiceRequest) ProtoMessage() {}
 
 func (x *RestartSSHServiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[16]
+	mi := &file_skeys_v1_config_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1033,7 +1665,7 @@ func (x *RestartSSHServiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestartSSHServiceRequest.ProtoReflect.Descriptor instead.
 func (*RestartSSHServiceRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{16}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *RestartSSHServiceRequest) GetTarget() *Target {
@@ -1060,7 +1692,7 @@ type RestartSSHServiceResponse struct {
 
 func (x *RestartSSHServiceResponse) Reset() {
 	*x = RestartSSHServiceResponse{}
-	mi := &file_skeys_v1_config_proto_msgTypes[17]
+	mi := &file_skeys_v1_config_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1072,7 +1704,7 @@ func (x *RestartSSHServiceResponse) String() string {
 func (*RestartSSHServiceResponse) ProtoMessage() {}
 
 func (x *RestartSSHServiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[17]
+	mi := &file_skeys_v1_config_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1085,7 +1717,7 @@ func (x *RestartSSHServiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestartSSHServiceResponse.ProtoReflect.Descriptor instead.
 func (*RestartSSHServiceResponse) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{17}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *RestartSSHServiceResponse) GetSuccess() bool {
@@ -1111,7 +1743,7 @@ type GetSshConfigStatusRequest struct {
 
 func (x *GetSshConfigStatusRequest) Reset() {
 	*x = GetSshConfigStatusRequest{}
-	mi := &file_skeys_v1_config_proto_msgTypes[18]
+	mi := &file_skeys_v1_config_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1123,7 +1755,7 @@ func (x *GetSshConfigStatusRequest) String() string {
 func (*GetSshConfigStatusRequest) ProtoMessage() {}
 
 func (x *GetSshConfigStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[18]
+	mi := &file_skeys_v1_config_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1136,7 +1768,7 @@ func (x *GetSshConfigStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSshConfigStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetSshConfigStatusRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{18}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{27}
 }
 
 type GetSshConfigStatusResponse struct {
@@ -1149,7 +1781,7 @@ type GetSshConfigStatusResponse struct {
 
 func (x *GetSshConfigStatusResponse) Reset() {
 	*x = GetSshConfigStatusResponse{}
-	mi := &file_skeys_v1_config_proto_msgTypes[19]
+	mi := &file_skeys_v1_config_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1161,7 +1793,7 @@ func (x *GetSshConfigStatusResponse) String() string {
 func (*GetSshConfigStatusResponse) ProtoMessage() {}
 
 func (x *GetSshConfigStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[19]
+	mi := &file_skeys_v1_config_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1174,7 +1806,7 @@ func (x *GetSshConfigStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSshConfigStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetSshConfigStatusResponse) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{19}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetSshConfigStatusResponse) GetEnabled() bool {
@@ -1199,7 +1831,7 @@ type EnableSshConfigRequest struct {
 
 func (x *EnableSshConfigRequest) Reset() {
 	*x = EnableSshConfigRequest{}
-	mi := &file_skeys_v1_config_proto_msgTypes[20]
+	mi := &file_skeys_v1_config_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1211,7 +1843,7 @@ func (x *EnableSshConfigRequest) String() string {
 func (*EnableSshConfigRequest) ProtoMessage() {}
 
 func (x *EnableSshConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[20]
+	mi := &file_skeys_v1_config_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1224,7 +1856,7 @@ func (x *EnableSshConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableSshConfigRequest.ProtoReflect.Descriptor instead.
 func (*EnableSshConfigRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{20}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{29}
 }
 
 type EnableSshConfigResponse struct {
@@ -1237,7 +1869,7 @@ type EnableSshConfigResponse struct {
 
 func (x *EnableSshConfigResponse) Reset() {
 	*x = EnableSshConfigResponse{}
-	mi := &file_skeys_v1_config_proto_msgTypes[21]
+	mi := &file_skeys_v1_config_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1249,7 +1881,7 @@ func (x *EnableSshConfigResponse) String() string {
 func (*EnableSshConfigResponse) ProtoMessage() {}
 
 func (x *EnableSshConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[21]
+	mi := &file_skeys_v1_config_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1262,7 +1894,7 @@ func (x *EnableSshConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableSshConfigResponse.ProtoReflect.Descriptor instead.
 func (*EnableSshConfigResponse) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{21}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *EnableSshConfigResponse) GetSuccess() bool {
@@ -1287,7 +1919,7 @@ type DisableSshConfigRequest struct {
 
 func (x *DisableSshConfigRequest) Reset() {
 	*x = DisableSshConfigRequest{}
-	mi := &file_skeys_v1_config_proto_msgTypes[22]
+	mi := &file_skeys_v1_config_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1299,7 +1931,7 @@ func (x *DisableSshConfigRequest) String() string {
 func (*DisableSshConfigRequest) ProtoMessage() {}
 
 func (x *DisableSshConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[22]
+	mi := &file_skeys_v1_config_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1312,7 +1944,7 @@ func (x *DisableSshConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableSshConfigRequest.ProtoReflect.Descriptor instead.
 func (*DisableSshConfigRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{22}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{31}
 }
 
 type DisableSshConfigResponse struct {
@@ -1325,7 +1957,7 @@ type DisableSshConfigResponse struct {
 
 func (x *DisableSshConfigResponse) Reset() {
 	*x = DisableSshConfigResponse{}
-	mi := &file_skeys_v1_config_proto_msgTypes[23]
+	mi := &file_skeys_v1_config_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1337,7 +1969,7 @@ func (x *DisableSshConfigResponse) String() string {
 func (*DisableSshConfigResponse) ProtoMessage() {}
 
 func (x *DisableSshConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_config_proto_msgTypes[23]
+	mi := &file_skeys_v1_config_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1350,7 +1982,7 @@ func (x *DisableSshConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableSshConfigResponse.ProtoReflect.Descriptor instead.
 func (*DisableSshConfigResponse) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_config_proto_rawDescGZIP(), []int{23}
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *DisableSshConfigResponse) GetSuccess() bool {
@@ -1367,11 +1999,311 @@ func (x *DisableSshConfigResponse) GetMessage() string {
 	return ""
 }
 
+// Global directives messages (options outside Host/Match blocks in ~/.ssh/config)
+type GlobalDirective struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         string                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GlobalDirective) Reset() {
+	*x = GlobalDirective{}
+	mi := &file_skeys_v1_config_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GlobalDirective) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GlobalDirective) ProtoMessage() {}
+
+func (x *GlobalDirective) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GlobalDirective.ProtoReflect.Descriptor instead.
+func (*GlobalDirective) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *GlobalDirective) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *GlobalDirective) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+type ListGlobalDirectivesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Target        *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListGlobalDirectivesRequest) Reset() {
+	*x = ListGlobalDirectivesRequest{}
+	mi := &file_skeys_v1_config_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListGlobalDirectivesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListGlobalDirectivesRequest) ProtoMessage() {}
+
+func (x *ListGlobalDirectivesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListGlobalDirectivesRequest.ProtoReflect.Descriptor instead.
+func (*ListGlobalDirectivesRequest) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *ListGlobalDirectivesRequest) GetTarget() *Target {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+type ListGlobalDirectivesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Directives    []*GlobalDirective     `protobuf:"bytes,1,rep,name=directives,proto3" json:"directives,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListGlobalDirectivesResponse) Reset() {
+	*x = ListGlobalDirectivesResponse{}
+	mi := &file_skeys_v1_config_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListGlobalDirectivesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListGlobalDirectivesResponse) ProtoMessage() {}
+
+func (x *ListGlobalDirectivesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListGlobalDirectivesResponse.ProtoReflect.Descriptor instead.
+func (*ListGlobalDirectivesResponse) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *ListGlobalDirectivesResponse) GetDirectives() []*GlobalDirective {
+	if x != nil {
+		return x.Directives
+	}
+	return nil
+}
+
+type SetGlobalDirectiveRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Target        *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	Value         string                 `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetGlobalDirectiveRequest) Reset() {
+	*x = SetGlobalDirectiveRequest{}
+	mi := &file_skeys_v1_config_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetGlobalDirectiveRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetGlobalDirectiveRequest) ProtoMessage() {}
+
+func (x *SetGlobalDirectiveRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetGlobalDirectiveRequest.ProtoReflect.Descriptor instead.
+func (*SetGlobalDirectiveRequest) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *SetGlobalDirectiveRequest) GetTarget() *Target {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+func (x *SetGlobalDirectiveRequest) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *SetGlobalDirectiveRequest) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+type DeleteGlobalDirectiveRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Target        *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteGlobalDirectiveRequest) Reset() {
+	*x = DeleteGlobalDirectiveRequest{}
+	mi := &file_skeys_v1_config_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteGlobalDirectiveRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteGlobalDirectiveRequest) ProtoMessage() {}
+
+func (x *DeleteGlobalDirectiveRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteGlobalDirectiveRequest.ProtoReflect.Descriptor instead.
+func (*DeleteGlobalDirectiveRequest) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *DeleteGlobalDirectiveRequest) GetTarget() *Target {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+func (x *DeleteGlobalDirectiveRequest) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
 var File_skeys_v1_config_proto protoreflect.FileDescriptor
 
 const file_skeys_v1_config_proto_rawDesc = "" +
 	"\n" +
-	"\x15skeys/v1/config.proto\x12\bskeys.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x15skeys/v1/common.proto\"\x8f\x05\n" +
+	"\x15skeys/v1/config.proto\x12\bskeys.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x15skeys/v1/common.proto\"\xba\x01\n" +
+	"\x0eSSHConfigEntry\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x120\n" +
+	"\x04type\x18\x02 \x01(\x0e2\x1c.skeys.v1.SSHConfigEntryTypeR\x04type\x12\x1a\n" +
+	"\bposition\x18\x03 \x01(\x05R\bposition\x12\x1a\n" +
+	"\bpatterns\x18\x04 \x03(\tR\bpatterns\x12.\n" +
+	"\aoptions\x18\x05 \x01(\v2\x14.skeys.v1.SSHOptionsR\aoptions\"\xdb\x04\n" +
+	"\n" +
+	"SSHOptions\x12\x1a\n" +
+	"\bhostname\x18\x01 \x01(\tR\bhostname\x12\x12\n" +
+	"\x04port\x18\x02 \x01(\x05R\x04port\x12\x12\n" +
+	"\x04user\x18\x03 \x01(\tR\x04user\x12%\n" +
+	"\x0eidentity_files\x18\x04 \x03(\tR\ridentityFiles\x12\x1d\n" +
+	"\n" +
+	"proxy_jump\x18\x05 \x01(\tR\tproxyJump\x12#\n" +
+	"\rproxy_command\x18\x06 \x01(\tR\fproxyCommand\x12#\n" +
+	"\rforward_agent\x18\a \x01(\bR\fforwardAgent\x12'\n" +
+	"\x0fidentities_only\x18\b \x01(\bR\x0eidentitiesOnly\x127\n" +
+	"\x18strict_host_key_checking\x18\t \x01(\tR\x15strictHostKeyChecking\x122\n" +
+	"\x15server_alive_interval\x18\n" +
+	" \x01(\x05R\x13serverAliveInterval\x123\n" +
+	"\x16server_alive_count_max\x18\v \x01(\x05R\x13serverAliveCountMax\x12 \n" +
+	"\vcompression\x18\f \x01(\bR\vcompression\x12K\n" +
+	"\rextra_options\x18d \x03(\v2&.skeys.v1.SSHOptions.ExtraOptionsEntryR\fextraOptions\x1a?\n" +
+	"\x11ExtraOptionsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"G\n" +
+	"\x1bListSSHConfigEntriesRequest\x12(\n" +
+	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\"R\n" +
+	"\x1cListSSHConfigEntriesResponse\x122\n" +
+	"\aentries\x18\x01 \x03(\v2\x18.skeys.v1.SSHConfigEntryR\aentries\"T\n" +
+	"\x18GetSSHConfigEntryRequest\x12(\n" +
+	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\tR\x02id\"\xa0\x01\n" +
+	"\x1bCreateSSHConfigEntryRequest\x12(\n" +
+	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\x12.\n" +
+	"\x05entry\x18\x02 \x01(\v2\x18.skeys.v1.SSHConfigEntryR\x05entry\x12'\n" +
+	"\x0finsert_position\x18\x03 \x01(\x05R\x0einsertPosition\"\x87\x01\n" +
+	"\x1bUpdateSSHConfigEntryRequest\x12(\n" +
+	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\tR\x02id\x12.\n" +
+	"\x05entry\x18\x03 \x01(\v2\x18.skeys.v1.SSHConfigEntryR\x05entry\"W\n" +
+	"\x1bDeleteSSHConfigEntryRequest\x12(\n" +
+	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\tR\x02id\"g\n" +
+	"\x1eReorderSSHConfigEntriesRequest\x12(\n" +
+	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\x12\x1b\n" +
+	"\tentry_ids\x18\x02 \x03(\tR\bentryIds\"\x8f\x05\n" +
 	"\n" +
 	"HostConfig\x12\x14\n" +
 	"\x05alias\x18\x01 \x01(\tR\x05alias\x12\x1a\n" +
@@ -1470,8 +2402,37 @@ const file_skeys_v1_config_proto_rawDesc = "" +
 	"\x17DisableSshConfigRequest\"N\n" +
 	"\x18DisableSshConfigResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage2\xe5\b\n" +
-	"\rConfigService\x12V\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"9\n" +
+	"\x0fGlobalDirective\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\"G\n" +
+	"\x1bListGlobalDirectivesRequest\x12(\n" +
+	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\"Y\n" +
+	"\x1cListGlobalDirectivesResponse\x129\n" +
+	"\n" +
+	"directives\x18\x01 \x03(\v2\x19.skeys.v1.GlobalDirectiveR\n" +
+	"directives\"m\n" +
+	"\x19SetGlobalDirectiveRequest\x12(\n" +
+	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x03 \x01(\tR\x05value\"Z\n" +
+	"\x1cDeleteGlobalDirectiveRequest\x12(\n" +
+	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key*|\n" +
+	"\x12SSHConfigEntryType\x12%\n" +
+	"!SSH_CONFIG_ENTRY_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
+	"\x1aSSH_CONFIG_ENTRY_TYPE_HOST\x10\x01\x12\x1f\n" +
+	"\x1bSSH_CONFIG_ENTRY_TYPE_MATCH\x10\x022\xab\x0f\n" +
+	"\rConfigService\x12e\n" +
+	"\x14ListSSHConfigEntries\x12%.skeys.v1.ListSSHConfigEntriesRequest\x1a&.skeys.v1.ListSSHConfigEntriesResponse\x12Q\n" +
+	"\x11GetSSHConfigEntry\x12\".skeys.v1.GetSSHConfigEntryRequest\x1a\x18.skeys.v1.SSHConfigEntry\x12W\n" +
+	"\x14CreateSSHConfigEntry\x12%.skeys.v1.CreateSSHConfigEntryRequest\x1a\x18.skeys.v1.SSHConfigEntry\x12W\n" +
+	"\x14UpdateSSHConfigEntry\x12%.skeys.v1.UpdateSSHConfigEntryRequest\x1a\x18.skeys.v1.SSHConfigEntry\x12U\n" +
+	"\x14DeleteSSHConfigEntry\x12%.skeys.v1.DeleteSSHConfigEntryRequest\x1a\x16.google.protobuf.Empty\x12k\n" +
+	"\x17ReorderSSHConfigEntries\x12(.skeys.v1.ReorderSSHConfigEntriesRequest\x1a&.skeys.v1.ListSSHConfigEntriesResponse\x12e\n" +
+	"\x14ListGlobalDirectives\x12%.skeys.v1.ListGlobalDirectivesRequest\x1a&.skeys.v1.ListGlobalDirectivesResponse\x12T\n" +
+	"\x12SetGlobalDirective\x12#.skeys.v1.SetGlobalDirectiveRequest\x1a\x19.skeys.v1.GlobalDirective\x12W\n" +
+	"\x15DeleteGlobalDirective\x12&.skeys.v1.DeleteGlobalDirectiveRequest\x1a\x16.google.protobuf.Empty\x12V\n" +
 	"\x0fListHostConfigs\x12 .skeys.v1.ListHostConfigsRequest\x1a!.skeys.v1.ListHostConfigsResponse\x12E\n" +
 	"\rGetHostConfig\x12\x1e.skeys.v1.GetHostConfigRequest\x1a\x14.skeys.v1.HostConfig\x12K\n" +
 	"\x10CreateHostConfig\x12!.skeys.v1.CreateHostConfigRequest\x1a\x14.skeys.v1.HostConfig\x12K\n" +
@@ -1498,84 +2459,135 @@ func file_skeys_v1_config_proto_rawDescGZIP() []byte {
 	return file_skeys_v1_config_proto_rawDescData
 }
 
-var file_skeys_v1_config_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_skeys_v1_config_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_skeys_v1_config_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
 var file_skeys_v1_config_proto_goTypes = []any{
-	(*HostConfig)(nil),                   // 0: skeys.v1.HostConfig
-	(*ListHostConfigsRequest)(nil),       // 1: skeys.v1.ListHostConfigsRequest
-	(*ListHostConfigsResponse)(nil),      // 2: skeys.v1.ListHostConfigsResponse
-	(*GetHostConfigRequest)(nil),         // 3: skeys.v1.GetHostConfigRequest
-	(*CreateHostConfigRequest)(nil),      // 4: skeys.v1.CreateHostConfigRequest
-	(*UpdateHostConfigRequest)(nil),      // 5: skeys.v1.UpdateHostConfigRequest
-	(*DeleteHostConfigRequest)(nil),      // 6: skeys.v1.DeleteHostConfigRequest
-	(*TestConnectionRequest)(nil),        // 7: skeys.v1.TestConnectionRequest
-	(*TestConnectionResponse)(nil),       // 8: skeys.v1.TestConnectionResponse
-	(*ServerConfig)(nil),                 // 9: skeys.v1.ServerConfig
-	(*ServerConfigDirective)(nil),        // 10: skeys.v1.ServerConfigDirective
-	(*GetServerConfigRequest)(nil),       // 11: skeys.v1.GetServerConfigRequest
-	(*UpdateServerConfigRequest)(nil),    // 12: skeys.v1.UpdateServerConfigRequest
-	(*ServerConfigUpdate)(nil),           // 13: skeys.v1.ServerConfigUpdate
-	(*ValidateServerConfigRequest)(nil),  // 14: skeys.v1.ValidateServerConfigRequest
-	(*ValidateServerConfigResponse)(nil), // 15: skeys.v1.ValidateServerConfigResponse
-	(*RestartSSHServiceRequest)(nil),     // 16: skeys.v1.RestartSSHServiceRequest
-	(*RestartSSHServiceResponse)(nil),    // 17: skeys.v1.RestartSSHServiceResponse
-	(*GetSshConfigStatusRequest)(nil),    // 18: skeys.v1.GetSshConfigStatusRequest
-	(*GetSshConfigStatusResponse)(nil),   // 19: skeys.v1.GetSshConfigStatusResponse
-	(*EnableSshConfigRequest)(nil),       // 20: skeys.v1.EnableSshConfigRequest
-	(*EnableSshConfigResponse)(nil),      // 21: skeys.v1.EnableSshConfigResponse
-	(*DisableSshConfigRequest)(nil),      // 22: skeys.v1.DisableSshConfigRequest
-	(*DisableSshConfigResponse)(nil),     // 23: skeys.v1.DisableSshConfigResponse
-	nil,                                  // 24: skeys.v1.HostConfig.ExtraOptionsEntry
-	(*Target)(nil),                       // 25: skeys.v1.Target
-	(*emptypb.Empty)(nil),                // 26: google.protobuf.Empty
+	(SSHConfigEntryType)(0),                // 0: skeys.v1.SSHConfigEntryType
+	(*SSHConfigEntry)(nil),                 // 1: skeys.v1.SSHConfigEntry
+	(*SSHOptions)(nil),                     // 2: skeys.v1.SSHOptions
+	(*ListSSHConfigEntriesRequest)(nil),    // 3: skeys.v1.ListSSHConfigEntriesRequest
+	(*ListSSHConfigEntriesResponse)(nil),   // 4: skeys.v1.ListSSHConfigEntriesResponse
+	(*GetSSHConfigEntryRequest)(nil),       // 5: skeys.v1.GetSSHConfigEntryRequest
+	(*CreateSSHConfigEntryRequest)(nil),    // 6: skeys.v1.CreateSSHConfigEntryRequest
+	(*UpdateSSHConfigEntryRequest)(nil),    // 7: skeys.v1.UpdateSSHConfigEntryRequest
+	(*DeleteSSHConfigEntryRequest)(nil),    // 8: skeys.v1.DeleteSSHConfigEntryRequest
+	(*ReorderSSHConfigEntriesRequest)(nil), // 9: skeys.v1.ReorderSSHConfigEntriesRequest
+	(*HostConfig)(nil),                     // 10: skeys.v1.HostConfig
+	(*ListHostConfigsRequest)(nil),         // 11: skeys.v1.ListHostConfigsRequest
+	(*ListHostConfigsResponse)(nil),        // 12: skeys.v1.ListHostConfigsResponse
+	(*GetHostConfigRequest)(nil),           // 13: skeys.v1.GetHostConfigRequest
+	(*CreateHostConfigRequest)(nil),        // 14: skeys.v1.CreateHostConfigRequest
+	(*UpdateHostConfigRequest)(nil),        // 15: skeys.v1.UpdateHostConfigRequest
+	(*DeleteHostConfigRequest)(nil),        // 16: skeys.v1.DeleteHostConfigRequest
+	(*TestConnectionRequest)(nil),          // 17: skeys.v1.TestConnectionRequest
+	(*TestConnectionResponse)(nil),         // 18: skeys.v1.TestConnectionResponse
+	(*ServerConfig)(nil),                   // 19: skeys.v1.ServerConfig
+	(*ServerConfigDirective)(nil),          // 20: skeys.v1.ServerConfigDirective
+	(*GetServerConfigRequest)(nil),         // 21: skeys.v1.GetServerConfigRequest
+	(*UpdateServerConfigRequest)(nil),      // 22: skeys.v1.UpdateServerConfigRequest
+	(*ServerConfigUpdate)(nil),             // 23: skeys.v1.ServerConfigUpdate
+	(*ValidateServerConfigRequest)(nil),    // 24: skeys.v1.ValidateServerConfigRequest
+	(*ValidateServerConfigResponse)(nil),   // 25: skeys.v1.ValidateServerConfigResponse
+	(*RestartSSHServiceRequest)(nil),       // 26: skeys.v1.RestartSSHServiceRequest
+	(*RestartSSHServiceResponse)(nil),      // 27: skeys.v1.RestartSSHServiceResponse
+	(*GetSshConfigStatusRequest)(nil),      // 28: skeys.v1.GetSshConfigStatusRequest
+	(*GetSshConfigStatusResponse)(nil),     // 29: skeys.v1.GetSshConfigStatusResponse
+	(*EnableSshConfigRequest)(nil),         // 30: skeys.v1.EnableSshConfigRequest
+	(*EnableSshConfigResponse)(nil),        // 31: skeys.v1.EnableSshConfigResponse
+	(*DisableSshConfigRequest)(nil),        // 32: skeys.v1.DisableSshConfigRequest
+	(*DisableSshConfigResponse)(nil),       // 33: skeys.v1.DisableSshConfigResponse
+	(*GlobalDirective)(nil),                // 34: skeys.v1.GlobalDirective
+	(*ListGlobalDirectivesRequest)(nil),    // 35: skeys.v1.ListGlobalDirectivesRequest
+	(*ListGlobalDirectivesResponse)(nil),   // 36: skeys.v1.ListGlobalDirectivesResponse
+	(*SetGlobalDirectiveRequest)(nil),      // 37: skeys.v1.SetGlobalDirectiveRequest
+	(*DeleteGlobalDirectiveRequest)(nil),   // 38: skeys.v1.DeleteGlobalDirectiveRequest
+	nil,                                    // 39: skeys.v1.SSHOptions.ExtraOptionsEntry
+	nil,                                    // 40: skeys.v1.HostConfig.ExtraOptionsEntry
+	(*Target)(nil),                         // 41: skeys.v1.Target
+	(*emptypb.Empty)(nil),                  // 42: google.protobuf.Empty
 }
 var file_skeys_v1_config_proto_depIdxs = []int32{
-	24, // 0: skeys.v1.HostConfig.extra_options:type_name -> skeys.v1.HostConfig.ExtraOptionsEntry
-	25, // 1: skeys.v1.ListHostConfigsRequest.target:type_name -> skeys.v1.Target
-	0,  // 2: skeys.v1.ListHostConfigsResponse.hosts:type_name -> skeys.v1.HostConfig
-	25, // 3: skeys.v1.GetHostConfigRequest.target:type_name -> skeys.v1.Target
-	25, // 4: skeys.v1.CreateHostConfigRequest.target:type_name -> skeys.v1.Target
-	0,  // 5: skeys.v1.CreateHostConfigRequest.config:type_name -> skeys.v1.HostConfig
-	25, // 6: skeys.v1.UpdateHostConfigRequest.target:type_name -> skeys.v1.Target
-	0,  // 7: skeys.v1.UpdateHostConfigRequest.config:type_name -> skeys.v1.HostConfig
-	25, // 8: skeys.v1.DeleteHostConfigRequest.target:type_name -> skeys.v1.Target
-	25, // 9: skeys.v1.TestConnectionRequest.target:type_name -> skeys.v1.Target
-	10, // 10: skeys.v1.ServerConfig.directives:type_name -> skeys.v1.ServerConfigDirective
-	25, // 11: skeys.v1.GetServerConfigRequest.target:type_name -> skeys.v1.Target
-	25, // 12: skeys.v1.UpdateServerConfigRequest.target:type_name -> skeys.v1.Target
-	13, // 13: skeys.v1.UpdateServerConfigRequest.updates:type_name -> skeys.v1.ServerConfigUpdate
-	25, // 14: skeys.v1.ValidateServerConfigRequest.target:type_name -> skeys.v1.Target
-	25, // 15: skeys.v1.RestartSSHServiceRequest.target:type_name -> skeys.v1.Target
-	1,  // 16: skeys.v1.ConfigService.ListHostConfigs:input_type -> skeys.v1.ListHostConfigsRequest
-	3,  // 17: skeys.v1.ConfigService.GetHostConfig:input_type -> skeys.v1.GetHostConfigRequest
-	4,  // 18: skeys.v1.ConfigService.CreateHostConfig:input_type -> skeys.v1.CreateHostConfigRequest
-	5,  // 19: skeys.v1.ConfigService.UpdateHostConfig:input_type -> skeys.v1.UpdateHostConfigRequest
-	6,  // 20: skeys.v1.ConfigService.DeleteHostConfig:input_type -> skeys.v1.DeleteHostConfigRequest
-	7,  // 21: skeys.v1.ConfigService.TestConnection:input_type -> skeys.v1.TestConnectionRequest
-	18, // 22: skeys.v1.ConfigService.GetSshConfigStatus:input_type -> skeys.v1.GetSshConfigStatusRequest
-	20, // 23: skeys.v1.ConfigService.EnableSshConfig:input_type -> skeys.v1.EnableSshConfigRequest
-	22, // 24: skeys.v1.ConfigService.DisableSshConfig:input_type -> skeys.v1.DisableSshConfigRequest
-	11, // 25: skeys.v1.ConfigService.GetServerConfig:input_type -> skeys.v1.GetServerConfigRequest
-	12, // 26: skeys.v1.ConfigService.UpdateServerConfig:input_type -> skeys.v1.UpdateServerConfigRequest
-	14, // 27: skeys.v1.ConfigService.ValidateServerConfig:input_type -> skeys.v1.ValidateServerConfigRequest
-	16, // 28: skeys.v1.ConfigService.RestartSSHService:input_type -> skeys.v1.RestartSSHServiceRequest
-	2,  // 29: skeys.v1.ConfigService.ListHostConfigs:output_type -> skeys.v1.ListHostConfigsResponse
-	0,  // 30: skeys.v1.ConfigService.GetHostConfig:output_type -> skeys.v1.HostConfig
-	0,  // 31: skeys.v1.ConfigService.CreateHostConfig:output_type -> skeys.v1.HostConfig
-	0,  // 32: skeys.v1.ConfigService.UpdateHostConfig:output_type -> skeys.v1.HostConfig
-	26, // 33: skeys.v1.ConfigService.DeleteHostConfig:output_type -> google.protobuf.Empty
-	8,  // 34: skeys.v1.ConfigService.TestConnection:output_type -> skeys.v1.TestConnectionResponse
-	19, // 35: skeys.v1.ConfigService.GetSshConfigStatus:output_type -> skeys.v1.GetSshConfigStatusResponse
-	21, // 36: skeys.v1.ConfigService.EnableSshConfig:output_type -> skeys.v1.EnableSshConfigResponse
-	23, // 37: skeys.v1.ConfigService.DisableSshConfig:output_type -> skeys.v1.DisableSshConfigResponse
-	9,  // 38: skeys.v1.ConfigService.GetServerConfig:output_type -> skeys.v1.ServerConfig
-	9,  // 39: skeys.v1.ConfigService.UpdateServerConfig:output_type -> skeys.v1.ServerConfig
-	15, // 40: skeys.v1.ConfigService.ValidateServerConfig:output_type -> skeys.v1.ValidateServerConfigResponse
-	17, // 41: skeys.v1.ConfigService.RestartSSHService:output_type -> skeys.v1.RestartSSHServiceResponse
-	29, // [29:42] is the sub-list for method output_type
-	16, // [16:29] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	0,  // 0: skeys.v1.SSHConfigEntry.type:type_name -> skeys.v1.SSHConfigEntryType
+	2,  // 1: skeys.v1.SSHConfigEntry.options:type_name -> skeys.v1.SSHOptions
+	39, // 2: skeys.v1.SSHOptions.extra_options:type_name -> skeys.v1.SSHOptions.ExtraOptionsEntry
+	41, // 3: skeys.v1.ListSSHConfigEntriesRequest.target:type_name -> skeys.v1.Target
+	1,  // 4: skeys.v1.ListSSHConfigEntriesResponse.entries:type_name -> skeys.v1.SSHConfigEntry
+	41, // 5: skeys.v1.GetSSHConfigEntryRequest.target:type_name -> skeys.v1.Target
+	41, // 6: skeys.v1.CreateSSHConfigEntryRequest.target:type_name -> skeys.v1.Target
+	1,  // 7: skeys.v1.CreateSSHConfigEntryRequest.entry:type_name -> skeys.v1.SSHConfigEntry
+	41, // 8: skeys.v1.UpdateSSHConfigEntryRequest.target:type_name -> skeys.v1.Target
+	1,  // 9: skeys.v1.UpdateSSHConfigEntryRequest.entry:type_name -> skeys.v1.SSHConfigEntry
+	41, // 10: skeys.v1.DeleteSSHConfigEntryRequest.target:type_name -> skeys.v1.Target
+	41, // 11: skeys.v1.ReorderSSHConfigEntriesRequest.target:type_name -> skeys.v1.Target
+	40, // 12: skeys.v1.HostConfig.extra_options:type_name -> skeys.v1.HostConfig.ExtraOptionsEntry
+	41, // 13: skeys.v1.ListHostConfigsRequest.target:type_name -> skeys.v1.Target
+	10, // 14: skeys.v1.ListHostConfigsResponse.hosts:type_name -> skeys.v1.HostConfig
+	41, // 15: skeys.v1.GetHostConfigRequest.target:type_name -> skeys.v1.Target
+	41, // 16: skeys.v1.CreateHostConfigRequest.target:type_name -> skeys.v1.Target
+	10, // 17: skeys.v1.CreateHostConfigRequest.config:type_name -> skeys.v1.HostConfig
+	41, // 18: skeys.v1.UpdateHostConfigRequest.target:type_name -> skeys.v1.Target
+	10, // 19: skeys.v1.UpdateHostConfigRequest.config:type_name -> skeys.v1.HostConfig
+	41, // 20: skeys.v1.DeleteHostConfigRequest.target:type_name -> skeys.v1.Target
+	41, // 21: skeys.v1.TestConnectionRequest.target:type_name -> skeys.v1.Target
+	20, // 22: skeys.v1.ServerConfig.directives:type_name -> skeys.v1.ServerConfigDirective
+	41, // 23: skeys.v1.GetServerConfigRequest.target:type_name -> skeys.v1.Target
+	41, // 24: skeys.v1.UpdateServerConfigRequest.target:type_name -> skeys.v1.Target
+	23, // 25: skeys.v1.UpdateServerConfigRequest.updates:type_name -> skeys.v1.ServerConfigUpdate
+	41, // 26: skeys.v1.ValidateServerConfigRequest.target:type_name -> skeys.v1.Target
+	41, // 27: skeys.v1.RestartSSHServiceRequest.target:type_name -> skeys.v1.Target
+	41, // 28: skeys.v1.ListGlobalDirectivesRequest.target:type_name -> skeys.v1.Target
+	34, // 29: skeys.v1.ListGlobalDirectivesResponse.directives:type_name -> skeys.v1.GlobalDirective
+	41, // 30: skeys.v1.SetGlobalDirectiveRequest.target:type_name -> skeys.v1.Target
+	41, // 31: skeys.v1.DeleteGlobalDirectiveRequest.target:type_name -> skeys.v1.Target
+	3,  // 32: skeys.v1.ConfigService.ListSSHConfigEntries:input_type -> skeys.v1.ListSSHConfigEntriesRequest
+	5,  // 33: skeys.v1.ConfigService.GetSSHConfigEntry:input_type -> skeys.v1.GetSSHConfigEntryRequest
+	6,  // 34: skeys.v1.ConfigService.CreateSSHConfigEntry:input_type -> skeys.v1.CreateSSHConfigEntryRequest
+	7,  // 35: skeys.v1.ConfigService.UpdateSSHConfigEntry:input_type -> skeys.v1.UpdateSSHConfigEntryRequest
+	8,  // 36: skeys.v1.ConfigService.DeleteSSHConfigEntry:input_type -> skeys.v1.DeleteSSHConfigEntryRequest
+	9,  // 37: skeys.v1.ConfigService.ReorderSSHConfigEntries:input_type -> skeys.v1.ReorderSSHConfigEntriesRequest
+	35, // 38: skeys.v1.ConfigService.ListGlobalDirectives:input_type -> skeys.v1.ListGlobalDirectivesRequest
+	37, // 39: skeys.v1.ConfigService.SetGlobalDirective:input_type -> skeys.v1.SetGlobalDirectiveRequest
+	38, // 40: skeys.v1.ConfigService.DeleteGlobalDirective:input_type -> skeys.v1.DeleteGlobalDirectiveRequest
+	11, // 41: skeys.v1.ConfigService.ListHostConfigs:input_type -> skeys.v1.ListHostConfigsRequest
+	13, // 42: skeys.v1.ConfigService.GetHostConfig:input_type -> skeys.v1.GetHostConfigRequest
+	14, // 43: skeys.v1.ConfigService.CreateHostConfig:input_type -> skeys.v1.CreateHostConfigRequest
+	15, // 44: skeys.v1.ConfigService.UpdateHostConfig:input_type -> skeys.v1.UpdateHostConfigRequest
+	16, // 45: skeys.v1.ConfigService.DeleteHostConfig:input_type -> skeys.v1.DeleteHostConfigRequest
+	17, // 46: skeys.v1.ConfigService.TestConnection:input_type -> skeys.v1.TestConnectionRequest
+	28, // 47: skeys.v1.ConfigService.GetSshConfigStatus:input_type -> skeys.v1.GetSshConfigStatusRequest
+	30, // 48: skeys.v1.ConfigService.EnableSshConfig:input_type -> skeys.v1.EnableSshConfigRequest
+	32, // 49: skeys.v1.ConfigService.DisableSshConfig:input_type -> skeys.v1.DisableSshConfigRequest
+	21, // 50: skeys.v1.ConfigService.GetServerConfig:input_type -> skeys.v1.GetServerConfigRequest
+	22, // 51: skeys.v1.ConfigService.UpdateServerConfig:input_type -> skeys.v1.UpdateServerConfigRequest
+	24, // 52: skeys.v1.ConfigService.ValidateServerConfig:input_type -> skeys.v1.ValidateServerConfigRequest
+	26, // 53: skeys.v1.ConfigService.RestartSSHService:input_type -> skeys.v1.RestartSSHServiceRequest
+	4,  // 54: skeys.v1.ConfigService.ListSSHConfigEntries:output_type -> skeys.v1.ListSSHConfigEntriesResponse
+	1,  // 55: skeys.v1.ConfigService.GetSSHConfigEntry:output_type -> skeys.v1.SSHConfigEntry
+	1,  // 56: skeys.v1.ConfigService.CreateSSHConfigEntry:output_type -> skeys.v1.SSHConfigEntry
+	1,  // 57: skeys.v1.ConfigService.UpdateSSHConfigEntry:output_type -> skeys.v1.SSHConfigEntry
+	42, // 58: skeys.v1.ConfigService.DeleteSSHConfigEntry:output_type -> google.protobuf.Empty
+	4,  // 59: skeys.v1.ConfigService.ReorderSSHConfigEntries:output_type -> skeys.v1.ListSSHConfigEntriesResponse
+	36, // 60: skeys.v1.ConfigService.ListGlobalDirectives:output_type -> skeys.v1.ListGlobalDirectivesResponse
+	34, // 61: skeys.v1.ConfigService.SetGlobalDirective:output_type -> skeys.v1.GlobalDirective
+	42, // 62: skeys.v1.ConfigService.DeleteGlobalDirective:output_type -> google.protobuf.Empty
+	12, // 63: skeys.v1.ConfigService.ListHostConfigs:output_type -> skeys.v1.ListHostConfigsResponse
+	10, // 64: skeys.v1.ConfigService.GetHostConfig:output_type -> skeys.v1.HostConfig
+	10, // 65: skeys.v1.ConfigService.CreateHostConfig:output_type -> skeys.v1.HostConfig
+	10, // 66: skeys.v1.ConfigService.UpdateHostConfig:output_type -> skeys.v1.HostConfig
+	42, // 67: skeys.v1.ConfigService.DeleteHostConfig:output_type -> google.protobuf.Empty
+	18, // 68: skeys.v1.ConfigService.TestConnection:output_type -> skeys.v1.TestConnectionResponse
+	29, // 69: skeys.v1.ConfigService.GetSshConfigStatus:output_type -> skeys.v1.GetSshConfigStatusResponse
+	31, // 70: skeys.v1.ConfigService.EnableSshConfig:output_type -> skeys.v1.EnableSshConfigResponse
+	33, // 71: skeys.v1.ConfigService.DisableSshConfig:output_type -> skeys.v1.DisableSshConfigResponse
+	19, // 72: skeys.v1.ConfigService.GetServerConfig:output_type -> skeys.v1.ServerConfig
+	19, // 73: skeys.v1.ConfigService.UpdateServerConfig:output_type -> skeys.v1.ServerConfig
+	25, // 74: skeys.v1.ConfigService.ValidateServerConfig:output_type -> skeys.v1.ValidateServerConfigResponse
+	27, // 75: skeys.v1.ConfigService.RestartSSHService:output_type -> skeys.v1.RestartSSHServiceResponse
+	54, // [54:76] is the sub-list for method output_type
+	32, // [32:54] is the sub-list for method input_type
+	32, // [32:32] is the sub-list for extension type_name
+	32, // [32:32] is the sub-list for extension extendee
+	0,  // [0:32] is the sub-list for field type_name
 }
 
 func init() { file_skeys_v1_config_proto_init() }
@@ -1589,13 +2601,14 @@ func file_skeys_v1_config_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skeys_v1_config_proto_rawDesc), len(file_skeys_v1_config_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   25,
+			NumEnums:      1,
+			NumMessages:   40,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_skeys_v1_config_proto_goTypes,
 		DependencyIndexes: file_skeys_v1_config_proto_depIdxs,
+		EnumInfos:         file_skeys_v1_config_proto_enumTypes,
 		MessageInfos:      file_skeys_v1_config_proto_msgTypes,
 	}.Build()
 	File_skeys_v1_config_proto = out.File

@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../../core/logging/app_logger.dart';
 import '../domain/config_entity.dart';
+import '../domain/ssh_config_entry.dart';
 import '../repository/config_repository.dart';
 
 part 'config_event.dart';
@@ -14,14 +15,234 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
   final AppLogger _log = AppLogger('bloc.config');
 
   ConfigBloc(this._repository) : super(const ConfigState()) {
+    // New unified SSH config API handlers
+    on<ConfigLoadSSHEntriesRequested>(_onLoadSSHEntries);
+    on<ConfigCreateSSHEntryRequested>(_onCreateSSHEntry);
+    on<ConfigUpdateSSHEntryRequested>(_onUpdateSSHEntry);
+    on<ConfigDeleteSSHEntryRequested>(_onDeleteSSHEntry);
+    on<ConfigReorderSSHEntriesRequested>(_onReorderSSHEntries);
+
+    // Global directives handlers
+    on<ConfigLoadGlobalDirectivesRequested>(_onLoadGlobalDirectives);
+    on<ConfigSetGlobalDirectiveRequested>(_onSetGlobalDirective);
+    on<ConfigDeleteGlobalDirectiveRequested>(_onDeleteGlobalDirective);
+
+    // Legacy client host handlers
     on<ConfigLoadClientHostsRequested>(_onLoadClientHosts);
     on<ConfigAddClientHostRequested>(_onAddClientHost);
     on<ConfigUpdateClientHostRequested>(_onUpdateClientHost);
     on<ConfigDeleteClientHostRequested>(_onDeleteClientHost);
+
+    // Server config handlers
     on<ConfigLoadServerConfigRequested>(_onLoadServerConfig);
     on<ConfigUpdateServerOptionRequested>(_onUpdateServerOption);
+
     _log.debug('ConfigBloc initialized');
   }
+
+  // ============================================================
+  // New unified SSH config API handlers
+  // ============================================================
+
+  Future<void> _onLoadSSHEntries(
+    ConfigLoadSSHEntriesRequested event,
+    Emitter<ConfigState> emit,
+  ) async {
+    _log.debug('loading SSH config entries');
+    emit(state.copyWith(status: ConfigStatus.loading));
+
+    try {
+      final entries = await _repository.listSSHConfigEntries();
+      _log.info('SSH config entries loaded', {'count': entries.length});
+      emit(state.copyWith(
+        status: ConfigStatus.success,
+        sshEntries: entries,
+      ));
+    } catch (e, st) {
+      _log.error('failed to load SSH config entries', e, st);
+      emit(state.copyWith(
+        status: ConfigStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onCreateSSHEntry(
+    ConfigCreateSSHEntryRequested event,
+    Emitter<ConfigState> emit,
+  ) async {
+    _log.info('creating SSH config entry', {'patterns': event.entry.patterns});
+    emit(state.copyWith(status: ConfigStatus.loading));
+
+    try {
+      await _repository.createSSHConfigEntry(
+        event.entry,
+        insertPosition: event.insertPosition,
+      );
+      _log.info('SSH config entry created', {'patterns': event.entry.patterns});
+      final entries = await _repository.listSSHConfigEntries();
+      emit(state.copyWith(
+        status: ConfigStatus.success,
+        sshEntries: entries,
+      ));
+    } catch (e, st) {
+      _log.error('failed to create SSH config entry', e, st, {'patterns': event.entry.patterns});
+      emit(state.copyWith(
+        status: ConfigStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onUpdateSSHEntry(
+    ConfigUpdateSSHEntryRequested event,
+    Emitter<ConfigState> emit,
+  ) async {
+    _log.info('updating SSH config entry', {'id': event.id});
+    emit(state.copyWith(status: ConfigStatus.loading));
+
+    try {
+      await _repository.updateSSHConfigEntry(event.id, event.entry);
+      _log.info('SSH config entry updated', {'id': event.id});
+      final entries = await _repository.listSSHConfigEntries();
+      emit(state.copyWith(
+        status: ConfigStatus.success,
+        sshEntries: entries,
+      ));
+    } catch (e, st) {
+      _log.error('failed to update SSH config entry', e, st, {'id': event.id});
+      emit(state.copyWith(
+        status: ConfigStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onDeleteSSHEntry(
+    ConfigDeleteSSHEntryRequested event,
+    Emitter<ConfigState> emit,
+  ) async {
+    _log.info('deleting SSH config entry', {'id': event.id});
+    emit(state.copyWith(status: ConfigStatus.loading));
+
+    try {
+      await _repository.deleteSSHConfigEntry(event.id);
+      _log.info('SSH config entry deleted', {'id': event.id});
+      final entries = await _repository.listSSHConfigEntries();
+      emit(state.copyWith(
+        status: ConfigStatus.success,
+        sshEntries: entries,
+      ));
+    } catch (e, st) {
+      _log.error('failed to delete SSH config entry', e, st, {'id': event.id});
+      emit(state.copyWith(
+        status: ConfigStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onReorderSSHEntries(
+    ConfigReorderSSHEntriesRequested event,
+    Emitter<ConfigState> emit,
+  ) async {
+    _log.info('reordering SSH config entries', {'count': event.entryIds.length});
+    emit(state.copyWith(status: ConfigStatus.loading));
+
+    try {
+      final entries = await _repository.reorderSSHConfigEntries(event.entryIds);
+      _log.info('SSH config entries reordered');
+      emit(state.copyWith(
+        status: ConfigStatus.success,
+        sshEntries: entries,
+      ));
+    } catch (e, st) {
+      _log.error('failed to reorder SSH config entries', e, st);
+      emit(state.copyWith(
+        status: ConfigStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  // ============================================================
+  // Global directives handlers
+  // ============================================================
+
+  Future<void> _onLoadGlobalDirectives(
+    ConfigLoadGlobalDirectivesRequested event,
+    Emitter<ConfigState> emit,
+  ) async {
+    _log.debug('loading global directives');
+    emit(state.copyWith(status: ConfigStatus.loading));
+
+    try {
+      final directives = await _repository.listGlobalDirectives();
+      _log.info('global directives loaded', {'count': directives.length});
+      emit(state.copyWith(
+        status: ConfigStatus.success,
+        globalDirectives: directives,
+      ));
+    } catch (e, st) {
+      _log.error('failed to load global directives', e, st);
+      emit(state.copyWith(
+        status: ConfigStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onSetGlobalDirective(
+    ConfigSetGlobalDirectiveRequested event,
+    Emitter<ConfigState> emit,
+  ) async {
+    _log.info('setting global directive', {'key': event.key, 'value': event.value});
+    emit(state.copyWith(status: ConfigStatus.loading));
+
+    try {
+      await _repository.setGlobalDirective(event.key, event.value);
+      _log.info('global directive set', {'key': event.key});
+      final directives = await _repository.listGlobalDirectives();
+      emit(state.copyWith(
+        status: ConfigStatus.success,
+        globalDirectives: directives,
+      ));
+    } catch (e, st) {
+      _log.error('failed to set global directive', e, st, {'key': event.key});
+      emit(state.copyWith(
+        status: ConfigStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onDeleteGlobalDirective(
+    ConfigDeleteGlobalDirectiveRequested event,
+    Emitter<ConfigState> emit,
+  ) async {
+    _log.info('deleting global directive', {'key': event.key});
+    emit(state.copyWith(status: ConfigStatus.loading));
+
+    try {
+      await _repository.deleteGlobalDirective(event.key);
+      _log.info('global directive deleted', {'key': event.key});
+      final directives = await _repository.listGlobalDirectives();
+      emit(state.copyWith(
+        status: ConfigStatus.success,
+        globalDirectives: directives,
+      ));
+    } catch (e, st) {
+      _log.error('failed to delete global directive', e, st, {'key': event.key});
+      emit(state.copyWith(
+        status: ConfigStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  // ============================================================
+  // Legacy client host handlers
+  // ============================================================
 
   Future<void> _onLoadClientHosts(
     ConfigLoadClientHostsRequested event,

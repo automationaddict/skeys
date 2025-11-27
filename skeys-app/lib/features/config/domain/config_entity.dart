@@ -1,5 +1,19 @@
 import 'package:equatable/equatable.dart';
 
+/// Global SSH client config directive (outside Host/Match blocks).
+class GlobalDirective extends Equatable {
+  final String key;
+  final String value;
+
+  const GlobalDirective({
+    required this.key,
+    required this.value,
+  });
+
+  @override
+  List<Object?> get props => [key, value];
+}
+
 /// SSH client config host entry.
 class ConfigHostEntry extends Equatable {
   final String host;

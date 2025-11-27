@@ -9,12 +9,26 @@ enum ConfigStatus {
 
 final class ConfigState extends Equatable {
   final ConfigStatus status;
+
+  // New unified SSH config entries
+  final List<SSHConfigEntry> sshEntries;
+
+  // Global directives (options outside Host/Match blocks)
+  final List<GlobalDirective> globalDirectives;
+
+  // Legacy client hosts (backward compatibility)
   final List<ConfigHostEntry> clientHosts;
+
+  // Server config
   final ServerConfig? serverConfig;
+
+  // Error handling
   final String? errorMessage;
 
   const ConfigState({
     this.status = ConfigStatus.initial,
+    this.sshEntries = const [],
+    this.globalDirectives = const [],
     this.clientHosts = const [],
     this.serverConfig,
     this.errorMessage,
@@ -22,12 +36,16 @@ final class ConfigState extends Equatable {
 
   ConfigState copyWith({
     ConfigStatus? status,
+    List<SSHConfigEntry>? sshEntries,
+    List<GlobalDirective>? globalDirectives,
     List<ConfigHostEntry>? clientHosts,
     ServerConfig? serverConfig,
     String? errorMessage,
   }) {
     return ConfigState(
       status: status ?? this.status,
+      sshEntries: sshEntries ?? this.sshEntries,
+      globalDirectives: globalDirectives ?? this.globalDirectives,
       clientHosts: clientHosts ?? this.clientHosts,
       serverConfig: serverConfig ?? this.serverConfig,
       errorMessage: errorMessage,
@@ -35,5 +53,5 @@ final class ConfigState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, clientHosts, serverConfig, errorMessage];
+  List<Object?> get props => [status, sshEntries, globalDirectives, clientHosts, serverConfig, errorMessage];
 }

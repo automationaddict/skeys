@@ -1,13 +1,15 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: skeys/v1/metadata.proto
-//
-// @dart = 2.12
+// Generated from skeys/v1/metadata.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
+// ignore_for_file: unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -41,14 +43,22 @@ const GetKeyMetadataRequest$json = {
 };
 
 /// Descriptor for `GetKeyMetadataRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List getKeyMetadataRequestDescriptor = $convert.base64Decode(
-    'ChVHZXRLZXlNZXRhZGF0YVJlcXVlc3QSGQoIa2V5X3BhdGgYASABKAlSB2tleVBhdGg=');
+final $typed_data.Uint8List getKeyMetadataRequestDescriptor =
+    $convert.base64Decode(
+        'ChVHZXRLZXlNZXRhZGF0YVJlcXVlc3QSGQoIa2V5X3BhdGgYASABKAlSB2tleVBhdGg=');
 
 @$core.Deprecated('Use setKeyMetadataRequestDescriptor instead')
 const SetKeyMetadataRequest$json = {
   '1': 'SetKeyMetadataRequest',
   '2': [
-    {'1': 'metadata', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.KeyMetadata', '10': 'metadata'},
+    {
+      '1': 'metadata',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.KeyMetadata',
+      '10': 'metadata'
+    },
   ],
 };
 
@@ -66,8 +76,9 @@ const DeleteKeyMetadataRequest$json = {
 };
 
 /// Descriptor for `DeleteKeyMetadataRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List deleteKeyMetadataRequestDescriptor = $convert.base64Decode(
-    'ChhEZWxldGVLZXlNZXRhZGF0YVJlcXVlc3QSGQoIa2V5X3BhdGgYASABKAlSB2tleVBhdGg=');
+final $typed_data.Uint8List deleteKeyMetadataRequestDescriptor =
+    $convert.base64Decode(
+        'ChhEZWxldGVLZXlNZXRhZGF0YVJlcXVlc3QSGQoIa2V5X3BhdGgYASABKAlSB2tleVBhdGg=');
 
 @$core.Deprecated('Use listKeyMetadataRequestDescriptor instead')
 const ListKeyMetadataRequest$json = {
@@ -75,19 +86,26 @@ const ListKeyMetadataRequest$json = {
 };
 
 /// Descriptor for `ListKeyMetadataRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listKeyMetadataRequestDescriptor = $convert.base64Decode(
-    'ChZMaXN0S2V5TWV0YWRhdGFSZXF1ZXN0');
+final $typed_data.Uint8List listKeyMetadataRequestDescriptor =
+    $convert.base64Decode('ChZMaXN0S2V5TWV0YWRhdGFSZXF1ZXN0');
 
 @$core.Deprecated('Use listKeyMetadataResponseDescriptor instead')
 const ListKeyMetadataResponse$json = {
   '1': 'ListKeyMetadataResponse',
   '2': [
-    {'1': 'metadata', '3': 1, '4': 3, '5': 11, '6': '.skeys.v1.KeyMetadata', '10': 'metadata'},
+    {
+      '1': 'metadata',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.skeys.v1.KeyMetadata',
+      '10': 'metadata'
+    },
   ],
 };
 
 /// Descriptor for `ListKeyMetadataResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listKeyMetadataResponseDescriptor = $convert.base64Decode(
-    'ChdMaXN0S2V5TWV0YWRhdGFSZXNwb25zZRIxCghtZXRhZGF0YRgBIAMoCzIVLnNrZXlzLnYxLk'
-    'tleU1ldGFkYXRhUghtZXRhZGF0YQ==');
-
+final $typed_data.Uint8List listKeyMetadataResponseDescriptor =
+    $convert.base64Decode(
+        'ChdMaXN0S2V5TWV0YWRhdGFSZXNwb25zZRIxCghtZXRhZGF0YRgBIAMoCzIVLnNrZXlzLnYxLk'
+        'tleU1ldGFkYXRhUghtZXRhZGF0YQ==');

@@ -104,6 +104,131 @@ func (a *ConfigServiceAdapter) TestConnection(ctx context.Context, req *pb.TestC
 	return nil, status.Errorf(codes.Unimplemented, "method TestConnection not implemented")
 }
 
+// ============================================================
+// New unified SSH Config API
+// ============================================================
+
+// ListSSHConfigEntries returns all SSH config entries (Host and Match blocks)
+func (a *ConfigServiceAdapter) ListSSHConfigEntries(ctx context.Context, req *pb.ListSSHConfigEntriesRequest) (*pb.ListSSHConfigEntriesResponse, error) {
+	entries, err := a.clientConfig.ListEntries()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to list SSH config entries: %v", err)
+	}
+
+	var pbEntries []*pb.SSHConfigEntry
+	for _, e := range entries {
+		pbEntries = append(pbEntries, toProtoSSHConfigEntry(e))
+	}
+
+	return &pb.ListSSHConfigEntriesResponse{Entries: pbEntries}, nil
+}
+
+// GetSSHConfigEntry returns a specific SSH config entry by ID
+func (a *ConfigServiceAdapter) GetSSHConfigEntry(ctx context.Context, req *pb.GetSSHConfigEntryRequest) (*pb.SSHConfigEntry, error) {
+	entry, err := a.clientConfig.GetEntry(req.GetId())
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "SSH config entry not found: %v", err)
+	}
+
+	return toProtoSSHConfigEntry(entry), nil
+}
+
+// CreateSSHConfigEntry creates a new SSH config entry
+func (a *ConfigServiceAdapter) CreateSSHConfigEntry(ctx context.Context, req *pb.CreateSSHConfigEntryRequest) (*pb.SSHConfigEntry, error) {
+	entry := fromProtoSSHConfigEntry(req.GetEntry())
+
+	if err := a.clientConfig.AddEntry(entry, int(req.GetInsertPosition())); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to create SSH config entry: %v", err)
+	}
+
+	// Return the created entry (with generated ID)
+	return toProtoSSHConfigEntry(entry), nil
+}
+
+// UpdateSSHConfigEntry updates an existing SSH config entry
+func (a *ConfigServiceAdapter) UpdateSSHConfigEntry(ctx context.Context, req *pb.UpdateSSHConfigEntryRequest) (*pb.SSHConfigEntry, error) {
+	entry := fromProtoSSHConfigEntry(req.GetEntry())
+
+	if err := a.clientConfig.UpdateEntry(req.GetId(), entry); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to update SSH config entry: %v", err)
+	}
+
+	// Return the updated entry
+	updated, err := a.clientConfig.GetEntry(req.GetId())
+	if err != nil {
+		// Entry ID may have changed if patterns changed, return the entry we passed in
+		return toProtoSSHConfigEntry(entry), nil
+	}
+
+	return toProtoSSHConfigEntry(updated), nil
+}
+
+// DeleteSSHConfigEntry removes an SSH config entry
+func (a *ConfigServiceAdapter) DeleteSSHConfigEntry(ctx context.Context, req *pb.DeleteSSHConfigEntryRequest) (*emptypb.Empty, error) {
+	if err := a.clientConfig.DeleteEntry(req.GetId()); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to delete SSH config entry: %v", err)
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+// ReorderSSHConfigEntries reorders SSH config entries
+func (a *ConfigServiceAdapter) ReorderSSHConfigEntries(ctx context.Context, req *pb.ReorderSSHConfigEntriesRequest) (*pb.ListSSHConfigEntriesResponse, error) {
+	if err := a.clientConfig.Reorder(req.GetEntryIds()); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to reorder SSH config entries: %v", err)
+	}
+
+	// Return the reordered list
+	return a.ListSSHConfigEntries(ctx, &pb.ListSSHConfigEntriesRequest{Target: req.GetTarget()})
+}
+
+// ============================================================
+// Global Directives API
+// ============================================================
+
+// ListGlobalDirectives returns all global directives (options outside Host/Match blocks)
+func (a *ConfigServiceAdapter) ListGlobalDirectives(ctx context.Context, req *pb.ListGlobalDirectivesRequest) (*pb.ListGlobalDirectivesResponse, error) {
+	directives, err := a.clientConfig.GetGlobalDirectives()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get global directives: %v", err)
+	}
+
+	var pbDirectives []*pb.GlobalDirective
+	for _, d := range directives {
+		pbDirectives = append(pbDirectives, &pb.GlobalDirective{
+			Key:   d.Key,
+			Value: d.Value,
+		})
+	}
+
+	return &pb.ListGlobalDirectivesResponse{Directives: pbDirectives}, nil
+}
+
+// SetGlobalDirective sets a global directive value
+func (a *ConfigServiceAdapter) SetGlobalDirective(ctx context.Context, req *pb.SetGlobalDirectiveRequest) (*pb.GlobalDirective, error) {
+	if err := a.clientConfig.SetGlobalDirective(req.GetKey(), req.GetValue()); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to set global directive: %v", err)
+	}
+
+	return &pb.GlobalDirective{
+		Key:   req.GetKey(),
+		Value: req.GetValue(),
+	}, nil
+}
+
+// DeleteGlobalDirective removes a global directive
+func (a *ConfigServiceAdapter) DeleteGlobalDirective(ctx context.Context, req *pb.DeleteGlobalDirectiveRequest) (*emptypb.Empty, error) {
+	if err := a.clientConfig.DeleteGlobalDirective(req.GetKey()); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to delete global directive: %v", err)
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+// ============================================================
+// Server Config Methods
+// ============================================================
+
 // GetServerConfig reads the sshd_config file
 func (a *ConfigServiceAdapter) GetServerConfig(ctx context.Context, req *pb.GetServerConfigRequest) (*pb.ServerConfig, error) {
 	cfg, err := a.serverConfig.Read(ctx)
@@ -270,5 +395,82 @@ func toProtoServerConfig(cfg *config.ServerConfig) *pb.ServerConfig {
 	return &pb.ServerConfig{
 		Directives: directives,
 		RawContent: cfg.RawContent,
+	}
+}
+
+// ============================================================
+// SSHConfigEntry conversion functions
+// ============================================================
+
+// toProtoSSHConfigEntry converts a core SSHConfigEntry to a proto SSHConfigEntry
+func toProtoSSHConfigEntry(e *config.SSHConfigEntry) *pb.SSHConfigEntry {
+	entryType := pb.SSHConfigEntryType_SSH_CONFIG_ENTRY_TYPE_HOST
+	if e.Type == config.EntryTypeMatch {
+		entryType = pb.SSHConfigEntryType_SSH_CONFIG_ENTRY_TYPE_MATCH
+	}
+
+	return &pb.SSHConfigEntry{
+		Id:       e.ID,
+		Type:     entryType,
+		Position: int32(e.Position),
+		Patterns: e.Patterns,
+		Options:  toProtoSSHOptions(&e.Options),
+	}
+}
+
+// fromProtoSSHConfigEntry converts a proto SSHConfigEntry to a core SSHConfigEntry
+func fromProtoSSHConfigEntry(e *pb.SSHConfigEntry) *config.SSHConfigEntry {
+	entryType := config.EntryTypeHost
+	if e.GetType() == pb.SSHConfigEntryType_SSH_CONFIG_ENTRY_TYPE_MATCH {
+		entryType = config.EntryTypeMatch
+	}
+
+	return &config.SSHConfigEntry{
+		ID:       e.GetId(),
+		Type:     entryType,
+		Position: int(e.GetPosition()),
+		Patterns: e.GetPatterns(),
+		Options:  fromProtoSSHOptions(e.GetOptions()),
+	}
+}
+
+// toProtoSSHOptions converts core SSHOptions to proto SSHOptions
+func toProtoSSHOptions(o *config.SSHOptions) *pb.SSHOptions {
+	return &pb.SSHOptions{
+		Hostname:              o.Hostname,
+		Port:                  int32(o.Port),
+		User:                  o.User,
+		IdentityFiles:         o.IdentityFiles,
+		ProxyJump:             o.ProxyJump,
+		ProxyCommand:          o.ProxyCommand,
+		ForwardAgent:          o.ForwardAgent,
+		IdentitiesOnly:        o.IdentitiesOnly,
+		StrictHostKeyChecking: o.StrictHostKeyChecking,
+		ServerAliveInterval:   int32(o.ServerAliveInterval),
+		ServerAliveCountMax:   int32(o.ServerAliveCountMax),
+		Compression:           o.Compression,
+		ExtraOptions:          o.ExtraOptions,
+	}
+}
+
+// fromProtoSSHOptions converts proto SSHOptions to core SSHOptions
+func fromProtoSSHOptions(o *pb.SSHOptions) config.SSHOptions {
+	if o == nil {
+		return config.SSHOptions{}
+	}
+	return config.SSHOptions{
+		Hostname:              o.GetHostname(),
+		Port:                  int(o.GetPort()),
+		User:                  o.GetUser(),
+		IdentityFiles:         o.GetIdentityFiles(),
+		ProxyJump:             o.GetProxyJump(),
+		ProxyCommand:          o.GetProxyCommand(),
+		ForwardAgent:          o.GetForwardAgent(),
+		IdentitiesOnly:        o.GetIdentitiesOnly(),
+		StrictHostKeyChecking: o.GetStrictHostKeyChecking(),
+		ServerAliveInterval:   int(o.GetServerAliveInterval()),
+		ServerAliveCountMax:   int(o.GetServerAliveCountMax()),
+		Compression:           o.GetCompression(),
+		ExtraOptions:          o.GetExtraOptions(),
 	}
 }

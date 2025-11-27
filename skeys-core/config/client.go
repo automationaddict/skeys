@@ -2,37 +2,86 @@
 package config
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/johnnelson/skeys-core/logging"
-	sshconfig "github.com/kevinburke/ssh_config"
+	"github.com/patrikkj/sshconf"
 )
 
-// HostEntry represents a Host block in ~/.ssh/config
+// EntryType distinguishes between Host and Match blocks
+type EntryType int
+
+const (
+	EntryTypeHost EntryType = iota + 1
+	EntryTypeMatch
+)
+
+func (t EntryType) String() string {
+	switch t {
+	case EntryTypeHost:
+		return "Host"
+	case EntryTypeMatch:
+		return "Match"
+	default:
+		return "Unknown"
+	}
+}
+
+// SSHConfigEntry represents either a Host or Match block in SSH config
+type SSHConfigEntry struct {
+	ID            string            // Stable hash-based ID
+	Type          EntryType         // Host or Match
+	Position      int               // Order in config file (0-based)
+	Patterns      []string          // For Host blocks: patterns; for Match: criteria parts
+	Options       SSHOptions        // Configuration options
+}
+
+// SSHOptions contains all SSH configuration options
+type SSHOptions struct {
+	Hostname              string
+	User                  string
+	Port                  int
+	IdentityFiles         []string
+	ProxyJump             string
+	ProxyCommand          string
+	ForwardAgent          bool
+	IdentitiesOnly        bool
+	StrictHostKeyChecking string
+	ServerAliveInterval   int
+	ServerAliveCountMax   int
+	Compression           bool
+	ExtraOptions          map[string]string
+}
+
+// HostEntry represents a Host block in ~/.ssh/config (backward compatibility)
 type HostEntry struct {
-	Alias                  string
-	Hostname               string
-	User                   string
-	Port                   int
-	IdentityFiles          []string
-	ProxyJump              string
-	ProxyCommand           string
-	ForwardAgent           bool
-	IdentitiesOnly         bool
-	StrictHostKeyChecking  string
-	ServerAliveInterval    int
-	ServerAliveCountMax    int
-	ExtraOptions           map[string]string
-	IsPattern              bool
-	LineNumber             int
+	Alias                 string
+	Hostname              string
+	User                  string
+	Port                  int
+	IdentityFiles         []string
+	ProxyJump             string
+	ProxyCommand          string
+	ForwardAgent          bool
+	IdentitiesOnly        bool
+	StrictHostKeyChecking string
+	ServerAliveInterval   int
+	ServerAliveCountMax   int
+	ExtraOptions          map[string]string
+	IsPattern             bool
+	LineNumber            int
 }
 
 // ClientConfig manages the SSH client configuration file
 type ClientConfig struct {
 	path   string
-	config *sshconfig.Config
+	config *sshconf.SSHConfig
 	log    *logging.Logger
 }
 
@@ -84,23 +133,17 @@ func NewClientConfig(opts ...ClientConfigOption) (*ClientConfig, error) {
 
 // load reads and parses the config file
 func (c *ClientConfig) load() error {
-	f, err := os.Open(c.path)
-	if os.IsNotExist(err) {
+	if _, err := os.Stat(c.path); os.IsNotExist(err) {
 		c.log.Debug("config file does not exist, creating empty config")
-		c.config = &sshconfig.Config{}
+		c.config = sshconf.ParseConfig("")
 		return nil
 	}
+
+	cfg, err := sshconf.ParseConfigFile(c.path)
 	if err != nil {
-		c.log.ErrWithFields(err, "failed to open config", map[string]interface{}{
+		c.log.ErrWithFields(err, "failed to parse config", map[string]interface{}{
 			"config_path": c.path,
 		})
-		return fmt.Errorf("failed to open config: %w", err)
-	}
-	defer f.Close()
-
-	cfg, err := sshconfig.Decode(f)
-	if err != nil {
-		c.log.Err(err, "failed to parse config")
 		return fmt.Errorf("failed to parse config: %w", err)
 	}
 
@@ -109,58 +152,162 @@ func (c *ClientConfig) load() error {
 	return nil
 }
 
-// List returns all host entries
-func (c *ClientConfig) List() ([]*HostEntry, error) {
-	c.log.Debug("listing host entries")
+// ListEntries returns all SSH config entries (Host and Match blocks) in file order
+func (c *ClientConfig) ListEntries() ([]*SSHConfigEntry, error) {
+	c.log.Debug("listing SSH config entries")
 
-	var entries []*HostEntry
+	var entries []*SSHConfigEntry
+	position := 0
 
-	for _, host := range c.config.Hosts {
-		// Get patterns
-		patterns := make([]string, 0, len(host.Patterns))
-		for _, p := range host.Patterns {
-			patterns = append(patterns, p.String())
-		}
-
-		// Skip wildcard-only entries for listing
-		if len(patterns) == 1 && patterns[0] == "*" {
+	for _, line := range c.config.Lines() {
+		key := strings.ToLower(line.Key)
+		if key != "host" && key != "match" {
 			continue
 		}
 
-		alias := patterns[0]
-		entry := c.extractHostEntry(alias, host)
+		entryType := EntryTypeHost
+		if key == "match" {
+			entryType = EntryTypeMatch
+		}
+
+		// Parse patterns/criteria from value
+		patterns := parsePatternString(line.Value)
+
+		// Skip wildcard-only Host entries for listing (they're defaults)
+		if entryType == EntryTypeHost && len(patterns) == 1 && patterns[0] == "*" {
+			continue
+		}
+
+		entry := &SSHConfigEntry{
+			Type:     entryType,
+			Position: position,
+			Patterns: patterns,
+			Options:  c.extractOptions(line.Children),
+		}
+		entry.ID = generateEntryID(entry)
+
 		entries = append(entries, entry)
+		position++
 	}
 
-	c.log.InfoWithFields("listed host entries", map[string]interface{}{
+	c.log.InfoWithFields("listed SSH config entries", map[string]interface{}{
 		"count": len(entries),
 	})
 
 	return entries, nil
 }
 
-// Get returns the effective configuration for a host
+// List returns all host entries (backward compatibility)
+func (c *ClientConfig) List() ([]*HostEntry, error) {
+	c.log.Debug("listing host entries")
+
+	entries, err := c.ListEntries()
+	if err != nil {
+		return nil, err
+	}
+
+	var hostEntries []*HostEntry
+	for _, e := range entries {
+		if e.Type == EntryTypeHost {
+			hostEntries = append(hostEntries, e.toHostEntry())
+		}
+	}
+
+	c.log.InfoWithFields("listed host entries", map[string]interface{}{
+		"count": len(hostEntries),
+	})
+
+	return hostEntries, nil
+}
+
+// GetEntry returns an entry by ID
+func (c *ClientConfig) GetEntry(id string) (*SSHConfigEntry, error) {
+	c.log.DebugWithFields("getting entry by ID", map[string]interface{}{
+		"id": id,
+	})
+
+	entries, err := c.ListEntries()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, e := range entries {
+		if e.ID == id {
+			return e, nil
+		}
+	}
+
+	return nil, fmt.Errorf("entry not found: %s", id)
+}
+
+// Get returns the effective configuration for a host (backward compatibility)
 func (c *ClientConfig) Get(alias string) (*HostEntry, error) {
 	c.log.DebugWithFields("getting host entry", map[string]interface{}{
 		"alias": alias,
 	})
 
-	// Use the library's Get function for effective config resolution
-	return &HostEntry{
-		Alias:               alias,
-		Hostname:            sshconfig.Get(alias, "HostName"),
-		User:                sshconfig.Get(alias, "User"),
-		Port:                parsePort(sshconfig.Get(alias, "Port")),
-		IdentityFiles:       sshconfig.GetAll(alias, "IdentityFile"),
-		ProxyJump:           sshconfig.Get(alias, "ProxyJump"),
-		ProxyCommand:        sshconfig.Get(alias, "ProxyCommand"),
-		ForwardAgent:        sshconfig.Get(alias, "ForwardAgent") == "yes",
-		ServerAliveInterval: parseInt(sshconfig.Get(alias, "ServerAliveInterval")),
-		ServerAliveCountMax: parseInt(sshconfig.Get(alias, "ServerAliveCountMax")),
-	}, nil
+	entries, err := c.ListEntries()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, e := range entries {
+		if e.Type == EntryTypeHost && len(e.Patterns) > 0 && e.Patterns[0] == alias {
+			return e.toHostEntry(), nil
+		}
+	}
+
+	return nil, fmt.Errorf("host not found: %s", alias)
 }
 
-// Add adds a new host entry
+// AddEntry adds a new SSH config entry at the specified position
+func (c *ClientConfig) AddEntry(entry *SSHConfigEntry, position int) error {
+	c.log.InfoWithFields("adding SSH config entry", map[string]interface{}{
+		"type":     entry.Type.String(),
+		"patterns": entry.Patterns,
+		"position": position,
+	})
+
+	// Check for duplicates
+	entries, err := c.ListEntries()
+	if err != nil {
+		return err
+	}
+
+	if entry.Type == EntryTypeHost {
+		for _, e := range entries {
+			if e.Type == EntryTypeHost {
+				for _, p1 := range e.Patterns {
+					for _, p2 := range entry.Patterns {
+						if p1 == p2 {
+							return fmt.Errorf("host pattern already exists: %s", p1)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Build the config block string
+	block := c.buildEntryBlock(entry)
+
+	// Use Patch to add - it handles insertion
+	c.config.Patch(c.getEntryHeader(entry), block)
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	// Generate ID for the new entry
+	entry.ID = generateEntryID(entry)
+
+	c.log.InfoWithFields("SSH config entry added successfully", map[string]interface{}{
+		"id": entry.ID,
+	})
+	return nil
+}
+
+// Add adds a new host entry (backward compatibility)
 func (c *ClientConfig) Add(entry *HostEntry) error {
 	c.log.InfoWithFields("adding host entry", map[string]interface{}{
 		"alias":    entry.Alias,
@@ -168,99 +315,166 @@ func (c *ClientConfig) Add(entry *HostEntry) error {
 		"user":     entry.User,
 	})
 
-	// Check for duplicate
-	for _, h := range c.config.Hosts {
-		for _, p := range h.Patterns {
-			if p.String() == entry.Alias {
-				c.log.WarnWithFields("host already exists", map[string]interface{}{
-					"alias": entry.Alias,
-				})
-				return fmt.Errorf("host already exists: %s", entry.Alias)
-			}
-		}
-	}
+	sshEntry := hostEntryToSSHConfigEntry(entry)
+	return c.AddEntry(sshEntry, -1) // -1 means append
+}
 
-	pattern, err := sshconfig.NewPattern(entry.Alias)
+// UpdateEntry updates an existing entry by ID
+func (c *ClientConfig) UpdateEntry(id string, entry *SSHConfigEntry) error {
+	c.log.InfoWithFields("updating SSH config entry", map[string]interface{}{
+		"id": id,
+	})
+
+	// Find the existing entry to get its header
+	existing, err := c.GetEntry(id)
 	if err != nil {
-		c.log.ErrWithFields(err, "invalid host pattern", map[string]interface{}{
-			"alias": entry.Alias,
-		})
-		return fmt.Errorf("invalid host pattern: %w", err)
+		return err
 	}
 
-	host := &sshconfig.Host{
-		Patterns: []*sshconfig.Pattern{pattern},
-		Nodes:    c.buildNodes(entry),
-	}
+	// Delete the old entry
+	oldHeader := c.getEntryHeader(existing)
+	c.config.Delete(oldHeader)
 
-	c.config.Hosts = append(c.config.Hosts, host)
+	// Add the new entry
+	block := c.buildEntryBlock(entry)
+	c.config.Patch(c.getEntryHeader(entry), block)
 
 	if err := c.save(); err != nil {
 		return err
 	}
 
-	c.log.InfoWithFields("host entry added successfully", map[string]interface{}{
-		"alias": entry.Alias,
+	c.log.InfoWithFields("SSH config entry updated successfully", map[string]interface{}{
+		"id": id,
 	})
 	return nil
 }
 
-// Update updates an existing host entry
+// Update updates an existing host entry (backward compatibility)
 func (c *ClientConfig) Update(alias string, entry *HostEntry) error {
 	c.log.InfoWithFields("updating host entry", map[string]interface{}{
 		"alias": alias,
 	})
 
-	for i, host := range c.config.Hosts {
-		for _, p := range host.Patterns {
-			if p.String() == alias {
-				c.config.Hosts[i].Nodes = c.buildNodes(entry)
-
-				if err := c.save(); err != nil {
-					return err
-				}
-
-				c.log.InfoWithFields("host entry updated successfully", map[string]interface{}{
-					"alias": alias,
-				})
-				return nil
-			}
-		}
+	// Find by alias
+	existing, err := c.Get(alias)
+	if err != nil {
+		return err
 	}
 
-	c.log.WarnWithFields("host not found", map[string]interface{}{
-		"alias": alias,
-	})
-	return fmt.Errorf("host not found: %s", alias)
+	// Build entry with same alias pattern
+	sshEntry := hostEntryToSSHConfigEntry(entry)
+	sshEntry.Patterns = []string{alias}
+
+	// Find and update by building a temporary ID
+	tempEntry := &SSHConfigEntry{
+		Type:     EntryTypeHost,
+		Patterns: []string{existing.Alias},
+	}
+	oldID := generateEntryID(tempEntry)
+
+	return c.UpdateEntry(oldID, sshEntry)
 }
 
-// Delete removes a host entry
+// DeleteEntry removes an entry by ID
+func (c *ClientConfig) DeleteEntry(id string) error {
+	c.log.InfoWithFields("deleting SSH config entry", map[string]interface{}{
+		"id": id,
+	})
+
+	entry, err := c.GetEntry(id)
+	if err != nil {
+		return err
+	}
+
+	header := c.getEntryHeader(entry)
+	c.config.Delete(header)
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	c.log.InfoWithFields("SSH config entry deleted successfully", map[string]interface{}{
+		"id": id,
+	})
+	return nil
+}
+
+// Delete removes a host entry (backward compatibility)
 func (c *ClientConfig) Delete(alias string) error {
 	c.log.InfoWithFields("deleting host entry", map[string]interface{}{
 		"alias": alias,
 	})
 
-	for i, host := range c.config.Hosts {
-		for _, p := range host.Patterns {
-			if p.String() == alias {
-				c.config.Hosts = append(c.config.Hosts[:i], c.config.Hosts[i+1:]...)
+	c.config.Delete("Host " + alias)
 
-				if err := c.save(); err != nil {
-					return err
-				}
+	if err := c.save(); err != nil {
+		return err
+	}
 
-				c.log.InfoWithFields("host entry deleted successfully", map[string]interface{}{
-					"alias": alias,
-				})
-				return nil
-			}
+	c.log.InfoWithFields("host entry deleted successfully", map[string]interface{}{
+		"alias": alias,
+	})
+	return nil
+}
+
+// Reorder changes the order of entries in the config file
+func (c *ClientConfig) Reorder(entryIDs []string) error {
+	c.log.InfoWithFields("reordering SSH config entries", map[string]interface{}{
+		"count": len(entryIDs),
+	})
+
+	// Get all current entries
+	entries, err := c.ListEntries()
+	if err != nil {
+		return err
+	}
+
+	// Build ID -> entry map
+	idMap := make(map[string]*SSHConfigEntry)
+	for _, e := range entries {
+		idMap[e.ID] = e
+	}
+
+	// Verify all IDs are valid
+	for _, id := range entryIDs {
+		if _, ok := idMap[id]; !ok {
+			return fmt.Errorf("unknown entry ID: %s", id)
 		}
 	}
 
-	c.log.WarnWithFields("host not found", map[string]interface{}{
-		"alias": alias,
-	})
-	return fmt.Errorf("host not found: %s", alias)
+	// Rebuild config in new order
+	// First, get any lines that aren't Host/Match blocks (comments, etc.)
+	var preamble strings.Builder
+	for _, line := range c.config.Lines() {
+		key := strings.ToLower(line.Key)
+		if key == "host" || key == "match" {
+			break // Stop at first Host/Match block
+		}
+		// This is a preamble line (comment, global option, etc.)
+		if line.Comment != "" {
+			preamble.WriteString(line.Comment + "\n")
+		}
+	}
+
+	// Build new config content
+	var content strings.Builder
+	content.WriteString(preamble.String())
+
+	for _, id := range entryIDs {
+		entry := idMap[id]
+		content.WriteString(c.buildEntryBlock(entry))
+		content.WriteString("\n")
+	}
+
+	// Parse the new content
+	c.config = sshconf.ParseConfig(content.String())
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	c.log.Info("SSH config entries reordered successfully")
+	return nil
 }
 
 // save writes the config back to disk
@@ -273,17 +487,22 @@ func (c *ClientConfig) save() error {
 		return fmt.Errorf("failed to create backup: %w", err)
 	}
 
-	data, err := c.config.MarshalText()
-	if err != nil {
-		c.log.Err(err, "failed to marshal config")
-		return fmt.Errorf("failed to marshal config: %w", err)
+	// Ensure directory exists
+	dir := filepath.Dir(c.path)
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
-	if err := os.WriteFile(c.path, data, 0600); err != nil {
+	if err := c.config.WriteFile(c.path); err != nil {
 		c.log.ErrWithFields(err, "failed to write config", map[string]interface{}{
 			"config_path": c.path,
 		})
 		return err
+	}
+
+	// Ensure correct permissions
+	if err := os.Chmod(c.path, 0600); err != nil {
+		c.log.Err(err, "failed to set config permissions")
 	}
 
 	c.log.Debug("config saved successfully")
@@ -309,83 +528,341 @@ func (c *ClientConfig) backup() error {
 	return os.WriteFile(backupPath, data, 0600)
 }
 
-// extractHostEntry extracts a HostEntry from a Host block
-func (c *ClientConfig) extractHostEntry(alias string, host *sshconfig.Host) *HostEntry {
-	entry := &HostEntry{
-		Alias:        alias,
+// extractOptions extracts SSH options from child lines
+func (c *ClientConfig) extractOptions(children []sshconf.LineNoChildren) SSHOptions {
+	opts := SSHOptions{
 		ExtraOptions: make(map[string]string),
 	}
 
-	for _, node := range host.Nodes {
-		switch n := node.(type) {
-		case *sshconfig.KV:
-			switch n.Key {
-			case "HostName":
-				entry.Hostname = n.Value
-			case "User":
-				entry.User = n.Value
-			case "Port":
-				entry.Port = parsePort(n.Value)
-			case "IdentityFile":
-				entry.IdentityFiles = append(entry.IdentityFiles, n.Value)
-			case "ProxyJump":
-				entry.ProxyJump = n.Value
-			case "ProxyCommand":
-				entry.ProxyCommand = n.Value
-			case "ForwardAgent":
-				entry.ForwardAgent = n.Value == "yes"
-			default:
-				entry.ExtraOptions[n.Key] = n.Value
+	for _, child := range children {
+		key := strings.ToLower(child.Key)
+		value := child.Value
+
+		switch key {
+		case "hostname":
+			opts.Hostname = value
+		case "user":
+			opts.User = value
+		case "port":
+			opts.Port = parseInt(value)
+		case "identityfile":
+			opts.IdentityFiles = append(opts.IdentityFiles, value)
+		case "proxyjump":
+			opts.ProxyJump = value
+		case "proxycommand":
+			opts.ProxyCommand = value
+		case "forwardagent":
+			opts.ForwardAgent = strings.ToLower(value) == "yes"
+		case "identitiesonly":
+			opts.IdentitiesOnly = strings.ToLower(value) == "yes"
+		case "stricthostkeychecking":
+			opts.StrictHostKeyChecking = value
+		case "serveraliveinterval":
+			opts.ServerAliveInterval = parseInt(value)
+		case "serveralivecountmax":
+			opts.ServerAliveCountMax = parseInt(value)
+		case "compression":
+			opts.Compression = strings.ToLower(value) == "yes"
+		default:
+			opts.ExtraOptions[child.Key] = value
+		}
+	}
+
+	return opts
+}
+
+// buildEntryBlock creates the config block string for an entry
+func (c *ClientConfig) buildEntryBlock(entry *SSHConfigEntry) string {
+	var sb strings.Builder
+
+	// Header line
+	sb.WriteString(c.getEntryHeader(entry))
+	sb.WriteString("\n")
+
+	// Options
+	opts := entry.Options
+
+	if opts.Hostname != "" {
+		sb.WriteString("    HostName " + opts.Hostname + "\n")
+	}
+	if opts.User != "" {
+		sb.WriteString("    User " + opts.User + "\n")
+	}
+	if opts.Port != 0 && opts.Port != 22 {
+		sb.WriteString("    Port " + strconv.Itoa(opts.Port) + "\n")
+	}
+	for _, identity := range opts.IdentityFiles {
+		sb.WriteString("    IdentityFile " + identity + "\n")
+	}
+	if opts.ProxyJump != "" {
+		sb.WriteString("    ProxyJump " + opts.ProxyJump + "\n")
+	}
+	if opts.ProxyCommand != "" {
+		sb.WriteString("    ProxyCommand " + opts.ProxyCommand + "\n")
+	}
+	if opts.ForwardAgent {
+		sb.WriteString("    ForwardAgent yes\n")
+	}
+	if opts.IdentitiesOnly {
+		sb.WriteString("    IdentitiesOnly yes\n")
+	}
+	if opts.StrictHostKeyChecking != "" {
+		sb.WriteString("    StrictHostKeyChecking " + opts.StrictHostKeyChecking + "\n")
+	}
+	if opts.ServerAliveInterval > 0 {
+		sb.WriteString("    ServerAliveInterval " + strconv.Itoa(opts.ServerAliveInterval) + "\n")
+	}
+	if opts.ServerAliveCountMax > 0 {
+		sb.WriteString("    ServerAliveCountMax " + strconv.Itoa(opts.ServerAliveCountMax) + "\n")
+	}
+	if opts.Compression {
+		sb.WriteString("    Compression yes\n")
+	}
+
+	// Extra options
+	for key, value := range opts.ExtraOptions {
+		sb.WriteString("    " + key + " " + value + "\n")
+	}
+
+	return sb.String()
+}
+
+// getEntryHeader returns the header line for an entry (e.g., "Host myserver" or "Match host *.example.com")
+func (c *ClientConfig) getEntryHeader(entry *SSHConfigEntry) string {
+	if entry.Type == EntryTypeMatch {
+		return "Match " + strings.Join(entry.Patterns, " ")
+	}
+	return "Host " + strings.Join(entry.Patterns, " ")
+}
+
+// toHostEntry converts SSHConfigEntry to HostEntry for backward compatibility
+func (e *SSHConfigEntry) toHostEntry() *HostEntry {
+	alias := ""
+	if len(e.Patterns) > 0 {
+		alias = e.Patterns[0]
+	}
+
+	isPattern := false
+	if alias != "" && (strings.Contains(alias, "*") || strings.Contains(alias, "?")) {
+		isPattern = true
+	}
+
+	return &HostEntry{
+		Alias:                 alias,
+		Hostname:              e.Options.Hostname,
+		User:                  e.Options.User,
+		Port:                  e.Options.Port,
+		IdentityFiles:         e.Options.IdentityFiles,
+		ProxyJump:             e.Options.ProxyJump,
+		ProxyCommand:          e.Options.ProxyCommand,
+		ForwardAgent:          e.Options.ForwardAgent,
+		IdentitiesOnly:        e.Options.IdentitiesOnly,
+		StrictHostKeyChecking: e.Options.StrictHostKeyChecking,
+		ServerAliveInterval:   e.Options.ServerAliveInterval,
+		ServerAliveCountMax:   e.Options.ServerAliveCountMax,
+		ExtraOptions:          e.Options.ExtraOptions,
+		IsPattern:             isPattern,
+		LineNumber:            e.Position,
+	}
+}
+
+// hostEntryToSSHConfigEntry converts HostEntry to SSHConfigEntry
+func hostEntryToSSHConfigEntry(entry *HostEntry) *SSHConfigEntry {
+	return &SSHConfigEntry{
+		Type:     EntryTypeHost,
+		Patterns: []string{entry.Alias},
+		Options: SSHOptions{
+			Hostname:              entry.Hostname,
+			User:                  entry.User,
+			Port:                  entry.Port,
+			IdentityFiles:         entry.IdentityFiles,
+			ProxyJump:             entry.ProxyJump,
+			ProxyCommand:          entry.ProxyCommand,
+			ForwardAgent:          entry.ForwardAgent,
+			IdentitiesOnly:        entry.IdentitiesOnly,
+			StrictHostKeyChecking: entry.StrictHostKeyChecking,
+			ServerAliveInterval:   entry.ServerAliveInterval,
+			ServerAliveCountMax:   entry.ServerAliveCountMax,
+			ExtraOptions:          entry.ExtraOptions,
+		},
+	}
+}
+
+// generateEntryID creates a stable ID for an entry based on its type and patterns
+func generateEntryID(entry *SSHConfigEntry) string {
+	h := sha256.New()
+	h.Write([]byte(fmt.Sprintf("%d:", entry.Type)))
+	for _, p := range entry.Patterns {
+		h.Write([]byte(p + ":"))
+	}
+	return hex.EncodeToString(h.Sum(nil))[:12]
+}
+
+// parsePatternString splits a string value into individual patterns
+func parsePatternString(value string) []string {
+	return strings.Fields(value)
+}
+
+func parseInt(s string) int {
+	val, _ := strconv.Atoi(s)
+	return val
+}
+
+// GlobalDirective represents a global SSH configuration option
+type GlobalDirective struct {
+	Key   string
+	Value string
+}
+
+// GetGlobalDirectives returns all global directives (top-level options not inside Host/Match blocks)
+func (c *ClientConfig) GetGlobalDirectives() ([]*GlobalDirective, error) {
+	c.log.Debug("getting global directives")
+
+	var directives []*GlobalDirective
+
+	for _, line := range c.config.Lines() {
+		key := strings.ToLower(line.Key)
+
+		// Skip Host/Match blocks (they have their own Children)
+		if key == "host" || key == "match" {
+			continue
+		}
+
+		// Skip empty lines and comments
+		if line.Key == "" {
+			continue
+		}
+
+		directives = append(directives, &GlobalDirective{
+			Key:   line.Key,
+			Value: line.Value,
+		})
+	}
+
+	c.log.InfoWithFields("got global directives", map[string]interface{}{
+		"count": len(directives),
+	})
+
+	return directives, nil
+}
+
+// SetGlobalDirective sets a global directive value (creates if doesn't exist)
+func (c *ClientConfig) SetGlobalDirective(key, value string) error {
+	c.log.InfoWithFields("setting global directive", map[string]interface{}{
+		"key":   key,
+		"value": value,
+	})
+
+	// Build the new config content
+	var content strings.Builder
+	found := false
+	insertedAtStart := false
+
+	for _, line := range c.config.Lines() {
+		lineKey := strings.ToLower(line.Key)
+
+		// Check if this is the directive we're updating (anywhere in the file, but not Host/Match)
+		if strings.EqualFold(line.Key, key) && lineKey != "host" && lineKey != "match" {
+			content.WriteString(key + " " + value + "\n")
+			found = true
+			continue
+		}
+
+		// If we haven't found the directive and hit first line, insert at start
+		if !found && !insertedAtStart && (line.Key != "" || line.Comment != "") {
+			// Check if this is a managed block comment
+			if line.Comment != "" && strings.Contains(line.Comment, "BEGIN skeys managed block") {
+				// Insert new directive before managed block
+				content.WriteString(key + " " + value + "\n\n")
+				insertedAtStart = true
+				found = true
+			}
+		}
+
+		// Preserve the line
+		if line.Comment != "" {
+			content.WriteString(line.Comment + "\n")
+		}
+		if line.Key != "" {
+			if lineKey == "host" || lineKey == "match" {
+				content.WriteString(line.Key + " " + line.Value + "\n")
+				// Write children with indentation
+				for _, child := range line.Children {
+					content.WriteString("    " + child.Key + " " + child.Value + "\n")
+				}
+			} else {
+				content.WriteString(line.Key + " " + line.Value + "\n")
 			}
 		}
 	}
 
-	return entry
+	// If we didn't find the key, append it at the end
+	if !found {
+		content.WriteString(key + " " + value + "\n")
+	}
+
+	// Parse the new content
+	c.config = sshconf.ParseConfig(content.String())
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	c.log.InfoWithFields("global directive set successfully", map[string]interface{}{
+		"key": key,
+	})
+	return nil
 }
 
-// buildNodes converts a HostEntry to config nodes
-func (c *ClientConfig) buildNodes(entry *HostEntry) []sshconfig.Node {
-	var nodes []sshconfig.Node
+// DeleteGlobalDirective removes a global directive
+func (c *ClientConfig) DeleteGlobalDirective(key string) error {
+	c.log.InfoWithFields("deleting global directive", map[string]interface{}{
+		"key": key,
+	})
 
-	if entry.Hostname != "" {
-		nodes = append(nodes, &sshconfig.KV{Key: "HostName", Value: entry.Hostname})
-	}
-	if entry.User != "" {
-		nodes = append(nodes, &sshconfig.KV{Key: "User", Value: entry.User})
-	}
-	if entry.Port != 0 && entry.Port != 22 {
-		nodes = append(nodes, &sshconfig.KV{Key: "Port", Value: fmt.Sprintf("%d", entry.Port)})
-	}
-	for _, identity := range entry.IdentityFiles {
-		nodes = append(nodes, &sshconfig.KV{Key: "IdentityFile", Value: identity})
-	}
-	if entry.ProxyJump != "" {
-		nodes = append(nodes, &sshconfig.KV{Key: "ProxyJump", Value: entry.ProxyJump})
-	}
-	if entry.ProxyCommand != "" {
-		nodes = append(nodes, &sshconfig.KV{Key: "ProxyCommand", Value: entry.ProxyCommand})
-	}
-	if entry.ForwardAgent {
-		nodes = append(nodes, &sshconfig.KV{Key: "ForwardAgent", Value: "yes"})
+	// Build the new config content
+	var content strings.Builder
+	found := false
+
+	for _, line := range c.config.Lines() {
+		lineKey := strings.ToLower(line.Key)
+
+		// Check if this is the directive we're deleting
+		if strings.EqualFold(line.Key, key) && lineKey != "host" && lineKey != "match" {
+			found = true
+			continue // Skip this line
+		}
+
+		// Preserve the line
+		if line.Comment != "" {
+			content.WriteString(line.Comment + "\n")
+		}
+		if line.Key != "" {
+			if lineKey == "host" || lineKey == "match" {
+				content.WriteString(line.Key + " " + line.Value + "\n")
+				// Write children with indentation
+				for _, child := range line.Children {
+					content.WriteString("    " + child.Key + " " + child.Value + "\n")
+				}
+			} else {
+				content.WriteString(line.Key + " " + line.Value + "\n")
+			}
+		}
 	}
 
-	return nodes
-}
-
-func parsePort(s string) int {
-	if s == "" {
-		return 22
+	if !found {
+		return fmt.Errorf("global directive not found: %s", key)
 	}
-	var port int
-	fmt.Sscanf(s, "%d", &port)
-	if port == 0 {
-		return 22
-	}
-	return port
-}
 
-func parseInt(s string) int {
-	var val int
-	fmt.Sscanf(s, "%d", &val)
-	return val
+	// Parse the new content
+	c.config = sshconf.ParseConfig(content.String())
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	c.log.InfoWithFields("global directive deleted successfully", map[string]interface{}{
+		"key": key,
+	})
+	return nil
 }

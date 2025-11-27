@@ -1,11 +1,25 @@
 import '../domain/config_entity.dart';
+import '../domain/ssh_config_entry.dart';
 import '../../../core/grpc/grpc_client.dart';
 import '../../../core/generated/skeys/v1/config.pb.dart' as pb;
 import '../../../core/generated/skeys/v1/common.pb.dart' as common;
 
 /// Abstract repository for SSH configuration management.
 abstract class ConfigRepository {
-  // Client config
+  // New unified SSH config API
+  Future<List<SSHConfigEntry>> listSSHConfigEntries();
+  Future<SSHConfigEntry> getSSHConfigEntry(String id);
+  Future<SSHConfigEntry> createSSHConfigEntry(SSHConfigEntry entry, {int? insertPosition});
+  Future<SSHConfigEntry> updateSSHConfigEntry(String id, SSHConfigEntry entry);
+  Future<void> deleteSSHConfigEntry(String id);
+  Future<List<SSHConfigEntry>> reorderSSHConfigEntries(List<String> entryIds);
+
+  // Global directives API (options outside Host/Match blocks)
+  Future<List<GlobalDirective>> listGlobalDirectives();
+  Future<GlobalDirective> setGlobalDirective(String key, String value);
+  Future<void> deleteGlobalDirective(String key);
+
+  // Legacy client config (backward compatibility)
   Future<List<ConfigHostEntry>> listHostConfigs();
   Future<ConfigHostEntry> getHostConfig(String alias);
   Future<void> createHostConfig(ConfigHostEntry entry);
@@ -35,6 +49,113 @@ class ConfigRepositoryImpl implements ConfigRepository {
   final GrpcClient _client;
 
   ConfigRepositoryImpl(this._client);
+
+  // ============================================================
+  // New unified SSH config API
+  // ============================================================
+
+  @override
+  Future<List<SSHConfigEntry>> listSSHConfigEntries() async {
+    final request = pb.ListSSHConfigEntriesRequest()
+      ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL);
+
+    final response = await _client.config.listSSHConfigEntries(request);
+    return response.entries.map(_mapSSHConfigEntry).toList();
+  }
+
+  @override
+  Future<SSHConfigEntry> getSSHConfigEntry(String id) async {
+    final request = pb.GetSSHConfigEntryRequest()
+      ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL)
+      ..id = id;
+
+    final response = await _client.config.getSSHConfigEntry(request);
+    return _mapSSHConfigEntry(response);
+  }
+
+  @override
+  Future<SSHConfigEntry> createSSHConfigEntry(SSHConfigEntry entry, {int? insertPosition}) async {
+    final request = pb.CreateSSHConfigEntryRequest()
+      ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL)
+      ..entry = _mapToProtoSSHConfigEntry(entry)
+      ..insertPosition = insertPosition ?? -1;
+
+    final response = await _client.config.createSSHConfigEntry(request);
+    return _mapSSHConfigEntry(response);
+  }
+
+  @override
+  Future<SSHConfigEntry> updateSSHConfigEntry(String id, SSHConfigEntry entry) async {
+    final request = pb.UpdateSSHConfigEntryRequest()
+      ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL)
+      ..id = id
+      ..entry = _mapToProtoSSHConfigEntry(entry);
+
+    final response = await _client.config.updateSSHConfigEntry(request);
+    return _mapSSHConfigEntry(response);
+  }
+
+  @override
+  Future<void> deleteSSHConfigEntry(String id) async {
+    final request = pb.DeleteSSHConfigEntryRequest()
+      ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL)
+      ..id = id;
+
+    await _client.config.deleteSSHConfigEntry(request);
+  }
+
+  @override
+  Future<List<SSHConfigEntry>> reorderSSHConfigEntries(List<String> entryIds) async {
+    final request = pb.ReorderSSHConfigEntriesRequest()
+      ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL)
+      ..entryIds.addAll(entryIds);
+
+    final response = await _client.config.reorderSSHConfigEntries(request);
+    return response.entries.map(_mapSSHConfigEntry).toList();
+  }
+
+  // ============================================================
+  // Global directives API
+  // ============================================================
+
+  @override
+  Future<List<GlobalDirective>> listGlobalDirectives() async {
+    final request = pb.ListGlobalDirectivesRequest()
+      ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL);
+
+    final response = await _client.config.listGlobalDirectives(request);
+    return response.directives.map((d) => GlobalDirective(
+      key: d.key,
+      value: d.value,
+    )).toList();
+  }
+
+  @override
+  Future<GlobalDirective> setGlobalDirective(String key, String value) async {
+    final request = pb.SetGlobalDirectiveRequest()
+      ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL)
+      ..key = key
+      ..value = value;
+
+    final response = await _client.config.setGlobalDirective(request);
+    return GlobalDirective(
+      key: response.key,
+      value: response.value,
+    );
+  }
+
+  @override
+  Future<void> deleteGlobalDirective(String key) async {
+    final request = pb.DeleteGlobalDirectiveRequest()
+      ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL)
+      ..key = key;
+
+    await _client.config.deleteGlobalDirective(request);
+  }
+
+  // ============================================================
+  // Legacy client config API (backward compatibility)
+  // ============================================================
 
   @override
   Future<List<ConfigHostEntry>> listHostConfigs() async {
@@ -135,5 +256,83 @@ class ConfigRepositoryImpl implements ConfigRepository {
     if (entry.forwardAgent != null) config.forwardAgent = entry.forwardAgent!;
     config.extraOptions.addAll(entry.extraOptions);
     return config;
+  }
+
+  // ============================================================
+  // SSHConfigEntry mapping functions
+  // ============================================================
+
+  SSHConfigEntry _mapSSHConfigEntry(pb.SSHConfigEntry entry) {
+    return SSHConfigEntry(
+      id: entry.id,
+      type: _mapEntryType(entry.type),
+      position: entry.position,
+      patterns: entry.patterns.toList(),
+      options: _mapSSHOptions(entry.options),
+    );
+  }
+
+  SSHConfigEntryType _mapEntryType(pb.SSHConfigEntryType type) {
+    switch (type) {
+      case pb.SSHConfigEntryType.SSH_CONFIG_ENTRY_TYPE_MATCH:
+        return SSHConfigEntryType.match;
+      case pb.SSHConfigEntryType.SSH_CONFIG_ENTRY_TYPE_HOST:
+      default:
+        return SSHConfigEntryType.host;
+    }
+  }
+
+  SSHOptions _mapSSHOptions(pb.SSHOptions options) {
+    return SSHOptions(
+      hostname: options.hostname.isEmpty ? null : options.hostname,
+      user: options.user.isEmpty ? null : options.user,
+      port: options.port == 0 ? null : options.port,
+      identityFiles: options.identityFiles.toList(),
+      forwardAgent: options.forwardAgent ? true : null,
+      proxyJump: options.proxyJump.isEmpty ? null : options.proxyJump,
+      proxyCommand: options.proxyCommand.isEmpty ? null : options.proxyCommand,
+      serverAliveInterval: options.serverAliveInterval == 0 ? null : options.serverAliveInterval,
+      serverAliveCountMax: options.serverAliveCountMax == 0 ? null : options.serverAliveCountMax,
+      identitiesOnly: options.identitiesOnly ? true : null,
+      compression: options.compression ? true : null,
+      strictHostKeyChecking: options.strictHostKeyChecking.isEmpty ? null : options.strictHostKeyChecking,
+      extraOptions: Map.from(options.extraOptions),
+    );
+  }
+
+  pb.SSHConfigEntry _mapToProtoSSHConfigEntry(SSHConfigEntry entry) {
+    return pb.SSHConfigEntry()
+      ..id = entry.id
+      ..type = _mapToProtoEntryType(entry.type)
+      ..position = entry.position
+      ..patterns.addAll(entry.patterns)
+      ..options = _mapToProtoSSHOptions(entry.options);
+  }
+
+  pb.SSHConfigEntryType _mapToProtoEntryType(SSHConfigEntryType type) {
+    switch (type) {
+      case SSHConfigEntryType.match:
+        return pb.SSHConfigEntryType.SSH_CONFIG_ENTRY_TYPE_MATCH;
+      case SSHConfigEntryType.host:
+        return pb.SSHConfigEntryType.SSH_CONFIG_ENTRY_TYPE_HOST;
+    }
+  }
+
+  pb.SSHOptions _mapToProtoSSHOptions(SSHOptions options) {
+    final proto = pb.SSHOptions();
+    if (options.hostname != null) proto.hostname = options.hostname!;
+    if (options.user != null) proto.user = options.user!;
+    if (options.port != null) proto.port = options.port!;
+    proto.identityFiles.addAll(options.identityFiles);
+    if (options.forwardAgent == true) proto.forwardAgent = true;
+    if (options.proxyJump != null) proto.proxyJump = options.proxyJump!;
+    if (options.proxyCommand != null) proto.proxyCommand = options.proxyCommand!;
+    if (options.serverAliveInterval != null) proto.serverAliveInterval = options.serverAliveInterval!;
+    if (options.serverAliveCountMax != null) proto.serverAliveCountMax = options.serverAliveCountMax!;
+    if (options.identitiesOnly == true) proto.identitiesOnly = true;
+    if (options.compression == true) proto.compression = true;
+    if (options.strictHostKeyChecking != null) proto.strictHostKeyChecking = options.strictHostKeyChecking!;
+    proto.extraOptions.addAll(options.extraOptions);
+    return proto;
   }
 }

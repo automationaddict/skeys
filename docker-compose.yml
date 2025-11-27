@@ -6,6 +6,7 @@ services:
       args:
         VERSION: dev
         COMMIT: ${COMMIT:-unknown}
+    image: skeys-daemon
     container_name: skeys-daemon-dev
     user: "${UID:-1000}:${GID:-1000}"
     environment:

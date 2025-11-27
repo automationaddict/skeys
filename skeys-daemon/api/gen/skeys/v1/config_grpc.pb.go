@@ -20,26 +20,46 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ConfigService_ListHostConfigs_FullMethodName      = "/skeys.v1.ConfigService/ListHostConfigs"
-	ConfigService_GetHostConfig_FullMethodName        = "/skeys.v1.ConfigService/GetHostConfig"
-	ConfigService_CreateHostConfig_FullMethodName     = "/skeys.v1.ConfigService/CreateHostConfig"
-	ConfigService_UpdateHostConfig_FullMethodName     = "/skeys.v1.ConfigService/UpdateHostConfig"
-	ConfigService_DeleteHostConfig_FullMethodName     = "/skeys.v1.ConfigService/DeleteHostConfig"
-	ConfigService_TestConnection_FullMethodName       = "/skeys.v1.ConfigService/TestConnection"
-	ConfigService_GetSshConfigStatus_FullMethodName   = "/skeys.v1.ConfigService/GetSshConfigStatus"
-	ConfigService_EnableSshConfig_FullMethodName      = "/skeys.v1.ConfigService/EnableSshConfig"
-	ConfigService_DisableSshConfig_FullMethodName     = "/skeys.v1.ConfigService/DisableSshConfig"
-	ConfigService_GetServerConfig_FullMethodName      = "/skeys.v1.ConfigService/GetServerConfig"
-	ConfigService_UpdateServerConfig_FullMethodName   = "/skeys.v1.ConfigService/UpdateServerConfig"
-	ConfigService_ValidateServerConfig_FullMethodName = "/skeys.v1.ConfigService/ValidateServerConfig"
-	ConfigService_RestartSSHService_FullMethodName    = "/skeys.v1.ConfigService/RestartSSHService"
+	ConfigService_ListSSHConfigEntries_FullMethodName    = "/skeys.v1.ConfigService/ListSSHConfigEntries"
+	ConfigService_GetSSHConfigEntry_FullMethodName       = "/skeys.v1.ConfigService/GetSSHConfigEntry"
+	ConfigService_CreateSSHConfigEntry_FullMethodName    = "/skeys.v1.ConfigService/CreateSSHConfigEntry"
+	ConfigService_UpdateSSHConfigEntry_FullMethodName    = "/skeys.v1.ConfigService/UpdateSSHConfigEntry"
+	ConfigService_DeleteSSHConfigEntry_FullMethodName    = "/skeys.v1.ConfigService/DeleteSSHConfigEntry"
+	ConfigService_ReorderSSHConfigEntries_FullMethodName = "/skeys.v1.ConfigService/ReorderSSHConfigEntries"
+	ConfigService_ListGlobalDirectives_FullMethodName    = "/skeys.v1.ConfigService/ListGlobalDirectives"
+	ConfigService_SetGlobalDirective_FullMethodName      = "/skeys.v1.ConfigService/SetGlobalDirective"
+	ConfigService_DeleteGlobalDirective_FullMethodName   = "/skeys.v1.ConfigService/DeleteGlobalDirective"
+	ConfigService_ListHostConfigs_FullMethodName         = "/skeys.v1.ConfigService/ListHostConfigs"
+	ConfigService_GetHostConfig_FullMethodName           = "/skeys.v1.ConfigService/GetHostConfig"
+	ConfigService_CreateHostConfig_FullMethodName        = "/skeys.v1.ConfigService/CreateHostConfig"
+	ConfigService_UpdateHostConfig_FullMethodName        = "/skeys.v1.ConfigService/UpdateHostConfig"
+	ConfigService_DeleteHostConfig_FullMethodName        = "/skeys.v1.ConfigService/DeleteHostConfig"
+	ConfigService_TestConnection_FullMethodName          = "/skeys.v1.ConfigService/TestConnection"
+	ConfigService_GetSshConfigStatus_FullMethodName      = "/skeys.v1.ConfigService/GetSshConfigStatus"
+	ConfigService_EnableSshConfig_FullMethodName         = "/skeys.v1.ConfigService/EnableSshConfig"
+	ConfigService_DisableSshConfig_FullMethodName        = "/skeys.v1.ConfigService/DisableSshConfig"
+	ConfigService_GetServerConfig_FullMethodName         = "/skeys.v1.ConfigService/GetServerConfig"
+	ConfigService_UpdateServerConfig_FullMethodName      = "/skeys.v1.ConfigService/UpdateServerConfig"
+	ConfigService_ValidateServerConfig_FullMethodName    = "/skeys.v1.ConfigService/ValidateServerConfig"
+	ConfigService_RestartSSHService_FullMethodName       = "/skeys.v1.ConfigService/RestartSSHService"
 )
 
 // ConfigServiceClient is the client API for ConfigService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ConfigServiceClient interface {
-	// SSH Client Config (~/.ssh/config)
+	// SSH Client Config - New unified API (~/.ssh/config)
+	ListSSHConfigEntries(ctx context.Context, in *ListSSHConfigEntriesRequest, opts ...grpc.CallOption) (*ListSSHConfigEntriesResponse, error)
+	GetSSHConfigEntry(ctx context.Context, in *GetSSHConfigEntryRequest, opts ...grpc.CallOption) (*SSHConfigEntry, error)
+	CreateSSHConfigEntry(ctx context.Context, in *CreateSSHConfigEntryRequest, opts ...grpc.CallOption) (*SSHConfigEntry, error)
+	UpdateSSHConfigEntry(ctx context.Context, in *UpdateSSHConfigEntryRequest, opts ...grpc.CallOption) (*SSHConfigEntry, error)
+	DeleteSSHConfigEntry(ctx context.Context, in *DeleteSSHConfigEntryRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ReorderSSHConfigEntries(ctx context.Context, in *ReorderSSHConfigEntriesRequest, opts ...grpc.CallOption) (*ListSSHConfigEntriesResponse, error)
+	// SSH Client Config - Global directives (options outside Host/Match blocks)
+	ListGlobalDirectives(ctx context.Context, in *ListGlobalDirectivesRequest, opts ...grpc.CallOption) (*ListGlobalDirectivesResponse, error)
+	SetGlobalDirective(ctx context.Context, in *SetGlobalDirectiveRequest, opts ...grpc.CallOption) (*GlobalDirective, error)
+	DeleteGlobalDirective(ctx context.Context, in *DeleteGlobalDirectiveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// SSH Client Config - Legacy API (backward compatibility)
 	ListHostConfigs(ctx context.Context, in *ListHostConfigsRequest, opts ...grpc.CallOption) (*ListHostConfigsResponse, error)
 	GetHostConfig(ctx context.Context, in *GetHostConfigRequest, opts ...grpc.CallOption) (*HostConfig, error)
 	CreateHostConfig(ctx context.Context, in *CreateHostConfigRequest, opts ...grpc.CallOption) (*HostConfig, error)
@@ -64,6 +84,96 @@ type configServiceClient struct {
 
 func NewConfigServiceClient(cc grpc.ClientConnInterface) ConfigServiceClient {
 	return &configServiceClient{cc}
+}
+
+func (c *configServiceClient) ListSSHConfigEntries(ctx context.Context, in *ListSSHConfigEntriesRequest, opts ...grpc.CallOption) (*ListSSHConfigEntriesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSSHConfigEntriesResponse)
+	err := c.cc.Invoke(ctx, ConfigService_ListSSHConfigEntries_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configServiceClient) GetSSHConfigEntry(ctx context.Context, in *GetSSHConfigEntryRequest, opts ...grpc.CallOption) (*SSHConfigEntry, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SSHConfigEntry)
+	err := c.cc.Invoke(ctx, ConfigService_GetSSHConfigEntry_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configServiceClient) CreateSSHConfigEntry(ctx context.Context, in *CreateSSHConfigEntryRequest, opts ...grpc.CallOption) (*SSHConfigEntry, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SSHConfigEntry)
+	err := c.cc.Invoke(ctx, ConfigService_CreateSSHConfigEntry_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configServiceClient) UpdateSSHConfigEntry(ctx context.Context, in *UpdateSSHConfigEntryRequest, opts ...grpc.CallOption) (*SSHConfigEntry, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SSHConfigEntry)
+	err := c.cc.Invoke(ctx, ConfigService_UpdateSSHConfigEntry_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configServiceClient) DeleteSSHConfigEntry(ctx context.Context, in *DeleteSSHConfigEntryRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ConfigService_DeleteSSHConfigEntry_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configServiceClient) ReorderSSHConfigEntries(ctx context.Context, in *ReorderSSHConfigEntriesRequest, opts ...grpc.CallOption) (*ListSSHConfigEntriesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSSHConfigEntriesResponse)
+	err := c.cc.Invoke(ctx, ConfigService_ReorderSSHConfigEntries_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configServiceClient) ListGlobalDirectives(ctx context.Context, in *ListGlobalDirectivesRequest, opts ...grpc.CallOption) (*ListGlobalDirectivesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListGlobalDirectivesResponse)
+	err := c.cc.Invoke(ctx, ConfigService_ListGlobalDirectives_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configServiceClient) SetGlobalDirective(ctx context.Context, in *SetGlobalDirectiveRequest, opts ...grpc.CallOption) (*GlobalDirective, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GlobalDirective)
+	err := c.cc.Invoke(ctx, ConfigService_SetGlobalDirective_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configServiceClient) DeleteGlobalDirective(ctx context.Context, in *DeleteGlobalDirectiveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ConfigService_DeleteGlobalDirective_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *configServiceClient) ListHostConfigs(ctx context.Context, in *ListHostConfigsRequest, opts ...grpc.CallOption) (*ListHostConfigsResponse, error) {
@@ -200,7 +310,18 @@ func (c *configServiceClient) RestartSSHService(ctx context.Context, in *Restart
 // All implementations must embed UnimplementedConfigServiceServer
 // for forward compatibility.
 type ConfigServiceServer interface {
-	// SSH Client Config (~/.ssh/config)
+	// SSH Client Config - New unified API (~/.ssh/config)
+	ListSSHConfigEntries(context.Context, *ListSSHConfigEntriesRequest) (*ListSSHConfigEntriesResponse, error)
+	GetSSHConfigEntry(context.Context, *GetSSHConfigEntryRequest) (*SSHConfigEntry, error)
+	CreateSSHConfigEntry(context.Context, *CreateSSHConfigEntryRequest) (*SSHConfigEntry, error)
+	UpdateSSHConfigEntry(context.Context, *UpdateSSHConfigEntryRequest) (*SSHConfigEntry, error)
+	DeleteSSHConfigEntry(context.Context, *DeleteSSHConfigEntryRequest) (*emptypb.Empty, error)
+	ReorderSSHConfigEntries(context.Context, *ReorderSSHConfigEntriesRequest) (*ListSSHConfigEntriesResponse, error)
+	// SSH Client Config - Global directives (options outside Host/Match blocks)
+	ListGlobalDirectives(context.Context, *ListGlobalDirectivesRequest) (*ListGlobalDirectivesResponse, error)
+	SetGlobalDirective(context.Context, *SetGlobalDirectiveRequest) (*GlobalDirective, error)
+	DeleteGlobalDirective(context.Context, *DeleteGlobalDirectiveRequest) (*emptypb.Empty, error)
+	// SSH Client Config - Legacy API (backward compatibility)
 	ListHostConfigs(context.Context, *ListHostConfigsRequest) (*ListHostConfigsResponse, error)
 	GetHostConfig(context.Context, *GetHostConfigRequest) (*HostConfig, error)
 	CreateHostConfig(context.Context, *CreateHostConfigRequest) (*HostConfig, error)
@@ -227,6 +348,33 @@ type ConfigServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedConfigServiceServer struct{}
 
+func (UnimplementedConfigServiceServer) ListSSHConfigEntries(context.Context, *ListSSHConfigEntriesRequest) (*ListSSHConfigEntriesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSSHConfigEntries not implemented")
+}
+func (UnimplementedConfigServiceServer) GetSSHConfigEntry(context.Context, *GetSSHConfigEntryRequest) (*SSHConfigEntry, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSSHConfigEntry not implemented")
+}
+func (UnimplementedConfigServiceServer) CreateSSHConfigEntry(context.Context, *CreateSSHConfigEntryRequest) (*SSHConfigEntry, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateSSHConfigEntry not implemented")
+}
+func (UnimplementedConfigServiceServer) UpdateSSHConfigEntry(context.Context, *UpdateSSHConfigEntryRequest) (*SSHConfigEntry, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSSHConfigEntry not implemented")
+}
+func (UnimplementedConfigServiceServer) DeleteSSHConfigEntry(context.Context, *DeleteSSHConfigEntryRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSSHConfigEntry not implemented")
+}
+func (UnimplementedConfigServiceServer) ReorderSSHConfigEntries(context.Context, *ReorderSSHConfigEntriesRequest) (*ListSSHConfigEntriesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReorderSSHConfigEntries not implemented")
+}
+func (UnimplementedConfigServiceServer) ListGlobalDirectives(context.Context, *ListGlobalDirectivesRequest) (*ListGlobalDirectivesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListGlobalDirectives not implemented")
+}
+func (UnimplementedConfigServiceServer) SetGlobalDirective(context.Context, *SetGlobalDirectiveRequest) (*GlobalDirective, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetGlobalDirective not implemented")
+}
+func (UnimplementedConfigServiceServer) DeleteGlobalDirective(context.Context, *DeleteGlobalDirectiveRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteGlobalDirective not implemented")
+}
 func (UnimplementedConfigServiceServer) ListHostConfigs(context.Context, *ListHostConfigsRequest) (*ListHostConfigsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListHostConfigs not implemented")
 }
@@ -285,6 +433,168 @@ func RegisterConfigServiceServer(s grpc.ServiceRegistrar, srv ConfigServiceServe
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&ConfigService_ServiceDesc, srv)
+}
+
+func _ConfigService_ListSSHConfigEntries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSSHConfigEntriesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServiceServer).ListSSHConfigEntries(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ConfigService_ListSSHConfigEntries_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServiceServer).ListSSHConfigEntries(ctx, req.(*ListSSHConfigEntriesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConfigService_GetSSHConfigEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSSHConfigEntryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServiceServer).GetSSHConfigEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ConfigService_GetSSHConfigEntry_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServiceServer).GetSSHConfigEntry(ctx, req.(*GetSSHConfigEntryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConfigService_CreateSSHConfigEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSSHConfigEntryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServiceServer).CreateSSHConfigEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ConfigService_CreateSSHConfigEntry_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServiceServer).CreateSSHConfigEntry(ctx, req.(*CreateSSHConfigEntryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConfigService_UpdateSSHConfigEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSSHConfigEntryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServiceServer).UpdateSSHConfigEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ConfigService_UpdateSSHConfigEntry_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServiceServer).UpdateSSHConfigEntry(ctx, req.(*UpdateSSHConfigEntryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConfigService_DeleteSSHConfigEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteSSHConfigEntryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServiceServer).DeleteSSHConfigEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ConfigService_DeleteSSHConfigEntry_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServiceServer).DeleteSSHConfigEntry(ctx, req.(*DeleteSSHConfigEntryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConfigService_ReorderSSHConfigEntries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReorderSSHConfigEntriesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServiceServer).ReorderSSHConfigEntries(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ConfigService_ReorderSSHConfigEntries_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServiceServer).ReorderSSHConfigEntries(ctx, req.(*ReorderSSHConfigEntriesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConfigService_ListGlobalDirectives_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListGlobalDirectivesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServiceServer).ListGlobalDirectives(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ConfigService_ListGlobalDirectives_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServiceServer).ListGlobalDirectives(ctx, req.(*ListGlobalDirectivesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConfigService_SetGlobalDirective_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetGlobalDirectiveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServiceServer).SetGlobalDirective(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ConfigService_SetGlobalDirective_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServiceServer).SetGlobalDirective(ctx, req.(*SetGlobalDirectiveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConfigService_DeleteGlobalDirective_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteGlobalDirectiveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServiceServer).DeleteGlobalDirective(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ConfigService_DeleteGlobalDirective_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServiceServer).DeleteGlobalDirective(ctx, req.(*DeleteGlobalDirectiveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ConfigService_ListHostConfigs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -528,6 +838,42 @@ var ConfigService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "skeys.v1.ConfigService",
 	HandlerType: (*ConfigServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListSSHConfigEntries",
+			Handler:    _ConfigService_ListSSHConfigEntries_Handler,
+		},
+		{
+			MethodName: "GetSSHConfigEntry",
+			Handler:    _ConfigService_GetSSHConfigEntry_Handler,
+		},
+		{
+			MethodName: "CreateSSHConfigEntry",
+			Handler:    _ConfigService_CreateSSHConfigEntry_Handler,
+		},
+		{
+			MethodName: "UpdateSSHConfigEntry",
+			Handler:    _ConfigService_UpdateSSHConfigEntry_Handler,
+		},
+		{
+			MethodName: "DeleteSSHConfigEntry",
+			Handler:    _ConfigService_DeleteSSHConfigEntry_Handler,
+		},
+		{
+			MethodName: "ReorderSSHConfigEntries",
+			Handler:    _ConfigService_ReorderSSHConfigEntries_Handler,
+		},
+		{
+			MethodName: "ListGlobalDirectives",
+			Handler:    _ConfigService_ListGlobalDirectives_Handler,
+		},
+		{
+			MethodName: "SetGlobalDirective",
+			Handler:    _ConfigService_SetGlobalDirective_Handler,
+		},
+		{
+			MethodName: "DeleteGlobalDirective",
+			Handler:    _ConfigService_DeleteGlobalDirective_Handler,
+		},
 		{
 			MethodName: "ListHostConfigs",
 			Handler:    _ConfigService_ListHostConfigs_Handler,

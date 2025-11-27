@@ -8,7 +8,20 @@ import "google/protobuf/empty.proto";
 import "skeys/v1/common.proto";
 
 service ConfigService {
-  // SSH Client Config (~/.ssh/config)
+  // SSH Client Config - New unified API (~/.ssh/config)
+  rpc ListSSHConfigEntries(ListSSHConfigEntriesRequest) returns (ListSSHConfigEntriesResponse);
+  rpc GetSSHConfigEntry(GetSSHConfigEntryRequest) returns (SSHConfigEntry);
+  rpc CreateSSHConfigEntry(CreateSSHConfigEntryRequest) returns (SSHConfigEntry);
+  rpc UpdateSSHConfigEntry(UpdateSSHConfigEntryRequest) returns (SSHConfigEntry);
+  rpc DeleteSSHConfigEntry(DeleteSSHConfigEntryRequest) returns (google.protobuf.Empty);
+  rpc ReorderSSHConfigEntries(ReorderSSHConfigEntriesRequest) returns (ListSSHConfigEntriesResponse);
+
+  // SSH Client Config - Global directives (options outside Host/Match blocks)
+  rpc ListGlobalDirectives(ListGlobalDirectivesRequest) returns (ListGlobalDirectivesResponse);
+  rpc SetGlobalDirective(SetGlobalDirectiveRequest) returns (GlobalDirective);
+  rpc DeleteGlobalDirective(DeleteGlobalDirectiveRequest) returns (google.protobuf.Empty);
+
+  // SSH Client Config - Legacy API (backward compatibility)
   rpc ListHostConfigs(ListHostConfigsRequest) returns (ListHostConfigsResponse);
   rpc GetHostConfig(GetHostConfigRequest) returns (HostConfig);
   rpc CreateHostConfig(CreateHostConfigRequest) returns (HostConfig);
@@ -29,6 +42,74 @@ service ConfigService {
   rpc RestartSSHService(RestartSSHServiceRequest) returns (RestartSSHServiceResponse);
 }
 
+// New unified SSH config entry supporting both Host and Match blocks
+enum SSHConfigEntryType {
+  SSH_CONFIG_ENTRY_TYPE_UNSPECIFIED = 0;
+  SSH_CONFIG_ENTRY_TYPE_HOST = 1;
+  SSH_CONFIG_ENTRY_TYPE_MATCH = 2;
+}
+
+message SSHConfigEntry {
+  string id = 1;                          // Stable hash-based ID
+  SSHConfigEntryType type = 2;            // Host or Match
+  int32 position = 3;                     // Order in config file (0-based)
+  repeated string patterns = 4;           // Host patterns or Match criteria parts
+  SSHOptions options = 5;                 // Configuration options
+}
+
+message SSHOptions {
+  string hostname = 1;
+  int32 port = 2;
+  string user = 3;
+  repeated string identity_files = 4;
+  string proxy_jump = 5;
+  string proxy_command = 6;
+  bool forward_agent = 7;
+  bool identities_only = 8;
+  string strict_host_key_checking = 9;
+  int32 server_alive_interval = 10;
+  int32 server_alive_count_max = 11;
+  bool compression = 12;
+  map<string, string> extra_options = 100;
+}
+
+// New API request/response messages
+message ListSSHConfigEntriesRequest {
+  Target target = 1;
+}
+
+message ListSSHConfigEntriesResponse {
+  repeated SSHConfigEntry entries = 1;
+}
+
+message GetSSHConfigEntryRequest {
+  Target target = 1;
+  string id = 2;
+}
+
+message CreateSSHConfigEntryRequest {
+  Target target = 1;
+  SSHConfigEntry entry = 2;
+  int32 insert_position = 3;  // -1 means append at end
+}
+
+message UpdateSSHConfigEntryRequest {
+  Target target = 1;
+  string id = 2;
+  SSHConfigEntry entry = 3;
+}
+
+message DeleteSSHConfigEntryRequest {
+  Target target = 1;
+  string id = 2;
+}
+
+message ReorderSSHConfigEntriesRequest {
+  Target target = 1;
+  repeated string entry_ids = 2;  // Entry IDs in new order
+}
+
+// Legacy HostConfig message (backward compatibility)
 message HostConfig {
   string alias = 1;
   string hostname = 2;
@@ -157,4 +238,29 @@ message DisableSshConfigRequest {}
 message DisableSshConfigResponse {
   bool success = 1;
   string message = 2;
+}
+
+// Global directives messages (options outside Host/Match blocks in ~/.ssh/config)
+message GlobalDirective {
+  string key = 1;
+  string value = 2;
+}
+
+message ListGlobalDirectivesRequest {
+  Target target = 1;
+}
+
+message ListGlobalDirectivesResponse {
+  repeated GlobalDirective directives = 1;
+}
+
+message SetGlobalDirectiveRequest {
+  Target target = 1;
+  string key = 2;
+  string value = 3;
+}
+
+message DeleteGlobalDirectiveRequest {
+  Target target = 1;
+  string key = 2;
 }

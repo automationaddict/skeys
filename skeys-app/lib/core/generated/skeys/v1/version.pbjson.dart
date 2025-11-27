@@ -1,13 +1,15 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: skeys/v1/version.proto
-//
-// @dart = 2.12
+// Generated from skeys/v1/version.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
+// ignore_for_file: unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -31,4 +33,3 @@ final $typed_data.Uint8List versionInfoDescriptor = $convert.base64Decode(
     '1kYWVtb25fY29tbWl0GAIgASgJUgxkYWVtb25Db21taXQSHQoKZ29fdmVyc2lvbhgDIAEoCVIJ'
     'Z29WZXJzaW9uEiEKDGNvcmVfdmVyc2lvbhgEIAEoCVILY29yZVZlcnNpb24SHwoLY29yZV9jb2'
     '1taXQYBSABKAlSCmNvcmVDb21taXQ=');
-
