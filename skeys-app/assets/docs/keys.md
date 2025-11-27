@@ -43,6 +43,11 @@ When you connect to a server, it challenges your private key to prove your ident
 3. Select the key type (ED25519 recommended)
 4. Optionally add a comment to identify the key
 5. Optionally set a passphrase for extra security
+6. Check **Add to SSH agent** to automatically load the key after creation
+
+### Add to SSH Agent
+
+When generating a new key, you can enable the **Add to SSH agent** option to immediately load the key into the agent. This is convenient when you want to use the key right away without manually adding it later.
 
 ### Passphrases
 
@@ -58,6 +63,41 @@ Click the menu on any key and select **Copy Public Key** to copy it to your clip
 
 ### Delete Keys
 Remove keys you no longer need. This action is irreversible - the key pair will be permanently deleted from your system.
+
+### Add to Agent
+Click the menu on any key and select **Add to Agent** to load the key into the SSH agent. The agent holds your keys in memory so you can use them without re-entering your passphrase for each connection.
+
+- **Keys without passphrase**: Added immediately to the agent
+- **Passphrase-protected keys**: You'll be prompted to enter the passphrase before the key is loaded
+
+Keys loaded in the agent are indicated by the shield icon. The key timeout setting (configured in Settings) determines how long the key remains in the agent.
+
+### Test Connection
+Click the menu on any key and select **Test Connection** to verify your key works with a remote server. This is useful for confirming your key is properly configured before using it for actual work.
+
+#### Service Presets
+Quick-select buttons for common Git hosting services:
+- **GitHub**: Tests connection to `github.com` as user `git`
+- **GitLab**: Tests connection to `gitlab.com` as user `git`
+- **Bitbucket**: Tests connection to `bitbucket.org` as user `git`
+
+#### Custom Host
+Select **Custom** to test against any SSH server:
+- **Host**: The server hostname or IP address
+- **User**: The SSH username
+- **Port**: The SSH port (default: 22)
+
+#### Connection Results
+After testing, you'll see:
+- **Success/Failure status**: Whether authentication succeeded
+- **Message**: Details about the connection result (e.g., GitHub shows your username)
+- **Server Version**: The SSH server software version
+- **Latency**: Round-trip connection time in milliseconds
+
+#### Notes
+- The key must be loaded in the SSH agent before testing
+- For passphrase-protected keys, add the key to the agent first
+- Connection tests use a 10-second timeout
 
 ## Key Indicators
 

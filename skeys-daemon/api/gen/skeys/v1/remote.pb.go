@@ -646,6 +646,7 @@ type TestRemoteConnectionRequest struct {
 	User           string                 `protobuf:"bytes,4,opt,name=user,proto3" json:"user,omitempty"`
 	IdentityFile   string                 `protobuf:"bytes,5,opt,name=identity_file,json=identityFile,proto3" json:"identity_file,omitempty"`
 	TimeoutSeconds int32                  `protobuf:"varint,6,opt,name=timeout_seconds,json=timeoutSeconds,proto3" json:"timeout_seconds,omitempty"`
+	Passphrase     string                 `protobuf:"bytes,7,opt,name=passphrase,proto3" json:"passphrase,omitempty"` // Passphrase for encrypted key (optional)
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -720,6 +721,13 @@ func (x *TestRemoteConnectionRequest) GetTimeoutSeconds() int32 {
 		return x.TimeoutSeconds
 	}
 	return 0
+}
+
+func (x *TestRemoteConnectionRequest) GetPassphrase() string {
+	if x != nil {
+		return x.Passphrase
+	}
+	return ""
 }
 
 type TestRemoteConnectionResponse struct {
@@ -1179,14 +1187,17 @@ const file_skeys_v1_remote_proto_rawDesc = "" +
 	"\ridentity_file\x18\x06 \x01(\tR\fidentityFile\x12(\n" +
 	"\x10ssh_config_alias\x18\a \x01(\tR\x0esshConfigAlias\"%\n" +
 	"\x13DeleteRemoteRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\xc4\x01\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\xe4\x01\n" +
 	"\x1bTestRemoteConnectionRequest\x12\x1b\n" +
 	"\tremote_id\x18\x01 \x01(\tR\bremoteId\x12\x12\n" +
 	"\x04host\x18\x02 \x01(\tR\x04host\x12\x12\n" +
 	"\x04port\x18\x03 \x01(\x05R\x04port\x12\x12\n" +
 	"\x04user\x18\x04 \x01(\tR\x04user\x12#\n" +
 	"\ridentity_file\x18\x05 \x01(\tR\fidentityFile\x12'\n" +
-	"\x0ftimeout_seconds\x18\x06 \x01(\x05R\x0etimeoutSeconds\"\x98\x01\n" +
+	"\x0ftimeout_seconds\x18\x06 \x01(\x05R\x0etimeoutSeconds\x12\x1e\n" +
+	"\n" +
+	"passphrase\x18\a \x01(\tR\n" +
+	"passphrase\"\x98\x01\n" +
 	"\x1cTestRemoteConnectionResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12%\n" +

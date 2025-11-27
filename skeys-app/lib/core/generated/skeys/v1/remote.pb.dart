@@ -788,6 +788,7 @@ class TestRemoteConnectionRequest extends $pb.GeneratedMessage {
     $core.String? user,
     $core.String? identityFile,
     $core.int? timeoutSeconds,
+    $core.String? passphrase,
   }) {
     final $result = create();
     if (remoteId != null) {
@@ -808,6 +809,9 @@ class TestRemoteConnectionRequest extends $pb.GeneratedMessage {
     if (timeoutSeconds != null) {
       $result.timeoutSeconds = timeoutSeconds;
     }
+    if (passphrase != null) {
+      $result.passphrase = passphrase;
+    }
     return $result;
   }
   TestRemoteConnectionRequest._() : super();
@@ -821,6 +825,7 @@ class TestRemoteConnectionRequest extends $pb.GeneratedMessage {
     ..aOS(4, _omitFieldNames ? '' : 'user')
     ..aOS(5, _omitFieldNames ? '' : 'identityFile')
     ..a<$core.int>(6, _omitFieldNames ? '' : 'timeoutSeconds', $pb.PbFieldType.O3)
+    ..aOS(7, _omitFieldNames ? '' : 'passphrase')
     ..hasRequiredFields = false
   ;
 
@@ -898,6 +903,15 @@ class TestRemoteConnectionRequest extends $pb.GeneratedMessage {
   $core.bool hasTimeoutSeconds() => $_has(5);
   @$pb.TagNumber(6)
   void clearTimeoutSeconds() => clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.String get passphrase => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set passphrase($core.String v) { $_setString(6, v); }
+  @$pb.TagNumber(7)
+  $core.bool hasPassphrase() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearPassphrase() => clearField(7);
 }
 
 class TestRemoteConnectionResponse extends $pb.GeneratedMessage {

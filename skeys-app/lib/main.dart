@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
+import 'package:toastification/toastification.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'core/di/injection.dart';
@@ -168,27 +169,29 @@ class _SKeysAppState extends State<SKeysApp> {
         BlocProvider(create: (_) => getIt<AgentBloc>()),
         BlocProvider(create: (_) => getIt<RemoteBloc>()),
       ],
-      child: ListenableBuilder(
-        listenable: _settingsService,
-        builder: (context, _) {
-          final textScale = _settingsService.textScale;
-          return MaterialApp.router(
-            title: 'SKeys - SSH Key Manager',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.system,
-            routerConfig: appRouter,
-            builder: (context, child) {
-              return MediaQuery(
-                data: MediaQuery.of(context).copyWith(
-                  textScaler: TextScaler.linear(textScale.scale),
-                ),
-                child: child!,
-              );
-            },
-          );
-        },
+      child: ToastificationWrapper(
+        child: ListenableBuilder(
+          listenable: _settingsService,
+          builder: (context, _) {
+            final textScale = _settingsService.textScale;
+            return MaterialApp.router(
+              title: 'SKeys - SSH Key Manager',
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: ThemeMode.system,
+              routerConfig: appRouter,
+              builder: (context, child) {
+                return MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    textScaler: TextScaler.linear(textScale.scale),
+                  ),
+                  child: child!,
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

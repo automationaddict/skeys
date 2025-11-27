@@ -17,13 +17,15 @@ import (
 // RemoteServiceAdapter adapts the remote service to the gRPC RemoteService interface.
 type RemoteServiceAdapter struct {
 	pb.UnimplementedRemoteServiceServer
-	pool *remote.ConnectionPool
+	pool            *remote.ConnectionPool
+	agentSocketPath string
 }
 
 // NewRemoteServiceAdapter creates a new remote service adapter
-func NewRemoteServiceAdapter(pool *remote.ConnectionPool) *RemoteServiceAdapter {
+func NewRemoteServiceAdapter(pool *remote.ConnectionPool, agentSocketPath string) *RemoteServiceAdapter {
 	return &RemoteServiceAdapter{
-		pool: pool,
+		pool:            pool,
+		agentSocketPath: agentSocketPath,
 	}
 }
 
@@ -57,12 +59,18 @@ func (a *RemoteServiceAdapter) DeleteRemote(ctx context.Context, req *pb.DeleteR
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRemote not implemented")
 }
 
-// TestConnection tests connectivity to a remote host
+// TestConnection tests connectivity to a remote host with real SSH authentication
 func (a *RemoteServiceAdapter) TestConnection(ctx context.Context, req *pb.TestRemoteConnectionRequest) (*pb.TestRemoteConnectionResponse, error) {
 	cfg := remote.ConnectionConfig{
-		Host: req.GetHost(),
-		Port: int(req.GetPort()),
-		User: req.GetUser(),
+		Host:           req.GetHost(),
+		Port:           int(req.GetPort()),
+		User:           req.GetUser(),
+		AgentSocket:    a.agentSocketPath,
+		PrivateKeyPath: req.GetIdentityFile(),
+	}
+
+	if req.GetPassphrase() != "" {
+		cfg.Passphrase = []byte(req.GetPassphrase())
 	}
 
 	if cfg.Port == 0 {
@@ -73,22 +81,16 @@ func (a *RemoteServiceAdapter) TestConnection(ctx context.Context, req *pb.TestR
 		cfg.Timeout = time.Duration(req.GetTimeoutSeconds()) * time.Second
 	}
 
-	start := time.Now()
-	err := remote.TestConnection(ctx, cfg)
-	latency := time.Since(start).Milliseconds()
-
+	result, err := remote.TestConnection(ctx, cfg)
 	if err != nil {
-		return &pb.TestRemoteConnectionResponse{
-			Success:   false,
-			Message:   err.Error(),
-			LatencyMs: int32(latency),
-		}, nil
+		return nil, status.Errorf(codes.Internal, "test connection failed: %v", err)
 	}
 
 	return &pb.TestRemoteConnectionResponse{
-		Success:   true,
-		Message:   "Connection successful",
-		LatencyMs: int32(latency),
+		Success:       result.Success,
+		Message:       result.Message,
+		ServerVersion: result.ServerVersion,
+		LatencyMs:     int32(result.LatencyMs),
 	}, nil
 }
 

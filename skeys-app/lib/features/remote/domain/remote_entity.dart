@@ -101,3 +101,21 @@ class CommandResult extends Equatable {
   @override
   List<Object?> get props => [exitCode, stdout, stderr];
 }
+
+/// Result of testing an SSH connection.
+class TestConnectionResult extends Equatable {
+  final bool success;
+  final String message;
+  final String? serverVersion;
+  final int? latencyMs;
+
+  const TestConnectionResult({
+    required this.success,
+    required this.message,
+    this.serverVersion,
+    this.latencyMs,
+  });
+
+  @override
+  List<Object?> get props => [success, message, serverVersion, latencyMs];
+}

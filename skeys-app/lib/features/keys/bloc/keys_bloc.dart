@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../core/logging/app_logger.dart';
+import '../../remote/repository/remote_repository.dart';
 import '../domain/key_entity.dart';
 import '../repository/keys_repository.dart';
 
@@ -11,14 +12,17 @@ part 'keys_state.dart';
 /// BLoC for managing SSH keys.
 class KeysBloc extends Bloc<KeysEvent, KeysState> {
   final KeysRepository _repository;
+  final RemoteRepository _remoteRepository;
   final AppLogger _log = AppLogger('bloc.keys');
 
-  KeysBloc(this._repository) : super(const KeysState()) {
+  KeysBloc(this._repository, this._remoteRepository) : super(const KeysState()) {
     on<KeysLoadRequested>(_onLoadRequested);
     on<KeysGenerateRequested>(_onGenerateRequested);
     on<KeysDeleteRequested>(_onDeleteRequested);
     on<KeysChangePassphraseRequested>(_onChangePassphraseRequested);
     on<KeysCopyPublicKeyRequested>(_onCopyPublicKeyRequested);
+    on<KeysTestConnectionRequested>(_onTestConnectionRequested);
+    on<KeysTestConnectionCleared>(_onTestConnectionCleared);
     _log.debug('KeysBloc initialized');
   }
 
@@ -63,6 +67,7 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
         bits: event.bits,
         comment: event.comment,
         passphrase: event.passphrase,
+        addToAgent: event.addToAgent,
       );
       _log.info('key generated successfully', {'name': event.name});
 
@@ -153,5 +158,60 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
         errorMessage: e.toString(),
       ));
     }
+  }
+
+  Future<void> _onTestConnectionRequested(
+    KeysTestConnectionRequested event,
+    Emitter<KeysState> emit,
+  ) async {
+    _log.info('testing connection', {
+      'keyPath': event.keyPath,
+      'host': event.host,
+      'port': event.port,
+      'user': event.user,
+    });
+    emit(state.copyWith(status: KeysStatus.testingConnection, clearTestResult: true));
+
+    try {
+      final result = await _remoteRepository.testConnection(
+        host: event.host,
+        port: event.port,
+        user: event.user,
+        identityFile: event.keyPath,
+        timeoutSeconds: 10,
+        passphrase: event.passphrase,
+      );
+      _log.info('connection test completed', {
+        'success': result.success,
+        'message': result.message,
+      });
+      emit(state.copyWith(
+        status: KeysStatus.success,
+        testConnectionResult: ConnectionTestResult(
+          success: result.success,
+          message: result.message,
+          serverVersion: result.serverVersion,
+          latencyMs: result.latencyMs,
+          host: event.host,
+        ),
+      ));
+    } catch (e, st) {
+      _log.error('connection test failed', e, st, {'host': event.host});
+      emit(state.copyWith(
+        status: KeysStatus.success,
+        testConnectionResult: ConnectionTestResult(
+          success: false,
+          message: e.toString(),
+          host: event.host,
+        ),
+      ));
+    }
+  }
+
+  void _onTestConnectionCleared(
+    KeysTestConnectionCleared event,
+    Emitter<KeysState> emit,
+  ) {
+    emit(state.copyWith(clearTestResult: true));
   }
 }

@@ -22,6 +22,7 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
   KeyType _selectedType = KeyType.ed25519;
   int? _selectedBits;
   bool _showPassphrase = false;
+  bool _addToAgent = false;
 
   @override
   void dispose() {
@@ -169,6 +170,19 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
                   },
                 ),
               ],
+              const SizedBox(height: 16),
+              CheckboxListTile(
+                value: _addToAgent,
+                onChanged: (value) {
+                  setState(() {
+                    _addToAgent = value ?? false;
+                  });
+                },
+                title: const Text('Add to SSH agent'),
+                subtitle: const Text('Load the key into the agent after creation'),
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
             ],
           ),
         ),
@@ -194,6 +208,7 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
             bits: _selectedBits,
             comment: _commentController.text.isNotEmpty ? _commentController.text : null,
             passphrase: _passphraseController.text.isNotEmpty ? _passphraseController.text : null,
+            addToAgent: _addToAgent,
           ));
       Navigator.of(context).pop();
     }

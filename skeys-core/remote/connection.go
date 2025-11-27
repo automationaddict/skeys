@@ -5,12 +5,15 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/johnnelson/skeys-core/logging"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/agent"
 )
 
 // Connection represents an active SSH connection
@@ -37,6 +40,7 @@ type ConnectionConfig struct {
 	PrivateKeyPath string
 	Passphrase     []byte
 	Timeout        time.Duration
+	AgentSocket    string // Path to SSH agent socket for agent-based auth
 }
 
 // ConnectionPool manages a pool of SSH connections
@@ -384,8 +388,16 @@ func generateID() string {
 	return fmt.Sprintf("%d", time.Now().UnixNano())
 }
 
-// TestConnection tests connectivity to a host without storing the connection
-func TestConnection(ctx context.Context, cfg ConnectionConfig) error {
+// TestResult contains the result of a connection test
+type TestResult struct {
+	Success       bool
+	Message       string
+	ServerVersion string
+	LatencyMs     int64
+}
+
+// TestConnection tests SSH connectivity to a host with real authentication
+func TestConnection(ctx context.Context, cfg ConnectionConfig) (*TestResult, error) {
 	if cfg.Port == 0 {
 		cfg.Port = 22
 	}
@@ -393,13 +405,154 @@ func TestConnection(ctx context.Context, cfg ConnectionConfig) error {
 		cfg.Timeout = 10 * time.Second
 	}
 
-	// First, test TCP connectivity
-	dialer := net.Dialer{Timeout: cfg.Timeout}
-	conn, err := dialer.DialContext(ctx, "tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
-	if err != nil {
-		return fmt.Errorf("TCP connection failed: %w", err)
-	}
-	conn.Close()
+	var authMethods []ssh.AuthMethod
+	var agentConn net.Conn
 
-	return nil
+	// IMPORTANT: Add direct key auth FIRST (before agent) so the specific key is tried first
+	// This ensures we test the specific key the user selected, not all keys in the agent
+
+	// Add direct key auth if key bytes provided
+	if len(cfg.PrivateKey) > 0 {
+		var signer ssh.Signer
+		var err error
+		if len(cfg.Passphrase) > 0 {
+			signer, err = ssh.ParsePrivateKeyWithPassphrase(cfg.PrivateKey, cfg.Passphrase)
+		} else {
+			signer, err = ssh.ParsePrivateKey(cfg.PrivateKey)
+		}
+		if err != nil {
+			return &TestResult{
+				Success: false,
+				Message: fmt.Sprintf("failed to parse private key: %v", err),
+			}, nil
+		}
+		if signer != nil {
+			authMethods = append(authMethods, ssh.PublicKeys(signer))
+		}
+	}
+
+	// Load key from file if path provided
+	if cfg.PrivateKeyPath != "" {
+		keyBytes, err := os.ReadFile(cfg.PrivateKeyPath)
+		if err != nil {
+			return &TestResult{
+				Success: false,
+				Message: fmt.Sprintf("failed to read private key file: %v", err),
+			}, nil
+		}
+		var signer ssh.Signer
+		if len(cfg.Passphrase) > 0 {
+			signer, err = ssh.ParsePrivateKeyWithPassphrase(keyBytes, cfg.Passphrase)
+		} else {
+			signer, err = ssh.ParsePrivateKey(keyBytes)
+		}
+		if err != nil {
+			// Check if it's a passphrase error
+			if strings.Contains(err.Error(), "this private key is passphrase protected") ||
+				strings.Contains(err.Error(), "decryption password") {
+				return &TestResult{
+					Success: false,
+					Message: "private key is passphrase protected",
+				}, nil
+			}
+			return &TestResult{
+				Success: false,
+				Message: fmt.Sprintf("failed to parse private key: %v", err),
+			}, nil
+		}
+		if signer != nil {
+			authMethods = append(authMethods, ssh.PublicKeys(signer))
+		}
+	}
+
+	// Try agent auth as fallback if socket provided and no direct key auth worked
+	if cfg.AgentSocket != "" {
+		conn, err := net.Dial("unix", cfg.AgentSocket)
+		if err == nil {
+			agentConn = conn
+			agentClient := agent.NewClient(conn)
+			authMethods = append(authMethods, ssh.PublicKeysCallback(agentClient.Signers))
+		}
+	}
+
+	if len(authMethods) == 0 {
+		if agentConn != nil {
+			agentConn.Close()
+		}
+		return &TestResult{
+			Success: false,
+			Message: "no authentication methods available - load key into agent or provide key file",
+		}, nil
+	}
+
+	// Build SSH client config
+	sshConfig := &ssh.ClientConfig{
+		User:            cfg.User,
+		Auth:            authMethods,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // TODO: Use known_hosts
+		Timeout:         cfg.Timeout,
+	}
+
+	// Dial SSH connection
+	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
+	start := time.Now()
+	client, err := ssh.Dial("tcp", addr, sshConfig)
+	latency := time.Since(start).Milliseconds()
+
+	if agentConn != nil {
+		agentConn.Close()
+	}
+
+	if err != nil {
+		msg := err.Error()
+		// Make common errors more user-friendly
+		if strings.Contains(msg, "unable to authenticate") || strings.Contains(msg, "no supported methods remain") {
+			msg = "authentication failed - key may not be registered with the server"
+		} else if strings.Contains(msg, "connection refused") {
+			msg = "connection refused - server may be down or port may be blocked"
+		} else if strings.Contains(msg, "i/o timeout") || strings.Contains(msg, "deadline exceeded") {
+			msg = "connection timed out - server may be unreachable"
+		}
+		return &TestResult{
+			Success:   false,
+			Message:   msg,
+			LatencyMs: latency,
+		}, nil
+	}
+	defer client.Close()
+
+	serverVersion := string(client.ServerVersion())
+	message := "Authentication successful"
+
+	// Try to get server message (GitHub/GitLab sends "Hi username!")
+	session, err := client.NewSession()
+	if err == nil {
+		// Run empty command to get server response
+		output, _ := session.CombinedOutput("")
+		session.Close()
+		if len(output) > 0 {
+			// Parse output for service-specific messages
+			outStr := strings.TrimSpace(string(output))
+			// Only use the output if it looks like a friendly greeting
+			// GitHub: "Hi username! You've successfully authenticated..."
+			// GitLab: "Welcome to GitLab, @username!"
+			// Skip error-like messages (Invalid command, etc.)
+			if strings.HasPrefix(outStr, "Hi ") || strings.Contains(outStr, "Welcome") ||
+				strings.Contains(outStr, "successfully authenticated") {
+				// Extract just the first line for cleaner display
+				if idx := strings.Index(outStr, "\n"); idx > 0 {
+					message = outStr[:idx]
+				} else {
+					message = outStr
+				}
+			}
+		}
+	}
+
+	return &TestResult{
+		Success:       true,
+		Message:       message,
+		ServerVersion: serverVersion,
+		LatencyMs:     latency,
+	}, nil
 }

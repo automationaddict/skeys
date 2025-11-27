@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../backend/daemon_status_service.dart';
 import '../di/injection.dart';
+import '../notifications/app_toast.dart';
 
 /// A small indicator showing the daemon connection status.
 class DaemonStatusIndicator extends StatelessWidget {
@@ -175,12 +176,7 @@ class _DisconnectedDialog extends StatelessWidget {
                   final success = await statusService.reconnect();
                   if (success && context.mounted) {
                     Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Reconnected to daemon'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
+                    AppToast.success(context, message: 'Reconnected to daemon');
                   }
                 },
                 icon: const Icon(Icons.refresh),
@@ -244,12 +240,7 @@ class _CommandTile extends StatelessWidget {
                 tooltip: 'Copy to clipboard',
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: command));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Copied: $command'),
-                      duration: const Duration(seconds: 1),
-                    ),
-                  );
+                  AppToast.info(context, message: 'Copied: $command', duration: const Duration(seconds: 1));
                 },
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(

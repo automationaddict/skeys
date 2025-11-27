@@ -98,7 +98,7 @@ Future<void> configureDependencies() async {
   // BLoCs
   _log.debug('registering BLoCs');
   getIt.registerFactory<KeysBloc>(
-    () => KeysBloc(getIt<KeysRepository>()),
+    () => KeysBloc(getIt<KeysRepository>(), getIt<RemoteRepository>()),
   );
   getIt.registerFactory<ConfigBloc>(
     () => ConfigBloc(getIt<ConfigRepository>()),

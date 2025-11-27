@@ -20,6 +20,7 @@ final class KeysGenerateRequested extends KeysEvent {
   final int? bits;
   final String? comment;
   final String? passphrase;
+  final bool addToAgent;
 
   const KeysGenerateRequested({
     required this.name,
@@ -27,10 +28,11 @@ final class KeysGenerateRequested extends KeysEvent {
     this.bits,
     this.comment,
     this.passphrase,
+    this.addToAgent = false,
   });
 
   @override
-  List<Object?> get props => [name, type, bits, comment, passphrase];
+  List<Object?> get props => [name, type, bits, comment, passphrase, addToAgent];
 }
 
 /// Delete an SSH key.
@@ -67,4 +69,29 @@ final class KeysCopyPublicKeyRequested extends KeysEvent {
 
   @override
   List<Object?> get props => [path];
+}
+
+/// Test SSH connection with a key.
+final class KeysTestConnectionRequested extends KeysEvent {
+  final String keyPath;
+  final String host;
+  final int port;
+  final String user;
+  final String? passphrase;
+
+  const KeysTestConnectionRequested({
+    required this.keyPath,
+    required this.host,
+    required this.port,
+    required this.user,
+    this.passphrase,
+  });
+
+  @override
+  List<Object?> get props => [keyPath, host, port, user, passphrase];
+}
+
+/// Clear the test connection result.
+final class KeysTestConnectionCleared extends KeysEvent {
+  const KeysTestConnectionCleared();
 }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/notifications/app_toast.dart';
 import '../../../core/settings/settings_service.dart';
 import '../../agent/bloc/agent_bloc.dart';
 import '../../agent/service/agent_key_tracker.dart';
@@ -10,6 +11,8 @@ import '../bloc/keys_bloc.dart';
 import '../domain/key_entity.dart';
 import 'widgets/key_list_tile.dart';
 import 'widgets/generate_key_dialog.dart';
+import 'widgets/passphrase_dialog.dart';
+import 'widgets/test_connection_dialog.dart';
 
 /// Page displaying SSH keys.
 class KeysPage extends StatefulWidget {
@@ -45,17 +48,10 @@ class _KeysPageState extends State<KeysPage> {
         listener: (context, state) {
           if (state.copiedPublicKey != null) {
             Clipboard.setData(ClipboardData(text: state.copiedPublicKey!));
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Public key copied to clipboard')),
-            );
+            AppToast.success(context, message: 'Public key copied to clipboard');
           }
           if (state.status == KeysStatus.failure && state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage!),
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
-            );
+            AppToast.error(context, message: state.errorMessage!);
           }
         },
         builder: (context, state) {
@@ -106,6 +102,7 @@ class _KeysPageState extends State<KeysPage> {
                   },
                   onDelete: () => _confirmDelete(context, key),
                   onAddToAgent: () => _addToAgent(context, key),
+                  onTestConnection: () => _showTestConnectionDialog(context, key),
                 );
               },
             ),
@@ -156,12 +153,30 @@ class _KeysPageState extends State<KeysPage> {
     );
   }
 
-  void _addToAgent(BuildContext context, KeyEntity key) {
+  void _addToAgent(BuildContext context, KeyEntity key) async {
+    String? passphrase;
+
+    // If the key has a passphrase, prompt for it
+    if (key.hasPassphrase) {
+      passphrase = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => PassphraseDialog(keyName: key.name),
+      );
+
+      // User cancelled
+      if (passphrase == null) return;
+    }
+
+    if (!context.mounted) return;
+
     final settingsService = getIt<SettingsService>();
     final timeoutMinutes = settingsService.agentKeyTimeoutMinutes;
 
     // Add the key to the agent
-    context.read<AgentBloc>().add(AgentAddKeyRequested(keyPath: key.path));
+    context.read<AgentBloc>().add(AgentAddKeyRequested(
+      keyPath: key.path,
+      passphrase: passphrase,
+    ));
 
     // Track the key for countdown display
     if (timeoutMinutes > 0) {
@@ -170,12 +185,7 @@ class _KeysPageState extends State<KeysPage> {
     }
 
     // Show feedback
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Adding "${key.name}" to agent...'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    AppToast.info(context, message: 'Adding "${key.name}" to agent...');
 
     // Reload keys to update isInAgent status
     Future.delayed(const Duration(milliseconds: 500), () {
@@ -183,5 +193,15 @@ class _KeysPageState extends State<KeysPage> {
         context.read<KeysBloc>().add(const KeysLoadRequested());
       }
     });
+  }
+
+  void _showTestConnectionDialog(BuildContext context, KeyEntity key) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => BlocProvider.value(
+        value: context.read<KeysBloc>(),
+        child: TestConnectionDialog(keyEntity: key),
+      ),
+    );
   }
 }

@@ -20,6 +20,14 @@ abstract class RemoteRepository {
   Future<void> disconnect(String connectionId);
   Future<List<ConnectionEntity>> listConnections();
   Future<CommandResult> executeCommand(String connectionId, String command, {int? timeout});
+  Future<TestConnectionResult> testConnection({
+    required String host,
+    required int port,
+    required String user,
+    required String identityFile,
+    int? timeoutSeconds,
+    String? passphrase,
+  });
 }
 
 /// Implementation adapting gRPC to domain.
@@ -119,6 +127,33 @@ class RemoteRepositoryImpl implements RemoteRepository {
       exitCode: response.exitCode,
       stdout: response.stdout,
       stderr: response.stderr,
+    );
+  }
+
+  @override
+  Future<TestConnectionResult> testConnection({
+    required String host,
+    required int port,
+    required String user,
+    required String identityFile,
+    int? timeoutSeconds,
+    String? passphrase,
+  }) async {
+    final request = pb.TestRemoteConnectionRequest()
+      ..host = host
+      ..port = port
+      ..user = user
+      ..identityFile = identityFile;
+
+    if (timeoutSeconds != null) request.timeoutSeconds = timeoutSeconds;
+    if (passphrase != null) request.passphrase = passphrase;
+
+    final response = await _client.remote.testConnection(request);
+    return TestConnectionResult(
+      success: response.success,
+      message: response.message,
+      serverVersion: response.serverVersion.isEmpty ? null : response.serverVersion,
+      latencyMs: response.latencyMs > 0 ? response.latencyMs : null,
     );
   }
 

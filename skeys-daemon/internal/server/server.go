@@ -142,7 +142,7 @@ func New(opts ...ServerOption) (*Server, error) {
 	s.configAdapter = adapter.NewConfigServiceAdapter(clientConfig, serverConfig)
 	s.hostsAdapter = adapter.NewHostsServiceAdapter(knownHosts, authorizedKeys)
 	s.agentAdapter = adapter.NewAgentServiceAdapter(agentService, managedAgent)
-	s.remoteAdapter = adapter.NewRemoteServiceAdapter(connectionPool)
+	s.remoteAdapter = adapter.NewRemoteServiceAdapter(connectionPool, agentSocketPath)
 
 	// Register gRPC services
 	pb.RegisterKeyServiceServer(grpcServer, s.keyAdapter)

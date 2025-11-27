@@ -179,6 +179,7 @@ const TestRemoteConnectionRequest$json = {
     {'1': 'user', '3': 4, '4': 1, '5': 9, '10': 'user'},
     {'1': 'identity_file', '3': 5, '4': 1, '5': 9, '10': 'identityFile'},
     {'1': 'timeout_seconds', '3': 6, '4': 1, '5': 5, '10': 'timeoutSeconds'},
+    {'1': 'passphrase', '3': 7, '4': 1, '5': 9, '10': 'passphrase'},
   ],
 };
 
@@ -187,7 +188,8 @@ final $typed_data.Uint8List testRemoteConnectionRequestDescriptor = $convert.bas
     'ChtUZXN0UmVtb3RlQ29ubmVjdGlvblJlcXVlc3QSGwoJcmVtb3RlX2lkGAEgASgJUghyZW1vdG'
     'VJZBISCgRob3N0GAIgASgJUgRob3N0EhIKBHBvcnQYAyABKAVSBHBvcnQSEgoEdXNlchgEIAEo'
     'CVIEdXNlchIjCg1pZGVudGl0eV9maWxlGAUgASgJUgxpZGVudGl0eUZpbGUSJwoPdGltZW91dF'
-    '9zZWNvbmRzGAYgASgFUg50aW1lb3V0U2Vjb25kcw==');
+    '9zZWNvbmRzGAYgASgFUg50aW1lb3V0U2Vjb25kcxIeCgpwYXNzcGhyYXNlGAcgASgJUgpwYXNz'
+    'cGhyYXNl');
 
 @$core.Deprecated('Use testRemoteConnectionResponseDescriptor instead')
 const TestRemoteConnectionResponse$json = {

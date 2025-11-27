@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
+import '../notifications/app_toast.dart';
 import 'backup_service.dart';
 
 /// Dialog for importing SSH configuration backup.
@@ -539,7 +540,7 @@ class _ImportDialogState extends State<ImportDialog> {
 
       if (mounted) {
         Navigator.of(context).pop();
-        _showResultSnackbar(context, result);
+        _showResultToast(context, result);
       }
     } catch (e) {
       setState(() {
@@ -550,7 +551,7 @@ class _ImportDialogState extends State<ImportDialog> {
     }
   }
 
-  void _showResultSnackbar(BuildContext context, RestoreResult result) {
+  void _showResultToast(BuildContext context, RestoreResult result) {
     final message = StringBuffer();
 
     if (result.restored.isNotEmpty) {
@@ -565,12 +566,10 @@ class _ImportDialogState extends State<ImportDialog> {
       message.write('${result.errors.length} error(s)');
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message.toString()),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: result.hasErrors ? Colors.orange : null,
-      ),
-    );
+    if (result.hasErrors) {
+      AppToast.warning(context, message: message.toString());
+    } else {
+      AppToast.success(context, message: message.toString());
+    }
   }
 }

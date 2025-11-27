@@ -92,6 +92,7 @@ message TestRemoteConnectionRequest {
   string user = 4;
   string identity_file = 5;
   int32 timeout_seconds = 6;
+  string passphrase = 7;  // Passphrase for encrypted key (optional)
 }
 
 message TestRemoteConnectionResponse {

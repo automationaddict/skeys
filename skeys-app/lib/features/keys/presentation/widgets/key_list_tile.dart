@@ -10,6 +10,7 @@ class KeyListTile extends StatefulWidget {
   final VoidCallback onCopyPublicKey;
   final VoidCallback onDelete;
   final VoidCallback? onAddToAgent;
+  final VoidCallback? onTestConnection;
 
   const KeyListTile({
     super.key,
@@ -17,6 +18,7 @@ class KeyListTile extends StatefulWidget {
     required this.onCopyPublicKey,
     required this.onDelete,
     this.onAddToAgent,
+    this.onTestConnection,
   });
 
   @override
@@ -117,6 +119,9 @@ class _KeyListTileState extends State<KeyListTile>
                   case 'add_to_agent':
                     widget.onAddToAgent?.call();
                     break;
+                  case 'test_connection':
+                    widget.onTestConnection?.call();
+                    break;
                   case 'delete':
                     widget.onDelete();
                     break;
@@ -137,6 +142,15 @@ class _KeyListTileState extends State<KeyListTile>
                     child: ListTile(
                       leading: Icon(Icons.add_circle_outline),
                       title: Text('Add to Agent'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (widget.onTestConnection != null)
+                  const PopupMenuItem(
+                    value: 'test_connection',
+                    child: ListTile(
+                      leading: Icon(Icons.wifi_tethering),
+                      title: Text('Test Connection'),
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),

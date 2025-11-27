@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
+import '../notifications/app_toast.dart';
 import 'backup_service.dart';
 
 /// Dialog for exporting SSH configuration backup.
@@ -308,12 +309,7 @@ class _ExportDialogState extends State<ExportDialog> {
 
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Backup saved to ${p.basename(finalPath)}'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AppToast.success(context, message: 'Backup saved to ${p.basename(finalPath)}');
       }
     } catch (e) {
       setState(() {
