@@ -125,7 +125,7 @@ clean: proto-clean
 
 # Start the full dev environment (daemon container + Flutter app)
 tilt-up:
-    tilt up
+    COMMIT=$(git rev-parse --short HEAD) tilt up
 
 # Stop the dev environment
 tilt-down:

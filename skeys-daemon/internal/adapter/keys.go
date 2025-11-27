@@ -3,8 +3,6 @@ package adapter
 
 import (
 	"context"
-	"reflect"
-	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -167,86 +165,27 @@ func fromProtoKeyType(t pb.KeyType) keys.KeyType {
 }
 
 // WatchKeys streams key list updates to the client whenever keys change.
-// Polls every 500ms and sends updates only when the key list changes.
+// Uses filesystem watching to detect changes efficiently.
 func (a *KeyServiceAdapter) WatchKeys(req *pb.WatchKeysRequest, stream pb.KeyService_WatchKeysServer) error {
 	ctx := stream.Context()
 
-	// Track last sent response to detect changes
-	var lastKeys []*pb.SSHKey
+	// Use the core service's Watch method which uses fsnotify
+	updates := a.service.Watch(ctx)
 
-	// Send initial response immediately
-	keyList, err := a.service.List(ctx)
-	if err != nil {
-		return status.Errorf(codes.Internal, "failed to list keys: %v", err)
-	}
-
-	var pbKeys []*pb.SSHKey
-	for _, k := range keyList {
-		pbKeys = append(pbKeys, toProtoKey(k))
-	}
-
-	if err := stream.Send(&pb.ListKeysResponse{Keys: pbKeys}); err != nil {
-		return err
-	}
-	lastKeys = pbKeys
-
-	// Poll for changes
-	ticker := time.NewTicker(500 * time.Millisecond)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-ticker.C:
-			// Fetch current keys
-			keyList, err := a.service.List(ctx)
-			if err != nil {
-				// Log error but continue polling
-				continue
-			}
-
-			var currentKeys []*pb.SSHKey
-			for _, k := range keyList {
-				currentKeys = append(currentKeys, toProtoKey(k))
-			}
-
-			// Check if keys changed (compare fingerprints and in_agent status)
-			if keysChanged(lastKeys, currentKeys) {
-				if err := stream.Send(&pb.ListKeysResponse{Keys: currentKeys}); err != nil {
-					return err
-				}
-				lastKeys = currentKeys
-			}
+	for update := range updates {
+		if update.Err != nil {
+			return status.Errorf(codes.Internal, "watch error: %v", update.Err)
 		}
-	}
-}
 
-// keysChanged compares two key lists to detect changes
-func keysChanged(old, current []*pb.SSHKey) bool {
-	if len(old) != len(current) {
-		return true
-	}
-
-	// Build map of old keys by fingerprint
-	oldMap := make(map[string]*pb.SSHKey)
-	for _, k := range old {
-		oldMap[k.FingerprintSha256] = k
-	}
-
-	// Check for changes
-	for _, k := range current {
-		oldKey, exists := oldMap[k.FingerprintSha256]
-		if !exists {
-			return true
+		var pbKeys []*pb.SSHKey
+		for _, k := range update.Keys {
+			pbKeys = append(pbKeys, toProtoKey(k))
 		}
-		// Check key-specific fields that might change
-		if oldKey.InAgent != k.InAgent ||
-			oldKey.HasPassphrase != k.HasPassphrase ||
-			!reflect.DeepEqual(oldKey, k) {
-			return true
+
+		if err := stream.Send(&pb.ListKeysResponse{Keys: pbKeys}); err != nil {
+			return err
 		}
 	}
 
-	return false
+	return nil
 }

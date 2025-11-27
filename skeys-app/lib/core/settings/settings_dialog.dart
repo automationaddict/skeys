@@ -1145,12 +1145,29 @@ class _AboutTabState extends State<_AboutTab> {
 
           const SizedBox(height: 12),
 
-          // Go Backend Card
+          // Core Library Card
+          _buildVersionCard(
+            context: context,
+            icon: Icons.library_books_outlined,
+            iconColor: const Color(0xFF00ADD8),
+            title: 'Core Library',
+            isLoading: _loadingBackend,
+            rows: _backendVersion != null
+                ? [
+                    _VersionRow('Version', _backendVersion!.coreVersion),
+                    _VersionRow('Commit', _formatCommit(_backendVersion!.coreCommit)),
+                  ]
+                : [],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Go Daemon Card
           _buildVersionCard(
             context: context,
             icon: Icons.dns_outlined,
             iconColor: const Color(0xFF00ADD8),
-            title: 'Go Backend',
+            title: 'Go Daemon',
             isLoading: _loadingBackend,
             rows: _backendVersion != null
                 ? [

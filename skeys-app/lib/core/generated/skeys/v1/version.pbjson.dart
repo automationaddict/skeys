@@ -20,6 +20,8 @@ const VersionInfo$json = {
     {'1': 'daemon_version', '3': 1, '4': 1, '5': 9, '10': 'daemonVersion'},
     {'1': 'daemon_commit', '3': 2, '4': 1, '5': 9, '10': 'daemonCommit'},
     {'1': 'go_version', '3': 3, '4': 1, '5': 9, '10': 'goVersion'},
+    {'1': 'core_version', '3': 4, '4': 1, '5': 9, '10': 'coreVersion'},
+    {'1': 'core_commit', '3': 5, '4': 1, '5': 9, '10': 'coreCommit'},
   ],
 };
 
@@ -27,5 +29,6 @@ const VersionInfo$json = {
 final $typed_data.Uint8List versionInfoDescriptor = $convert.base64Decode(
     'CgtWZXJzaW9uSW5mbxIlCg5kYWVtb25fdmVyc2lvbhgBIAEoCVINZGFlbW9uVmVyc2lvbhIjCg'
     '1kYWVtb25fY29tbWl0GAIgASgJUgxkYWVtb25Db21taXQSHQoKZ29fdmVyc2lvbhgDIAEoCVIJ'
-    'Z29WZXJzaW9u');
+    'Z29WZXJzaW9uEiEKDGNvcmVfdmVyc2lvbhgEIAEoCVILY29yZVZlcnNpb24SHwoLY29yZV9jb2'
+    '1taXQYBSABKAlSCmNvcmVDb21taXQ=');
 

@@ -30,7 +30,11 @@ type VersionInfo struct {
 	// daemon_commit is the git commit hash of the build
 	DaemonCommit string `protobuf:"bytes,2,opt,name=daemon_commit,json=daemonCommit,proto3" json:"daemon_commit,omitempty"`
 	// go_version is the Go runtime version (e.g., "go1.22.0")
-	GoVersion     string `protobuf:"bytes,3,opt,name=go_version,json=goVersion,proto3" json:"go_version,omitempty"`
+	GoVersion string `protobuf:"bytes,3,opt,name=go_version,json=goVersion,proto3" json:"go_version,omitempty"`
+	// core_version is the version of skeys-core library
+	CoreVersion string `protobuf:"bytes,4,opt,name=core_version,json=coreVersion,proto3" json:"core_version,omitempty"`
+	// core_commit is the git commit hash of skeys-core
+	CoreCommit    string `protobuf:"bytes,5,opt,name=core_commit,json=coreCommit,proto3" json:"core_commit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -86,16 +90,33 @@ func (x *VersionInfo) GetGoVersion() string {
 	return ""
 }
 
+func (x *VersionInfo) GetCoreVersion() string {
+	if x != nil {
+		return x.CoreVersion
+	}
+	return ""
+}
+
+func (x *VersionInfo) GetCoreCommit() string {
+	if x != nil {
+		return x.CoreCommit
+	}
+	return ""
+}
+
 var File_skeys_v1_version_proto protoreflect.FileDescriptor
 
 const file_skeys_v1_version_proto_rawDesc = "" +
 	"\n" +
-	"\x16skeys/v1/version.proto\x12\bskeys.v1\x1a\x1bgoogle/protobuf/empty.proto\"x\n" +
+	"\x16skeys/v1/version.proto\x12\bskeys.v1\x1a\x1bgoogle/protobuf/empty.proto\"\xbc\x01\n" +
 	"\vVersionInfo\x12%\n" +
 	"\x0edaemon_version\x18\x01 \x01(\tR\rdaemonVersion\x12#\n" +
 	"\rdaemon_commit\x18\x02 \x01(\tR\fdaemonCommit\x12\x1d\n" +
 	"\n" +
-	"go_version\x18\x03 \x01(\tR\tgoVersion2M\n" +
+	"go_version\x18\x03 \x01(\tR\tgoVersion\x12!\n" +
+	"\fcore_version\x18\x04 \x01(\tR\vcoreVersion\x12\x1f\n" +
+	"\vcore_commit\x18\x05 \x01(\tR\n" +
+	"coreCommit2M\n" +
 	"\x0eVersionService\x12;\n" +
 	"\n" +
 	"GetVersion\x12\x16.google.protobuf.Empty\x1a\x15.skeys.v1.VersionInfoB7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"

@@ -129,7 +129,7 @@ func (s *Service) Status() (*AgentStatus, error) {
 	}
 
 	status.KeyCount = len(keys)
-	s.log.InfoWithFields("agent status retrieved", map[string]interface{}{
+	s.log.DebugWithFields("agent status retrieved", map[string]interface{}{
 		"running":   status.Running,
 		"locked":    status.IsLocked,
 		"key_count": status.KeyCount,
@@ -165,7 +165,7 @@ func (s *Service) ListKeys() ([]*AgentKey, error) {
 		})
 	}
 
-	s.log.InfoWithFields("listed agent keys", map[string]interface{}{
+	s.log.DebugWithFields("listed agent keys", map[string]interface{}{
 		"count": len(result),
 	})
 

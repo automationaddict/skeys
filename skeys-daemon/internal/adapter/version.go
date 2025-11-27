@@ -6,6 +6,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/emptypb"
 
+	skeyscore "github.com/johnnelson/skeys-core"
 	pb "github.com/johnnelson/skeys-daemon/api/gen/skeys/v1"
 )
 
@@ -31,5 +32,7 @@ func (a *VersionServiceAdapter) GetVersion(ctx context.Context, req *emptypb.Emp
 		DaemonVersion: a.version,
 		DaemonCommit:  a.commit,
 		GoVersion:     runtime.Version(),
+		CoreVersion:   skeyscore.Version,
+		CoreCommit:    skeyscore.Commit,
 	}, nil
 }

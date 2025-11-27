@@ -22,4 +22,10 @@ message VersionInfo {
 
   // go_version is the Go runtime version (e.g., "go1.22.0")
   string go_version = 3;
+
+  // core_version is the version of skeys-core library
+  string core_version = 4;
+
+  // core_commit is the git commit hash of skeys-core
+  string core_commit = 5;
 }

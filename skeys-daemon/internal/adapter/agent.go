@@ -4,8 +4,6 @@ package adapter
 import (
 	"context"
 	"os"
-	"reflect"
-	"time"
 
 	"golang.org/x/crypto/ssh"
 	"google.golang.org/grpc/codes"
@@ -148,94 +146,34 @@ func toProtoAgentKey(k *agent.AgentKey) *pb.AgentKey {
 }
 
 // WatchAgent streams agent status and key updates to the client whenever they change.
-// Polls every 500ms and sends updates only when status or keys change.
+// Uses event-driven notifications from ManagedAgent instead of polling.
 func (a *AgentServiceAdapter) WatchAgent(req *pb.WatchAgentRequest, stream pb.AgentService_WatchAgentServer) error {
 	ctx := stream.Context()
 
-	// Track last sent response to detect changes
-	var lastResponse *pb.WatchAgentResponse
+	// Use the managed agent's Watch method which uses event notifications
+	updates := a.managedAgent.Watch(ctx)
 
-	// Helper to build response
-	buildResponse := func() (*pb.WatchAgentResponse, error) {
-		agentStatus, err := a.service.Status()
-		if err != nil {
-			return nil, err
-		}
-
-		keyList, err := a.service.ListKeys()
-		if err != nil {
-			return nil, err
+	for update := range updates {
+		if update.Err != nil {
+			return status.Errorf(codes.Internal, "watch error: %v", update.Err)
 		}
 
 		var pbKeys []*pb.AgentKey
-		for _, k := range keyList {
+		for _, k := range update.Keys {
 			pbKeys = append(pbKeys, toProtoAgentKey(k))
 		}
 
-		return &pb.WatchAgentResponse{
-			Running:    agentStatus.Running,
-			SocketPath: agentStatus.SocketPath,
-			IsLocked:   agentStatus.IsLocked,
+		resp := &pb.WatchAgentResponse{
+			Running:    update.Status.Running,
+			SocketPath: update.Status.SocketPath,
+			IsLocked:   update.Status.IsLocked,
 			Keys:       pbKeys,
-		}, nil
-	}
+		}
 
-	// Send initial response immediately
-	resp, err := buildResponse()
-	if err != nil {
-		return status.Errorf(codes.Internal, "failed to get agent status: %v", err)
-	}
-
-	if err := stream.Send(resp); err != nil {
-		return err
-	}
-	lastResponse = resp
-
-	// Poll for changes
-	ticker := time.NewTicker(500 * time.Millisecond)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-ticker.C:
-			// Build current response
-			currentResponse, err := buildResponse()
-			if err != nil {
-				// Log error but continue polling
-				continue
-			}
-
-			// Check if agent state changed
-			if agentStateChanged(lastResponse, currentResponse) {
-				if err := stream.Send(currentResponse); err != nil {
-					return err
-				}
-				lastResponse = currentResponse
-			}
+		if err := stream.Send(resp); err != nil {
+			return err
 		}
 	}
-}
 
-// agentStateChanged compares two agent responses to detect changes
-func agentStateChanged(old, current *pb.WatchAgentResponse) bool {
-	if old == nil || current == nil {
-		return true
-	}
-
-	// Check status fields
-	if old.Running != current.Running ||
-		old.SocketPath != current.SocketPath ||
-		old.IsLocked != current.IsLocked {
-		return true
-	}
-
-	// Check key count
-	if len(old.Keys) != len(current.Keys) {
-		return true
-	}
-
-	// Check key details
-	return !reflect.DeepEqual(old.Keys, current.Keys)
+	return nil
 }

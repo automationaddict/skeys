@@ -19,6 +19,8 @@ class VersionInfo extends $pb.GeneratedMessage {
     $core.String? daemonVersion,
     $core.String? daemonCommit,
     $core.String? goVersion,
+    $core.String? coreVersion,
+    $core.String? coreCommit,
   }) {
     final $result = create();
     if (daemonVersion != null) {
@@ -30,6 +32,12 @@ class VersionInfo extends $pb.GeneratedMessage {
     if (goVersion != null) {
       $result.goVersion = goVersion;
     }
+    if (coreVersion != null) {
+      $result.coreVersion = coreVersion;
+    }
+    if (coreCommit != null) {
+      $result.coreCommit = coreCommit;
+    }
     return $result;
   }
   VersionInfo._() : super();
@@ -40,6 +48,8 @@ class VersionInfo extends $pb.GeneratedMessage {
     ..aOS(1, _omitFieldNames ? '' : 'daemonVersion')
     ..aOS(2, _omitFieldNames ? '' : 'daemonCommit')
     ..aOS(3, _omitFieldNames ? '' : 'goVersion')
+    ..aOS(4, _omitFieldNames ? '' : 'coreVersion')
+    ..aOS(5, _omitFieldNames ? '' : 'coreCommit')
     ..hasRequiredFields = false
   ;
 
@@ -93,6 +103,26 @@ class VersionInfo extends $pb.GeneratedMessage {
   $core.bool hasGoVersion() => $_has(2);
   @$pb.TagNumber(3)
   void clearGoVersion() => clearField(3);
+
+  /// core_version is the version of skeys-core library
+  @$pb.TagNumber(4)
+  $core.String get coreVersion => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set coreVersion($core.String v) { $_setString(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasCoreVersion() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearCoreVersion() => clearField(4);
+
+  /// core_commit is the git commit hash of skeys-core
+  @$pb.TagNumber(5)
+  $core.String get coreCommit => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set coreCommit($core.String v) { $_setString(4, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasCoreCommit() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearCoreCommit() => clearField(5);
 }
 
 

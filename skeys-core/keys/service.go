@@ -174,7 +174,7 @@ func (s *Service) List(ctx context.Context) ([]*Key, error) {
 		keys = append(keys, key)
 	}
 
-	s.log.InfoWithFields("listed SSH keys", map[string]interface{}{
+	s.log.DebugWithFields("listed SSH keys", map[string]interface{}{
 		"count": len(keys),
 	})
 

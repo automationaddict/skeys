@@ -2,6 +2,7 @@
 package agent
 
 import (
+	"context"
 	"crypto"
 	"fmt"
 	"io"
@@ -19,15 +20,16 @@ import (
 // Unlike system agents (like GNOME Keyring), this supports all operations
 // including individual key removal.
 type ManagedAgent struct {
-	mu         sync.RWMutex
-	keys       map[string]*managedKey // fingerprint -> key
-	locked     bool
-	lockPass   []byte
-	socketPath string
-	listener   net.Listener
-	log        *logging.Logger
-	stopChan   chan struct{}
-	wg         sync.WaitGroup
+	mu            sync.RWMutex
+	keys          map[string]*managedKey // fingerprint -> key
+	locked        bool
+	lockPass      []byte
+	socketPath    string
+	listener      net.Listener
+	log           *logging.Logger
+	stopChan      chan struct{}
+	wg            sync.WaitGroup
+	subscriptions *Subscriptions
 }
 
 // managedKey holds a private key and its metadata
@@ -52,10 +54,11 @@ func WithManagedAgentLogger(log *logging.Logger) ManagedAgentOption {
 // NewManagedAgent creates a new managed SSH agent
 func NewManagedAgent(socketPath string, opts ...ManagedAgentOption) *ManagedAgent {
 	m := &ManagedAgent{
-		keys:       make(map[string]*managedKey),
-		socketPath: socketPath,
-		log:        logging.Nop(),
-		stopChan:   make(chan struct{}),
+		keys:          make(map[string]*managedKey),
+		socketPath:    socketPath,
+		log:           logging.Nop(),
+		stopChan:      make(chan struct{}),
+		subscriptions: NewSubscriptions(),
 	}
 	for _, opt := range opts {
 		opt(m)
@@ -182,6 +185,11 @@ func (m *ManagedAgent) expireKeys() {
 			"fingerprint": fp,
 		})
 	}
+
+	// Notify watchers if any keys expired
+	if len(expired) > 0 {
+		go m.notifyChange()
+	}
 }
 
 // Implement agent.Agent interface
@@ -276,6 +284,9 @@ func (m *ManagedAgent) Add(key agent.AddedKey) error {
 		"lifetime_secs": key.LifetimeSecs,
 	})
 
+	// Notify watchers (must be done after releasing lock)
+	go m.notifyChange()
+
 	return nil
 }
 
@@ -298,6 +309,9 @@ func (m *ManagedAgent) Remove(key ssh.PublicKey) error {
 		"fingerprint": fp,
 	})
 
+	// Notify watchers
+	go m.notifyChange()
+
 	return nil
 }
 
@@ -312,6 +326,10 @@ func (m *ManagedAgent) RemoveAll() error {
 
 	m.keys = make(map[string]*managedKey)
 	m.log.Info("all keys removed from managed agent")
+
+	// Notify watchers
+	go m.notifyChange()
+
 	return nil
 }
 
@@ -328,6 +346,10 @@ func (m *ManagedAgent) Lock(passphrase []byte) error {
 	m.lockPass = make([]byte, len(passphrase))
 	copy(m.lockPass, passphrase)
 	m.log.Info("managed agent locked")
+
+	// Notify watchers
+	go m.notifyChange()
+
 	return nil
 }
 
@@ -347,6 +369,10 @@ func (m *ManagedAgent) Unlock(passphrase []byte) error {
 	m.locked = false
 	m.lockPass = nil
 	m.log.Info("managed agent unlocked")
+
+	// Notify watchers
+	go m.notifyChange()
+
 	return nil
 }
 
@@ -401,6 +427,9 @@ func (m *ManagedAgent) RemoveKeyByFingerprint(fingerprint string) error {
 	m.log.InfoWithFields("key removed from managed agent by fingerprint", map[string]interface{}{
 		"fingerprint": fingerprint,
 	})
+
+	// Notify watchers
+	go m.notifyChange()
 
 	return nil
 }
@@ -462,4 +491,41 @@ func (m *ManagedAgent) KeyCount() int {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return len(m.keys)
+}
+
+// Watch returns a channel that receives updates whenever the agent state changes.
+// Sends an initial update immediately, then on every add/remove/lock/unlock.
+// The channel is closed when the context is cancelled.
+func (m *ManagedAgent) Watch(ctx context.Context) <-chan AgentUpdate {
+	ch := m.subscriptions.Subscribe(ctx)
+
+	// Send initial state
+	go func() {
+		status := m.Status()
+		keys, _ := m.ListKeys()
+		select {
+		case <-ctx.Done():
+		default:
+			m.subscriptions.Notify(AgentUpdate{
+				Status: status,
+				Keys:   keys,
+			})
+		}
+	}()
+
+	return ch
+}
+
+// notifyChange sends an update to all watchers
+func (m *ManagedAgent) notifyChange() {
+	if m.subscriptions.Count() == 0 {
+		return
+	}
+
+	status := m.Status()
+	keys, _ := m.ListKeys()
+	m.subscriptions.Notify(AgentUpdate{
+		Status: status,
+		Keys:   keys,
+	})
 }
