@@ -9,21 +9,24 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/johnnelson/skeys-core/config"
+	"github.com/johnnelson/skeys-core/sshconfig"
 	pb "github.com/johnnelson/skeys-daemon/api/gen/skeys/v1"
 )
 
 // ConfigServiceAdapter adapts the config services to the gRPC ConfigService interface.
 type ConfigServiceAdapter struct {
 	pb.UnimplementedConfigServiceServer
-	clientConfig *config.ClientConfig
-	serverConfig *config.ServerConfigManager
+	clientConfig    *config.ClientConfig
+	serverConfig    *config.ServerConfigManager
+	sshConfigMgr    *sshconfig.Manager
 }
 
 // NewConfigServiceAdapter creates a new config service adapter
-func NewConfigServiceAdapter(client *config.ClientConfig, server *config.ServerConfigManager) *ConfigServiceAdapter {
+func NewConfigServiceAdapter(client *config.ClientConfig, server *config.ServerConfigManager, sshMgr *sshconfig.Manager) *ConfigServiceAdapter {
 	return &ConfigServiceAdapter{
-		clientConfig: client,
-		serverConfig: server,
+		clientConfig:    client,
+		serverConfig:    server,
+		sshConfigMgr:    sshMgr,
 	}
 }
 
@@ -163,6 +166,49 @@ func (a *ConfigServiceAdapter) RestartSSHService(ctx context.Context, req *pb.Re
 	return &pb.RestartSSHServiceResponse{
 		Success: true,
 		Message: "SSH service " + action + " successfully",
+	}, nil
+}
+
+// GetSshConfigStatus returns the current status of skeys SSH config integration
+func (a *ConfigServiceAdapter) GetSshConfigStatus(ctx context.Context, req *pb.GetSshConfigStatusRequest) (*pb.GetSshConfigStatusResponse, error) {
+	enabled, err := a.sshConfigMgr.IsEnabled()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to check SSH config status: %v", err)
+	}
+
+	return &pb.GetSshConfigStatusResponse{
+		Enabled:     enabled,
+		AgentSocket: a.sshConfigMgr.GetAgentSocket(),
+	}, nil
+}
+
+// EnableSshConfig enables skeys SSH config integration
+func (a *ConfigServiceAdapter) EnableSshConfig(ctx context.Context, req *pb.EnableSshConfigRequest) (*pb.EnableSshConfigResponse, error) {
+	if err := a.sshConfigMgr.Enable(); err != nil {
+		return &pb.EnableSshConfigResponse{
+			Success: false,
+			Message: err.Error(),
+		}, nil
+	}
+
+	return &pb.EnableSshConfigResponse{
+		Success: true,
+		Message: "SSH config integration enabled successfully",
+	}, nil
+}
+
+// DisableSshConfig disables skeys SSH config integration
+func (a *ConfigServiceAdapter) DisableSshConfig(ctx context.Context, req *pb.DisableSshConfigRequest) (*pb.DisableSshConfigResponse, error) {
+	if err := a.sshConfigMgr.Disable(); err != nil {
+		return &pb.DisableSshConfigResponse{
+			Success: false,
+			Message: err.Error(),
+		}, nil
+	}
+
+	return &pb.DisableSshConfigResponse{
+		Success: true,
+		Message: "SSH config integration disabled successfully",
 	}, nil
 }
 

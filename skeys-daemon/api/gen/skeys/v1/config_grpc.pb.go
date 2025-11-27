@@ -26,6 +26,9 @@ const (
 	ConfigService_UpdateHostConfig_FullMethodName     = "/skeys.v1.ConfigService/UpdateHostConfig"
 	ConfigService_DeleteHostConfig_FullMethodName     = "/skeys.v1.ConfigService/DeleteHostConfig"
 	ConfigService_TestConnection_FullMethodName       = "/skeys.v1.ConfigService/TestConnection"
+	ConfigService_GetSshConfigStatus_FullMethodName   = "/skeys.v1.ConfigService/GetSshConfigStatus"
+	ConfigService_EnableSshConfig_FullMethodName      = "/skeys.v1.ConfigService/EnableSshConfig"
+	ConfigService_DisableSshConfig_FullMethodName     = "/skeys.v1.ConfigService/DisableSshConfig"
 	ConfigService_GetServerConfig_FullMethodName      = "/skeys.v1.ConfigService/GetServerConfig"
 	ConfigService_UpdateServerConfig_FullMethodName   = "/skeys.v1.ConfigService/UpdateServerConfig"
 	ConfigService_ValidateServerConfig_FullMethodName = "/skeys.v1.ConfigService/ValidateServerConfig"
@@ -43,6 +46,11 @@ type ConfigServiceClient interface {
 	UpdateHostConfig(ctx context.Context, in *UpdateHostConfigRequest, opts ...grpc.CallOption) (*HostConfig, error)
 	DeleteHostConfig(ctx context.Context, in *DeleteHostConfigRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TestConnection(ctx context.Context, in *TestConnectionRequest, opts ...grpc.CallOption) (*TestConnectionResponse, error)
+	// Skeys SSH Agent Integration
+	// Manages the skeys managed block in ~/.ssh/config to use skeys agent for SSH
+	GetSshConfigStatus(ctx context.Context, in *GetSshConfigStatusRequest, opts ...grpc.CallOption) (*GetSshConfigStatusResponse, error)
+	EnableSshConfig(ctx context.Context, in *EnableSshConfigRequest, opts ...grpc.CallOption) (*EnableSshConfigResponse, error)
+	DisableSshConfig(ctx context.Context, in *DisableSshConfigRequest, opts ...grpc.CallOption) (*DisableSshConfigResponse, error)
 	// SSH Server Config (/etc/ssh/sshd_config)
 	GetServerConfig(ctx context.Context, in *GetServerConfigRequest, opts ...grpc.CallOption) (*ServerConfig, error)
 	UpdateServerConfig(ctx context.Context, in *UpdateServerConfigRequest, opts ...grpc.CallOption) (*ServerConfig, error)
@@ -118,6 +126,36 @@ func (c *configServiceClient) TestConnection(ctx context.Context, in *TestConnec
 	return out, nil
 }
 
+func (c *configServiceClient) GetSshConfigStatus(ctx context.Context, in *GetSshConfigStatusRequest, opts ...grpc.CallOption) (*GetSshConfigStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSshConfigStatusResponse)
+	err := c.cc.Invoke(ctx, ConfigService_GetSshConfigStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configServiceClient) EnableSshConfig(ctx context.Context, in *EnableSshConfigRequest, opts ...grpc.CallOption) (*EnableSshConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EnableSshConfigResponse)
+	err := c.cc.Invoke(ctx, ConfigService_EnableSshConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configServiceClient) DisableSshConfig(ctx context.Context, in *DisableSshConfigRequest, opts ...grpc.CallOption) (*DisableSshConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DisableSshConfigResponse)
+	err := c.cc.Invoke(ctx, ConfigService_DisableSshConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *configServiceClient) GetServerConfig(ctx context.Context, in *GetServerConfigRequest, opts ...grpc.CallOption) (*ServerConfig, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ServerConfig)
@@ -169,6 +207,11 @@ type ConfigServiceServer interface {
 	UpdateHostConfig(context.Context, *UpdateHostConfigRequest) (*HostConfig, error)
 	DeleteHostConfig(context.Context, *DeleteHostConfigRequest) (*emptypb.Empty, error)
 	TestConnection(context.Context, *TestConnectionRequest) (*TestConnectionResponse, error)
+	// Skeys SSH Agent Integration
+	// Manages the skeys managed block in ~/.ssh/config to use skeys agent for SSH
+	GetSshConfigStatus(context.Context, *GetSshConfigStatusRequest) (*GetSshConfigStatusResponse, error)
+	EnableSshConfig(context.Context, *EnableSshConfigRequest) (*EnableSshConfigResponse, error)
+	DisableSshConfig(context.Context, *DisableSshConfigRequest) (*DisableSshConfigResponse, error)
 	// SSH Server Config (/etc/ssh/sshd_config)
 	GetServerConfig(context.Context, *GetServerConfigRequest) (*ServerConfig, error)
 	UpdateServerConfig(context.Context, *UpdateServerConfigRequest) (*ServerConfig, error)
@@ -201,6 +244,15 @@ func (UnimplementedConfigServiceServer) DeleteHostConfig(context.Context, *Delet
 }
 func (UnimplementedConfigServiceServer) TestConnection(context.Context, *TestConnectionRequest) (*TestConnectionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TestConnection not implemented")
+}
+func (UnimplementedConfigServiceServer) GetSshConfigStatus(context.Context, *GetSshConfigStatusRequest) (*GetSshConfigStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSshConfigStatus not implemented")
+}
+func (UnimplementedConfigServiceServer) EnableSshConfig(context.Context, *EnableSshConfigRequest) (*EnableSshConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnableSshConfig not implemented")
+}
+func (UnimplementedConfigServiceServer) DisableSshConfig(context.Context, *DisableSshConfigRequest) (*DisableSshConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DisableSshConfig not implemented")
 }
 func (UnimplementedConfigServiceServer) GetServerConfig(context.Context, *GetServerConfigRequest) (*ServerConfig, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetServerConfig not implemented")
@@ -343,6 +395,60 @@ func _ConfigService_TestConnection_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ConfigService_GetSshConfigStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSshConfigStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServiceServer).GetSshConfigStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ConfigService_GetSshConfigStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServiceServer).GetSshConfigStatus(ctx, req.(*GetSshConfigStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConfigService_EnableSshConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnableSshConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServiceServer).EnableSshConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ConfigService_EnableSshConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServiceServer).EnableSshConfig(ctx, req.(*EnableSshConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConfigService_DisableSshConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DisableSshConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServiceServer).DisableSshConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ConfigService_DisableSshConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServiceServer).DisableSshConfig(ctx, req.(*DisableSshConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ConfigService_GetServerConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetServerConfigRequest)
 	if err := dec(in); err != nil {
@@ -445,6 +551,18 @@ var ConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TestConnection",
 			Handler:    _ConfigService_TestConnection_Handler,
+		},
+		{
+			MethodName: "GetSshConfigStatus",
+			Handler:    _ConfigService_GetSshConfigStatus_Handler,
+		},
+		{
+			MethodName: "EnableSshConfig",
+			Handler:    _ConfigService_EnableSshConfig_Handler,
+		},
+		{
+			MethodName: "DisableSshConfig",
+			Handler:    _ConfigService_DisableSshConfig_Handler,
 		},
 		{
 			MethodName: "GetServerConfig",

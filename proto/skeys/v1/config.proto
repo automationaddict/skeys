@@ -16,6 +16,12 @@ service ConfigService {
   rpc DeleteHostConfig(DeleteHostConfigRequest) returns (google.protobuf.Empty);
   rpc TestConnection(TestConnectionRequest) returns (TestConnectionResponse);
 
+  // Skeys SSH Agent Integration
+  // Manages the skeys managed block in ~/.ssh/config to use skeys agent for SSH
+  rpc GetSshConfigStatus(GetSshConfigStatusRequest) returns (GetSshConfigStatusResponse);
+  rpc EnableSshConfig(EnableSshConfigRequest) returns (EnableSshConfigResponse);
+  rpc DisableSshConfig(DisableSshConfigRequest) returns (DisableSshConfigResponse);
+
   // SSH Server Config (/etc/ssh/sshd_config)
   rpc GetServerConfig(GetServerConfigRequest) returns (ServerConfig);
   rpc UpdateServerConfig(UpdateServerConfigRequest) returns (ServerConfig);
@@ -127,6 +133,28 @@ message RestartSSHServiceRequest {
 }
 
 message RestartSSHServiceResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Skeys SSH Agent Integration messages
+message GetSshConfigStatusRequest {}
+
+message GetSshConfigStatusResponse {
+  bool enabled = 1;
+  string agent_socket = 2;
+}
+
+message EnableSshConfigRequest {}
+
+message EnableSshConfigResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message DisableSshConfigRequest {}
+
+message DisableSshConfigResponse {
   bool success = 1;
   string message = 2;
 }

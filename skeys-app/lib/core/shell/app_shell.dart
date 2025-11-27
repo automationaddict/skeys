@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../di/injection.dart';
+import '../generated/skeys/v1/config.pb.dart';
+import '../grpc/grpc_client.dart';
 import '../help/help_panel.dart';
 import '../help/help_service.dart';
+import '../logging/app_logger.dart';
 import '../settings/settings_dialog.dart';
+import '../settings/settings_service.dart';
+import '../ssh_config/ssh_config_dialog.dart';
 import 'daemon_status_indicator.dart';
 
 /// Application shell with navigation rail.
@@ -17,8 +23,59 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
+  final _log = AppLogger('app_shell');
   final _helpService = HelpService();
+  final _settingsService = getIt<SettingsService>();
+  final _grpcClient = getIt<GrpcClient>();
   bool _showHelp = false;
+  bool _checkedSshConfig = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Check SSH config on first run after frame is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkSshConfigPrompt();
+    });
+  }
+
+  Future<void> _checkSshConfigPrompt() async {
+    // Only check once per app session
+    if (_checkedSshConfig) return;
+    _checkedSshConfig = true;
+
+    // Skip if we've already shown the prompt
+    if (_settingsService.sshConfigPromptShown) {
+      _log.debug('SSH config prompt already shown, skipping');
+      return;
+    }
+
+    try {
+      // Check if SSH config is already enabled
+      final status = await _grpcClient.config.getSshConfigStatus(
+        GetSshConfigStatusRequest(),
+      );
+
+      if (status.enabled) {
+        _log.debug('SSH config already enabled, marking prompt as shown');
+        await _settingsService.setSshConfigPromptShown(true);
+        return;
+      }
+
+      // Show the dialog
+      _log.info('showing SSH config setup dialog');
+      if (!mounted) return;
+
+      final enabled = await SshConfigDialog.show(context, _grpcClient);
+
+      // Mark as shown regardless of choice
+      await _settingsService.setSshConfigPromptShown(true);
+      _log.info('SSH config prompt completed', {'enabled': enabled});
+    } catch (e, st) {
+      _log.error('error checking SSH config status', e, st);
+      // Don't block the app on error, just log it
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

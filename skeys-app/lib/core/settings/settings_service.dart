@@ -26,6 +26,7 @@ class SettingsService extends ChangeNotifier {
   static const _keyExpirationWarningDaysKey = 'key_expiration_warning_days';
   static const _keyExpirationCriticalDaysKey = 'key_expiration_critical_days';
   static const _agentKeyTimeoutMinutesKey = 'agent_key_timeout_minutes';
+  static const _sshConfigPromptShownKey = 'ssh_config_prompt_shown';
 
   // Default window size
   static const defaultWindowWidth = 1200.0;
@@ -207,6 +208,17 @@ class SettingsService extends ChangeNotifier {
     await _prefs.setInt(_agentKeyTimeoutMinutesKey, minutes);
     _log.info('agent key timeout changed', {'minutes': minutes});
     notifyListeners();
+  }
+
+  /// Check if the SSH config prompt has been shown to the user.
+  bool get sshConfigPromptShown {
+    return _prefs.getBool(_sshConfigPromptShownKey) ?? false;
+  }
+
+  /// Mark the SSH config prompt as shown.
+  Future<void> setSshConfigPromptShown(bool shown) async {
+    await _prefs.setBool(_sshConfigPromptShownKey, shown);
+    _log.info('SSH config prompt shown', {'shown': shown});
   }
 }
 

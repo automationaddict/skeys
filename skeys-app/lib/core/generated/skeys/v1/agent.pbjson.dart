@@ -1,13 +1,15 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: skeys/v1/agent.proto
-//
-// @dart = 2.12
+// Generated from skeys/v1/agent.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
+// ignore_for_file: unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -38,7 +40,14 @@ final $typed_data.Uint8List agentKeyDescriptor = $convert.base64Decode(
 const GetAgentStatusRequest$json = {
   '1': 'GetAgentStatusRequest',
   '2': [
-    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
+    {
+      '1': 'target',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.Target',
+      '10': 'target'
+    },
   ],
 };
 
@@ -68,7 +77,14 @@ final $typed_data.Uint8List getAgentStatusResponseDescriptor = $convert.base64De
 const ListAgentKeysRequest$json = {
   '1': 'ListAgentKeysRequest',
   '2': [
-    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
+    {
+      '1': 'target',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.Target',
+      '10': 'target'
+    },
   ],
 };
 
@@ -81,7 +97,14 @@ final $typed_data.Uint8List listAgentKeysRequestDescriptor = $convert.base64Deco
 const ListAgentKeysResponse$json = {
   '1': 'ListAgentKeysResponse',
   '2': [
-    {'1': 'keys', '3': 1, '4': 3, '5': 11, '6': '.skeys.v1.AgentKey', '10': 'keys'},
+    {
+      '1': 'keys',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.skeys.v1.AgentKey',
+      '10': 'keys'
+    },
   ],
 };
 
@@ -94,10 +117,24 @@ final $typed_data.Uint8List listAgentKeysResponseDescriptor = $convert.base64Dec
 const AddKeyToAgentRequest$json = {
   '1': 'AddKeyToAgentRequest',
   '2': [
-    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
+    {
+      '1': 'target',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.Target',
+      '10': 'target'
+    },
     {'1': 'key_path', '3': 2, '4': 1, '5': 9, '10': 'keyPath'},
     {'1': 'passphrase', '3': 3, '4': 1, '5': 9, '10': 'passphrase'},
-    {'1': 'lifetime', '3': 4, '4': 1, '5': 11, '6': '.google.protobuf.Duration', '10': 'lifetime'},
+    {
+      '1': 'lifetime',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Duration',
+      '10': 'lifetime'
+    },
     {'1': 'confirm', '3': 5, '4': 1, '5': 8, '10': 'confirm'},
   ],
 };
@@ -113,34 +150,57 @@ final $typed_data.Uint8List addKeyToAgentRequestDescriptor = $convert.base64Deco
 const RemoveKeyFromAgentRequest$json = {
   '1': 'RemoveKeyFromAgentRequest',
   '2': [
-    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
+    {
+      '1': 'target',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.Target',
+      '10': 'target'
+    },
     {'1': 'fingerprint', '3': 2, '4': 1, '5': 9, '10': 'fingerprint'},
   ],
 };
 
 /// Descriptor for `RemoveKeyFromAgentRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List removeKeyFromAgentRequestDescriptor = $convert.base64Decode(
-    'ChlSZW1vdmVLZXlGcm9tQWdlbnRSZXF1ZXN0EigKBnRhcmdldBgBIAEoCzIQLnNrZXlzLnYxLl'
-    'RhcmdldFIGdGFyZ2V0EiAKC2ZpbmdlcnByaW50GAIgASgJUgtmaW5nZXJwcmludA==');
+final $typed_data.Uint8List removeKeyFromAgentRequestDescriptor =
+    $convert.base64Decode(
+        'ChlSZW1vdmVLZXlGcm9tQWdlbnRSZXF1ZXN0EigKBnRhcmdldBgBIAEoCzIQLnNrZXlzLnYxLl'
+        'RhcmdldFIGdGFyZ2V0EiAKC2ZpbmdlcnByaW50GAIgASgJUgtmaW5nZXJwcmludA==');
 
 @$core.Deprecated('Use removeAllKeysFromAgentRequestDescriptor instead')
 const RemoveAllKeysFromAgentRequest$json = {
   '1': 'RemoveAllKeysFromAgentRequest',
   '2': [
-    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
+    {
+      '1': 'target',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.Target',
+      '10': 'target'
+    },
   ],
 };
 
 /// Descriptor for `RemoveAllKeysFromAgentRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List removeAllKeysFromAgentRequestDescriptor = $convert.base64Decode(
-    'Ch1SZW1vdmVBbGxLZXlzRnJvbUFnZW50UmVxdWVzdBIoCgZ0YXJnZXQYASABKAsyEC5za2V5cy'
-    '52MS5UYXJnZXRSBnRhcmdldA==');
+final $typed_data.Uint8List removeAllKeysFromAgentRequestDescriptor =
+    $convert.base64Decode(
+        'Ch1SZW1vdmVBbGxLZXlzRnJvbUFnZW50UmVxdWVzdBIoCgZ0YXJnZXQYASABKAsyEC5za2V5cy'
+        '52MS5UYXJnZXRSBnRhcmdldA==');
 
 @$core.Deprecated('Use lockAgentRequestDescriptor instead')
 const LockAgentRequest$json = {
   '1': 'LockAgentRequest',
   '2': [
-    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
+    {
+      '1': 'target',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.Target',
+      '10': 'target'
+    },
     {'1': 'passphrase', '3': 2, '4': 1, '5': 9, '10': 'passphrase'},
   ],
 };
@@ -154,7 +214,14 @@ final $typed_data.Uint8List lockAgentRequestDescriptor = $convert.base64Decode(
 const UnlockAgentRequest$json = {
   '1': 'UnlockAgentRequest',
   '2': [
-    {'1': 'target', '3': 1, '4': 1, '5': 11, '6': '.skeys.v1.Target', '10': 'target'},
+    {
+      '1': 'target',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.Target',
+      '10': 'target'
+    },
     {'1': 'passphrase', '3': 2, '4': 1, '5': 9, '10': 'passphrase'},
   ],
 };
@@ -163,4 +230,3 @@ const UnlockAgentRequest$json = {
 final $typed_data.Uint8List unlockAgentRequestDescriptor = $convert.base64Decode(
     'ChJVbmxvY2tBZ2VudFJlcXVlc3QSKAoGdGFyZ2V0GAEgASgLMhAuc2tleXMudjEuVGFyZ2V0Ug'
     'Z0YXJnZXQSHgoKcGFzc3BocmFzZRgCIAEoCVIKcGFzc3BocmFzZQ==');
-

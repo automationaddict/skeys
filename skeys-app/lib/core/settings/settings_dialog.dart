@@ -4,6 +4,10 @@ import 'package:logger/logger.dart';
 import '../backup/export_dialog.dart';
 import '../backup/import_dialog.dart';
 import '../di/injection.dart';
+import '../generated/skeys/v1/config.pb.dart';
+import '../grpc/grpc_client.dart';
+import '../logging/app_logger.dart';
+import '../notifications/app_toast.dart';
 import 'settings_service.dart';
 
 /// Settings dialog with tabbed interface.
@@ -223,9 +227,13 @@ class _SecurityTab extends StatefulWidget {
 }
 
 class _SecurityTabState extends State<_SecurityTab> {
+  final _log = AppLogger('settings_security');
+  final _grpcClient = getIt<GrpcClient>();
   late int _warningDays;
   late int _criticalDays;
   late int _agentTimeoutMinutes;
+  bool _sshConfigEnabled = false;
+  bool _sshConfigLoading = true;
 
   @override
   void initState() {
@@ -234,6 +242,82 @@ class _SecurityTabState extends State<_SecurityTab> {
     _warningDays = settings.keyExpirationWarningDays;
     _criticalDays = settings.keyExpirationCriticalDays;
     _agentTimeoutMinutes = settings.agentKeyTimeoutMinutes;
+    _loadSshConfigStatus();
+  }
+
+  Future<void> _loadSshConfigStatus() async {
+    try {
+      final status = await _grpcClient.config.getSshConfigStatus(
+        GetSshConfigStatusRequest(),
+      );
+      if (mounted) {
+        setState(() {
+          _sshConfigEnabled = status.enabled;
+          _sshConfigLoading = false;
+        });
+      }
+    } catch (e, st) {
+      _log.error('error loading SSH config status', e, st);
+      if (mounted) {
+        setState(() => _sshConfigLoading = false);
+      }
+    }
+  }
+
+  Future<void> _toggleSshConfig(bool enable) async {
+    setState(() => _sshConfigLoading = true);
+
+    try {
+      if (enable) {
+        final response = await _grpcClient.config.enableSshConfig(
+          EnableSshConfigRequest(),
+        );
+        if (response.success) {
+          _log.info('SSH config enabled');
+          if (mounted) {
+            setState(() {
+              _sshConfigEnabled = true;
+              _sshConfigLoading = false;
+            });
+          }
+        } else {
+          _log.error('failed to enable SSH config', null, null, {
+            'message': response.message,
+          });
+          if (mounted) {
+            setState(() => _sshConfigLoading = false);
+            AppToast.error(context, message: 'Failed to enable: ${response.message}');
+          }
+        }
+      } else {
+        final response = await _grpcClient.config.disableSshConfig(
+          DisableSshConfigRequest(),
+        );
+        if (response.success) {
+          _log.info('SSH config disabled');
+          if (mounted) {
+            setState(() {
+              _sshConfigEnabled = false;
+              _sshConfigLoading = false;
+            });
+          }
+        } else {
+          _log.error('failed to disable SSH config', null, null, {
+            'message': response.message,
+          });
+          if (mounted) {
+            setState(() => _sshConfigLoading = false);
+            AppToast.error(context, message: 'Failed to disable: ${response.message}');
+          }
+        }
+      }
+    } catch (e, st) {
+      _log.error('error toggling SSH config', e, st);
+      if (mounted) {
+        setState(() => _sshConfigLoading = false);
+        AppToast.error(context, message: 'Error: $e');
+      }
+    }
   }
 
   @override
@@ -308,6 +392,25 @@ class _SecurityTabState extends State<_SecurityTab> {
 
           // Agent timeout setting
           _buildAgentTimeoutSetting(context),
+
+          const SizedBox(height: 32),
+
+          // SSH Config Integration section
+          Text(
+            'SSH Config Integration',
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Configure your system to use skeys for all SSH connections.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // SSH config toggle
+          _buildSshConfigToggle(context),
 
           const SizedBox(height: 24),
 
@@ -409,6 +512,92 @@ class _SecurityTabState extends State<_SecurityTab> {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSshConfigToggle(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.terminal, color: colorScheme.primary, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Use skeys for SSH', style: theme.textTheme.titleSmall),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Add IdentityAgent directive to ~/.ssh/config',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (_sshConfigLoading)
+                const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                Switch(
+                  value: _sshConfigEnabled,
+                  onChanged: _toggleSshConfig,
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: _sshConfigEnabled
+                  ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+                  : colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  _sshConfigEnabled
+                      ? Icons.check_circle_outline
+                      : Icons.info_outline,
+                  size: 18,
+                  color: _sshConfigEnabled
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    _sshConfigEnabled
+                        ? 'SSH commands will use keys managed by skeys'
+                        : 'Enable to use skeys as your SSH agent for git, ssh, scp, etc.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: _sshConfigEnabled
+                          ? colorScheme.onPrimaryContainer
+                          : colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

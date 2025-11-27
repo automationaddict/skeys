@@ -13,6 +13,7 @@ import (
 	"github.com/johnnelson/skeys-core/keys"
 	"github.com/johnnelson/skeys-core/logging"
 	"github.com/johnnelson/skeys-core/remote"
+	"github.com/johnnelson/skeys-core/sshconfig"
 
 	pb "github.com/johnnelson/skeys-daemon/api/gen/skeys/v1"
 	"github.com/johnnelson/skeys-daemon/internal/adapter"
@@ -137,9 +138,21 @@ func New(opts ...ServerOption) (*Server, error) {
 	s.connectionPool = connectionPool
 	s.log.Debug("connection pool initialized")
 
+	// Initialize SSH config manager for skeys agent integration
+	sshConfigLog := s.log.WithComponent("sshconfig")
+	sshConfigMgr, err := sshconfig.NewManager(
+		sshconfig.WithAgentSocket(agentSocketPath),
+		sshconfig.WithManagerLogger(sshConfigLog),
+	)
+	if err != nil {
+		s.log.Err(err, "failed to initialize SSH config manager")
+		return nil, err
+	}
+	s.log.Debug("SSH config manager initialized")
+
 	// Create adapters (logging happens through core services and gRPC interceptor)
 	s.keyAdapter = adapter.NewKeyServiceAdapter(keyService)
-	s.configAdapter = adapter.NewConfigServiceAdapter(clientConfig, serverConfig)
+	s.configAdapter = adapter.NewConfigServiceAdapter(clientConfig, serverConfig, sshConfigMgr)
 	s.hostsAdapter = adapter.NewHostsServiceAdapter(knownHosts, authorizedKeys)
 	s.agentAdapter = adapter.NewAgentServiceAdapter(agentService, managedAgent)
 	s.remoteAdapter = adapter.NewRemoteServiceAdapter(connectionPool, agentSocketPath)
