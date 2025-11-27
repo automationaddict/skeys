@@ -11,6 +11,7 @@ import 'core/di/injection.dart';
 import 'core/logging/app_logger.dart';
 import 'core/router/app_router.dart';
 import 'core/settings/settings_service.dart';
+import 'core/single_instance.dart';
 import 'core/theme/app_theme.dart';
 import 'features/keys/bloc/keys_bloc.dart';
 import 'features/config/bloc/config_bloc.dart';
@@ -34,12 +35,19 @@ void main() async {
     'log_level': logLevel.name,
   });
 
+  // Ensure only one instance can run
+  if (!await SingleInstance.acquire()) {
+    log.error('another instance is already running');
+    exit(1);
+  }
+
   // Initialize dependency injection
   try {
     await configureDependencies();
     log.info('dependencies configured successfully');
   } catch (e, st) {
     log.error('failed to configure dependencies', e, st);
+    await SingleInstance.release();
     // Show error UI instead of crashing
     runApp(ErrorApp(error: e.toString()));
     return;
