@@ -346,6 +346,12 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
       return;
     }
 
+    // If the key is already in the agent, just update metadata and close
+    if (widget.keyEntity.isInAgent) {
+      _updateMetadataAndClose();
+      return;
+    }
+
     // Get connection details from preset or custom form
     final String host;
     final int port;
@@ -370,6 +376,20 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
       user: user,
       passphrase: widget.keyEntity.hasPassphrase ? _passphraseController.text : null,
     ));
+  }
+
+  /// Called when key is already in agent - just update metadata.
+  void _updateMetadataAndClose() async {
+    await _storeServiceMetadata();
+
+    if (mounted) {
+      final serviceName = _selectedPreset?.name ?? _hostController.text;
+      AppToast.success(
+        context,
+        message: 'Service metadata updated for $serviceName',
+      );
+      Navigator.of(context).pop();
+    }
   }
 
   void _addKeyToAgent() async {

@@ -190,6 +190,9 @@ class _DisplayTabState extends State<_DisplayTab> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -197,40 +200,69 @@ class _DisplayTabState extends State<_DisplayTab> {
         children: [
           Text(
             'Text Size',
-            style: Theme.of(context).textTheme.titleMedium,
+            style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
             'Adjust the text size throughout the application for better readability.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 16),
-          ...TextScale.values.map((scale) => _buildTextScaleOption(scale)),
-          const SizedBox(height: 24),
-          // Preview
+
+          // Text scale options as styled cards
+          ...TextScale.values.map((scale) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _buildTextScaleCard(context, scale),
+          )),
+
+          const SizedBox(height: 16),
+
+          // Preview card
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Preview',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                Row(
+                  children: [
+                    Icon(Icons.preview, color: colorScheme.primary, size: 24),
+                    const SizedBox(width: 12),
+                    Text('Preview', style: theme.textTheme.titleSmall),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Sample text at ${_selectedScale.label.toLowerCase()} size',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontSize: 14 * _selectedScale.scale,
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'The quick brown fox jumps over the lazy dog.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 14 * _selectedScale.scale,
+                        ),
                       ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Currently using ${_selectedScale.label.toLowerCase()} text size (${((_selectedScale.scale * 100).round())}%)',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontSize: 12 * _selectedScale.scale,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -240,23 +272,78 @@ class _DisplayTabState extends State<_DisplayTab> {
     );
   }
 
-  Widget _buildTextScaleOption(TextScale scale) {
-    return RadioListTile<TextScale>(
-      value: scale,
-      groupValue: _selectedScale,
-      onChanged: (value) async {
-        if (value != null) {
-          setState(() => _selectedScale = value);
-          await getIt<SettingsService>().setTextScale(value);
-        }
+  Widget _buildTextScaleCard(BuildContext context, TextScale scale) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isSelected = _selectedScale == scale;
+
+    return InkWell(
+      onTap: () async {
+        setState(() => _selectedScale = scale);
+        await getIt<SettingsService>().setTextScale(scale);
       },
-      title: Text(scale.label),
-      subtitle: Text(
-        '${(scale.scale * 100).round()}%',
-        style: Theme.of(context).textTheme.bodySmall,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected
+                ? colorScheme.primary
+                : colorScheme.outline.withValues(alpha: 0.5),
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          color: isSelected
+              ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+              : null,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? colorScheme.primary.withValues(alpha: 0.1)
+                    : colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Center(
+                child: Text(
+                  'Aa',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontSize: 14 * scale.scale,
+                    color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    scale.label,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: isSelected ? colorScheme.primary : null,
+                    ),
+                  ),
+                  Text(
+                    '${(scale.scale * 100).round()}% of normal size',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(Icons.check_circle, color: colorScheme.primary, size: 24),
+          ],
+        ),
       ),
-      dense: true,
-      contentPadding: EdgeInsets.zero,
     );
   }
 }
@@ -738,6 +825,9 @@ class _LoggingTabState extends State<_LoggingTab> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -745,44 +835,129 @@ class _LoggingTabState extends State<_LoggingTab> {
         children: [
           Text(
             'Log Level',
-            style: Theme.of(context).textTheme.titleMedium,
+            style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
             'Controls the verbosity of application logs. Higher levels show more detail.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 16),
+
+          // Log level options as styled cards
           ...Level.values
               .where((l) => l != Level.off && l != Level.all && l != Level.fatal)
-              .map((level) => _buildLogLevelOption(level)),
+              .map((level) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _buildLogLevelCard(context, level),
+              )),
+
+          const SizedBox(height: 16),
+
+          // Info box
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Log level changes take effect immediately. Use Debug or Trace when troubleshooting issues.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildLogLevelOption(Level level) {
+  Widget _buildLogLevelCard(BuildContext context, Level level) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isSelected = _selectedLevel == level;
     final description = _getLogLevelDescription(level);
+    final icon = _getLogLevelIcon(level);
+    final iconColor = _getLogLevelColor(level);
 
-    return RadioListTile<Level>(
-      value: level,
-      groupValue: _selectedLevel,
-      onChanged: (value) async {
-        if (value != null) {
-          setState(() => _selectedLevel = value);
-          await getIt<SettingsService>().setLogLevel(value);
-        }
+    return InkWell(
+      onTap: () async {
+        setState(() => _selectedLevel = level);
+        await getIt<SettingsService>().setLogLevel(level);
       },
-      title: Text(_getLevelName(level)),
-      subtitle: Text(
-        description,
-        style: Theme.of(context).textTheme.bodySmall,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected
+                ? colorScheme.primary
+                : colorScheme.outline.withValues(alpha: 0.5),
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          color: isSelected
+              ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+              : null,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? iconColor.withValues(alpha: 0.15)
+                    : colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                size: 20,
+                color: isSelected ? iconColor : colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _getLevelName(level),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: isSelected ? colorScheme.primary : null,
+                    ),
+                  ),
+                  Text(
+                    description,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(Icons.check_circle, color: colorScheme.primary, size: 24),
+          ],
+        ),
       ),
-      dense: true,
-      contentPadding: EdgeInsets.zero,
     );
   }
 
@@ -817,6 +992,40 @@ class _LoggingTabState extends State<_LoggingTab> {
         return 'Errors only';
       default:
         return '';
+    }
+  }
+
+  IconData _getLogLevelIcon(Level level) {
+    switch (level) {
+      case Level.trace:
+        return Icons.all_inclusive;
+      case Level.debug:
+        return Icons.bug_report_outlined;
+      case Level.info:
+        return Icons.info_outline;
+      case Level.warning:
+        return Icons.warning_amber_outlined;
+      case Level.error:
+        return Icons.error_outline;
+      default:
+        return Icons.circle_outlined;
+    }
+  }
+
+  Color _getLogLevelColor(Level level) {
+    switch (level) {
+      case Level.trace:
+        return Colors.grey;
+      case Level.debug:
+        return Colors.blue;
+      case Level.info:
+        return Colors.green;
+      case Level.warning:
+        return Colors.orange;
+      case Level.error:
+        return Colors.red;
+      default:
+        return Colors.grey;
     }
   }
 }
