@@ -221,6 +221,7 @@ class _ExportDialogState extends State<ExportDialog> {
           child: const Text('Cancel'),
         ),
         FilledButton.icon(
+          autofocus: true,
           onPressed: _isExporting || !_hasSelection ? null : _export,
           icon: _isExporting
               ? SizedBox(

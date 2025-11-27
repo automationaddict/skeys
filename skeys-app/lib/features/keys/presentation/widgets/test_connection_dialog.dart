@@ -332,6 +332,7 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
             ),
             if (_selectedPreset != null || _useCustom)
               FilledButton(
+                autofocus: true,
                 onPressed: isLoading ? null : _onTest,
                 child: isLoading
                     ? const SizedBox(
@@ -468,6 +469,7 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
             child: const Text('Cancel'),
           ),
           FilledButton(
+            autofocus: true,
             onPressed: () {
               Navigator.of(dialogContext).pop();
               _onTestWithTrustHostKey();
@@ -564,6 +566,7 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
         ),
         actions: [
           FilledButton(
+            autofocus: true,
             onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('OK'),
           ),

@@ -2,6 +2,7 @@ import '../domain/agent_entity.dart';
 import '../../../core/grpc/grpc_client.dart';
 import '../../../core/generated/skeys/v1/agent.pb.dart' as pb;
 import '../../../core/generated/skeys/v1/common.pb.dart' as common;
+import '../../../core/generated/google/protobuf/duration.pb.dart' as pb_duration;
 
 /// Combined status and keys from agent watch stream.
 class AgentWatchState {
@@ -71,7 +72,7 @@ class AgentRepositoryImpl implements AgentRepository {
       ..confirm = confirm;
 
     if (passphrase != null) request.passphrase = passphrase;
-    // Note: lifetime would need Duration proto conversion
+    if (lifetime != null) request.lifetime = pb_duration.Duration.fromDart(lifetime);
 
     await _client.agent.addKeyToAgent(request);
   }

@@ -122,6 +122,7 @@ class _ImportDialogState extends State<ImportDialog> {
         ),
         if (_contents != null)
           FilledButton.icon(
+            autofocus: true,
             onPressed: _isRestoring || !_hasRestoreSelection ? null : _restore,
             icon: _isRestoring
                 ? SizedBox(

@@ -4,9 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/notifications/app_toast.dart';
-import '../../../../core/settings/settings_service.dart';
 import '../../../agent/bloc/agent_bloc.dart';
-import '../../../agent/service/agent_key_tracker.dart';
 import '../../../metadata/domain/key_metadata_entity.dart';
 import '../../../metadata/repository/metadata_repository.dart';
 import '../../../remote/domain/remote_entity.dart';
@@ -322,6 +320,7 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
             ),
             if (_selectedPreset != null || _useCustom)
               FilledButton(
+                autofocus: true,
                 onPressed: isLoading ? null : _onVerifyAndAdd,
                 child: isLoading
                     ? const SizedBox(
@@ -398,20 +397,11 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
       _addingToAgent = true;
     });
 
-    final settingsService = getIt<SettingsService>();
-    final timeoutMinutes = settingsService.agentKeyTimeoutMinutes;
-
     // Add key to agent
     context.read<AgentBloc>().add(AgentAddKeyRequested(
       keyPath: widget.keyEntity.path,
       passphrase: widget.keyEntity.hasPassphrase ? _passphraseController.text : null,
     ));
-
-    // Track the key for countdown display
-    if (timeoutMinutes > 0) {
-      final tracker = getIt<AgentKeyTracker>();
-      tracker.keyAdded(widget.keyEntity.fingerprint, timeoutMinutes * 60);
-    }
 
     // Store the verified service metadata
     await _storeServiceMetadata();
@@ -553,6 +543,7 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
             child: const Text('Cancel'),
           ),
           FilledButton(
+            autofocus: true,
             onPressed: () {
               Navigator.of(dialogContext).pop();
               _onVerifyWithTrustHostKey();
@@ -649,6 +640,7 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
         ),
         actions: [
           FilledButton(
+            autofocus: true,
             onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('OK'),
           ),

@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/settings/settings_service.dart';
 import '../bloc/agent_bloc.dart';
-import '../service/agent_key_tracker.dart';
 import 'key_countdown_widget.dart';
 
 /// Page for SSH agent management.
@@ -40,12 +39,6 @@ class _AgentPageState extends State<AgentPage> {
       ),
       body: BlocBuilder<AgentBloc, AgentState>(
         builder: (context, state) {
-          // Sync the key tracker with current agent keys
-          final tracker = getIt<AgentKeyTracker>();
-          tracker.syncWithAgentKeys(
-            state.loadedKeys.map((k) => k.fingerprint).toList(),
-          );
-
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -259,7 +252,10 @@ class _AgentPageState extends State<AgentPage> {
                                     style: Theme.of(context).textTheme.bodyLarge,
                                   ),
                                 ),
-                                KeyCountdownWidget(fingerprint: key.fingerprint),
+                                KeyCountdownWidget(
+                                  hasLifetime: key.hasLifetime,
+                                  lifetimeSeconds: key.lifetimeSeconds,
+                                ),
                               ],
                             ),
                             const SizedBox(height: 4),
@@ -298,6 +294,10 @@ class _AgentPageState extends State<AgentPage> {
 
   void _showLockDialog(BuildContext context) {
     final controller = TextEditingController();
+    void submit() {
+      Navigator.pop(context);
+      context.read<AgentBloc>().add(AgentLockRequested(controller.text));
+    }
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -305,7 +305,9 @@ class _AgentPageState extends State<AgentPage> {
         content: TextField(
           controller: controller,
           obscureText: true,
+          autofocus: true,
           decoration: const InputDecoration(labelText: 'Passphrase'),
+          onSubmitted: (_) => submit(),
         ),
         actions: [
           TextButton(
@@ -313,10 +315,7 @@ class _AgentPageState extends State<AgentPage> {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              context.read<AgentBloc>().add(AgentLockRequested(controller.text));
-            },
+            onPressed: submit,
             child: const Text('Lock'),
           ),
         ],
@@ -326,6 +325,10 @@ class _AgentPageState extends State<AgentPage> {
 
   void _showUnlockDialog(BuildContext context) {
     final controller = TextEditingController();
+    void submit() {
+      Navigator.pop(context);
+      context.read<AgentBloc>().add(AgentUnlockRequested(controller.text));
+    }
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -333,7 +336,9 @@ class _AgentPageState extends State<AgentPage> {
         content: TextField(
           controller: controller,
           obscureText: true,
+          autofocus: true,
           decoration: const InputDecoration(labelText: 'Passphrase'),
+          onSubmitted: (_) => submit(),
         ),
         actions: [
           TextButton(
@@ -341,10 +346,7 @@ class _AgentPageState extends State<AgentPage> {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              context.read<AgentBloc>().add(AgentUnlockRequested(controller.text));
-            },
+            onPressed: submit,
             child: const Text('Unlock'),
           ),
         ],

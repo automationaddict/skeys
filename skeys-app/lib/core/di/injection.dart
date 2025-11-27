@@ -15,7 +15,6 @@ import '../../features/hosts/bloc/hosts_bloc.dart';
 import '../../features/hosts/repository/hosts_repository.dart';
 import '../../features/agent/bloc/agent_bloc.dart';
 import '../../features/agent/repository/agent_repository.dart';
-import '../../features/agent/service/agent_key_tracker.dart';
 import '../../features/remote/bloc/remote_bloc.dart';
 import '../../features/remote/repository/remote_repository.dart';
 import '../../features/metadata/repository/metadata_repository.dart';
@@ -94,10 +93,6 @@ Future<void> configureDependencies() async {
     () => AgentRepositoryImpl(grpcClient),
   );
 
-  // Agent key tracker (tracks when keys were added for countdown display)
-  _log.debug('creating agent key tracker');
-  final agentKeyTracker = AgentKeyTracker();
-  getIt.registerSingleton<AgentKeyTracker>(agentKeyTracker);
   getIt.registerLazySingleton<RemoteRepository>(
     () => RemoteRepositoryImpl(grpcClient),
   );

@@ -189,6 +189,7 @@ class _SshConfigDialogState extends State<SshConfigDialog> {
           child: const Text('Not Now'),
         ),
         FilledButton(
+          autofocus: true,
           onPressed: _isLoading ? null : _onEnable,
           child: _isLoading
               ? const SizedBox(

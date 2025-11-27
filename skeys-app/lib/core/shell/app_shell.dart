@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../di/injection.dart';
@@ -115,92 +116,102 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final baseRoute = GoRouterState.of(context).uri.path;
 
-    return Scaffold(
-      body: Row(
-        children: [
-          NavigationRail(
-            extended: false,
-            minWidth: 72,
-            selectedIndex: _calculateSelectedIndex(context),
-            onDestinationSelected: (index) => _onItemTapped(index, context),
-            labelType: NavigationRailLabelType.all,
-            leading: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Icon(
-                Icons.vpn_key,
-                size: 32,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            trailing: Expanded(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const DaemonStatusIndicator(),
-                      const SizedBox(height: 16),
-                      IconButton(
-                        icon: Icon(
-                          _showHelp ? Icons.help : Icons.help_outline,
-                          color: _showHelp
-                              ? Theme.of(context).colorScheme.primary
-                              : null,
-                        ),
-                        tooltip: 'Help',
-                        onPressed: () => setState(() => _showHelp = !_showHelp),
-                      ),
-                      const SizedBox(height: 8),
-                      IconButton(
-                        icon: const Icon(Icons.settings_outlined),
-                        tooltip: 'Settings',
-                        onPressed: () => SettingsDialog.show(context),
-                      ),
-                    ],
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.f1): () {
+          setState(() => _showHelp = !_showHelp);
+        },
+      },
+      child: Focus(
+        autofocus: true,
+        child: Scaffold(
+          body: Row(
+            children: [
+              NavigationRail(
+                extended: false,
+                minWidth: 72,
+                selectedIndex: _calculateSelectedIndex(context),
+                onDestinationSelected: (index) => _onItemTapped(index, context),
+                labelType: NavigationRailLabelType.all,
+                leading: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Icon(
+                    Icons.vpn_key,
+                    size: 32,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
+                trailing: Expanded(
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const DaemonStatusIndicator(),
+                          const SizedBox(height: 16),
+                          IconButton(
+                            icon: Icon(
+                              _showHelp ? Icons.help : Icons.help_outline,
+                              color: _showHelp
+                                  ? Theme.of(context).colorScheme.primary
+                                  : null,
+                            ),
+                            tooltip: 'Help (F1)',
+                            onPressed: () => setState(() => _showHelp = !_showHelp),
+                          ),
+                          const SizedBox(height: 8),
+                          IconButton(
+                            icon: const Icon(Icons.settings_outlined),
+                            tooltip: 'Settings',
+                            onPressed: () => SettingsDialog.show(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                destinations: const [
+                  NavigationRailDestination(
+                    icon: Icon(Icons.key_outlined),
+                    selectedIcon: Icon(Icons.key),
+                    label: Text('Keys'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.tune_outlined),
+                    selectedIcon: Icon(Icons.tune),
+                    label: Text('Config'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.dns_outlined),
+                    selectedIcon: Icon(Icons.dns),
+                    label: Text('Hosts'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.security_outlined),
+                    selectedIcon: Icon(Icons.security),
+                    label: Text('Agent'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.cloud_outlined),
+                    selectedIcon: Icon(Icons.cloud),
+                    label: Text('Remotes'),
+                  ),
+                ],
               ),
-            ),
-            destinations: const [
-              NavigationRailDestination(
-                icon: Icon(Icons.key_outlined),
-                selectedIcon: Icon(Icons.key),
-                label: Text('Keys'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.tune_outlined),
-                selectedIcon: Icon(Icons.tune),
-                label: Text('Config'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.dns_outlined),
-                selectedIcon: Icon(Icons.dns),
-                label: Text('Hosts'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.security_outlined),
-                selectedIcon: Icon(Icons.security),
-                label: Text('Agent'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.cloud_outlined),
-                selectedIcon: Icon(Icons.cloud),
-                label: Text('Remotes'),
-              ),
+              const VerticalDivider(thickness: 1, width: 1),
+              Expanded(child: widget.child),
+              if (_showHelp) ...[
+                HelpPanel(
+                  baseRoute: baseRoute,
+                  helpService: _helpService,
+                  onClose: () => setState(() => _showHelp = false),
+                ),
+              ],
             ],
           ),
-          const VerticalDivider(thickness: 1, width: 1),
-          Expanded(child: widget.child),
-          if (_showHelp) ...[
-            HelpPanel(
-              baseRoute: baseRoute,
-              helpService: _helpService,
-              onClose: () => setState(() => _showHelp = false),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }

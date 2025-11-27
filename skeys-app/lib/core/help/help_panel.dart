@@ -467,6 +467,9 @@ class _HelpPanelState extends State<HelpPanel> {
 
   Widget _buildTopicSelector(ThemeData theme, ColorScheme colorScheme) {
     final topics = widget.helpService.availableTopics;
+    // Height for approximately 3.5 chip rows (each chip ~32px + 8px spacing)
+    const chipRowHeight = 40.0;
+    const visibleRows = 3.5;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -486,21 +489,26 @@ class _HelpPanelState extends State<HelpPanel> {
             ),
           ),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: topics.map((topic) {
-              final isSelected = topic == _currentDocName;
-              return FilterChip(
-                label: Text(_capitalizeFirst(topic)),
-                selected: isSelected,
-                onSelected: (_) => _navigateToDoc(topic),
-                avatar: Icon(
-                  _getIconForDoc(topic),
-                  size: 16,
-                ),
-              );
-            }).toList(),
+          SizedBox(
+            height: chipRowHeight * visibleRows,
+            child: SingleChildScrollView(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: topics.map((topic) {
+                  final isSelected = topic == _currentDocName;
+                  return FilterChip(
+                    label: Text(_capitalizeFirst(topic)),
+                    selected: isSelected,
+                    onSelected: (_) => _navigateToDoc(topic),
+                    avatar: Icon(
+                      _getIconForDoc(topic),
+                      size: 16,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
           ),
         ],
       ),

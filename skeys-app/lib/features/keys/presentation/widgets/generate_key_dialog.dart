@@ -193,6 +193,7 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
           child: const Text('Cancel'),
         ),
         FilledButton(
+          autofocus: true,
           onPressed: _onGenerate,
           child: const Text('Generate'),
         ),
