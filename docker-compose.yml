@@ -10,8 +10,10 @@ services:
     user: "${UID:-1000}:${GID:-1000}"
     environment:
       - HOME=${HOME}
+      - XDG_RUNTIME_DIR=/run/user/${UID:-1000}
     volumes:
       - /tmp:/tmp
+      - /run/user/${UID:-1000}:/run/user/${UID:-1000}
       - ${HOME}/.ssh:${HOME}/.ssh
       - ${HOME}/.local/share/skeys:${HOME}/.local/share/skeys
     command: ["--socket", "/tmp/skeys-dev.sock", "--log-pretty"]

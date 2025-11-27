@@ -4,8 +4,9 @@
 # Use docker-compose for the daemon
 docker_compose('docker-compose.yml')
 
-# Rebuild daemon image when Go files change
-dc_resource('daemon', trigger_mode=TRIGGER_MODE_AUTO)
+# Only rebuild daemon when manually triggered (press space in Tilt UI)
+# This prevents unwanted restarts during Flutter development
+dc_resource('daemon', trigger_mode=TRIGGER_MODE_MANUAL)
 
 # Instructions
 print("""
