@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../di/injection.dart';
-import '../settings/settings_dialog.dart';
 import '../settings/settings_service.dart';
 import 'help_context_service.dart';
 import 'help_navigation_service.dart';
@@ -52,7 +51,15 @@ class _HelpPanelState extends State<HelpPanel> {
     _panelWidth = _settingsService.helpPanelWidth;
     _helpContextService.addListener(_onContextChanged);
     _helpNavService.addListener(_onHelpNavigationChanged);
-    _overrideRoute = widget.overrideRoute;
+
+    // Check for pending help navigation (e.g., from settings dialog)
+    if (_helpNavService.pendingShowHelp && _helpNavService.pendingHelpRoute != null) {
+      _overrideRoute = _helpNavService.pendingHelpRoute;
+      _helpNavService.clearPendingHelp();
+    } else {
+      _overrideRoute = widget.overrideRoute;
+    }
+
     _updateCurrentRoute();
     _loadHelpForCurrentRoute();
   }
@@ -442,14 +449,10 @@ class _HelpPanelState extends State<HelpPanel> {
 
       switch (action) {
         case OpenSettingsAction(:final tabIndex):
-          // Close help and open settings dialog
+          // Request settings to be opened via the navigation service
+          // The AppShell will handle this after the help panel closes
+          _helpNavService.requestOpenSettings(tabIndex);
           widget.onClose();
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final context = this.context;
-            if (context.mounted) {
-              SettingsDialog.show(context, initialTab: tabIndex);
-            }
-          });
         case ShowHelpAction(:final route):
           // Navigate to the help route
           setState(() {
