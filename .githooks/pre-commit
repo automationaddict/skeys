@@ -8,6 +8,25 @@ cd "$REPO_ROOT"
 errors=0
 
 # =============================================================================
+# TOML linting
+# =============================================================================
+if command -v taplo &> /dev/null; then
+    echo "Checking TOML files..."
+    if ! taplo check *.toml 2>/dev/null; then
+        echo ""
+        echo "ERROR: TOML validation failed!"
+        echo ""
+        echo "  Run: taplo format *.toml"
+        echo ""
+        errors=1
+    else
+        echo "TOML files OK"
+    fi
+else
+    echo "WARNING: taplo not installed, skipping TOML check"
+fi
+
+# =============================================================================
 # License Headers
 # =============================================================================
 if command -v addlicense &> /dev/null; then
