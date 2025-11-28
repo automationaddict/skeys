@@ -144,6 +144,8 @@ class GetSSHStatusResponse extends $pb.GeneratedMessage {
     $core.String? distributionVersion,
     SSHClientStatus? client,
     SSHServerStatus? server,
+    NetworkInfo? network,
+    FirewallStatus? firewall,
   }) {
     final result = create();
     if (distribution != null) result.distribution = distribution;
@@ -151,6 +153,8 @@ class GetSSHStatusResponse extends $pb.GeneratedMessage {
       result.distributionVersion = distributionVersion;
     if (client != null) result.client = client;
     if (server != null) result.server = server;
+    if (network != null) result.network = network;
+    if (firewall != null) result.firewall = firewall;
     return result;
   }
 
@@ -173,6 +177,10 @@ class GetSSHStatusResponse extends $pb.GeneratedMessage {
         subBuilder: SSHClientStatus.create)
     ..aOM<SSHServerStatus>(4, _omitFieldNames ? '' : 'server',
         subBuilder: SSHServerStatus.create)
+    ..aOM<NetworkInfo>(5, _omitFieldNames ? '' : 'network',
+        subBuilder: NetworkInfo.create)
+    ..aOM<FirewallStatus>(6, _omitFieldNames ? '' : 'firewall',
+        subBuilder: FirewallStatus.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -236,6 +244,103 @@ class GetSSHStatusResponse extends $pb.GeneratedMessage {
   void clearServer() => $_clearField(4);
   @$pb.TagNumber(4)
   SSHServerStatus ensureServer() => $_ensure(3);
+
+  /// Network info
+  @$pb.TagNumber(5)
+  NetworkInfo get network => $_getN(4);
+  @$pb.TagNumber(5)
+  set network(NetworkInfo value) => $_setField(5, value);
+  @$pb.TagNumber(5)
+  $core.bool hasNetwork() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearNetwork() => $_clearField(5);
+  @$pb.TagNumber(5)
+  NetworkInfo ensureNetwork() => $_ensure(4);
+
+  /// Firewall status
+  @$pb.TagNumber(6)
+  FirewallStatus get firewall => $_getN(5);
+  @$pb.TagNumber(6)
+  set firewall(FirewallStatus value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasFirewall() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearFirewall() => $_clearField(6);
+  @$pb.TagNumber(6)
+  FirewallStatus ensureFirewall() => $_ensure(5);
+}
+
+/// Network information for SSH connections
+class NetworkInfo extends $pb.GeneratedMessage {
+  factory NetworkInfo({
+    $core.String? hostname,
+    $core.Iterable<$core.String>? ipAddresses,
+    $core.int? sshPort,
+  }) {
+    final result = create();
+    if (hostname != null) result.hostname = hostname;
+    if (ipAddresses != null) result.ipAddresses.addAll(ipAddresses);
+    if (sshPort != null) result.sshPort = sshPort;
+    return result;
+  }
+
+  NetworkInfo._();
+
+  factory NetworkInfo.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory NetworkInfo.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'NetworkInfo',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'hostname')
+    ..pPS(2, _omitFieldNames ? '' : 'ipAddresses')
+    ..aI(3, _omitFieldNames ? '' : 'sshPort')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NetworkInfo clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NetworkInfo copyWith(void Function(NetworkInfo) updates) =>
+      super.copyWith((message) => updates(message as NetworkInfo))
+          as NetworkInfo;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static NetworkInfo create() => NetworkInfo._();
+  @$core.override
+  NetworkInfo createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static NetworkInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<NetworkInfo>(create);
+  static NetworkInfo? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get hostname => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set hostname($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasHostname() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearHostname() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$core.String> get ipAddresses => $_getList(1);
+
+  @$pb.TagNumber(3)
+  $core.int get sshPort => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set sshPort($core.int value) => $_setSignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasSshPort() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearSshPort() => $_clearField(3);
 }
 
 class SSHClientStatus extends $pb.GeneratedMessage {
@@ -1329,6 +1434,97 @@ class GetInstallInstructionsResponse extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(6)
   $pb.PbList<$core.String> get steps => $_getList(5);
+}
+
+class FirewallStatus extends $pb.GeneratedMessage {
+  factory FirewallStatus({
+    FirewallType? type,
+    $core.bool? active,
+    $core.bool? sshAllowed,
+    $core.String? statusText,
+  }) {
+    final result = create();
+    if (type != null) result.type = type;
+    if (active != null) result.active = active;
+    if (sshAllowed != null) result.sshAllowed = sshAllowed;
+    if (statusText != null) result.statusText = statusText;
+    return result;
+  }
+
+  FirewallStatus._();
+
+  factory FirewallStatus.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory FirewallStatus.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'FirewallStatus',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'),
+      createEmptyInstance: create)
+    ..aE<FirewallType>(1, _omitFieldNames ? '' : 'type',
+        enumValues: FirewallType.values)
+    ..aOB(2, _omitFieldNames ? '' : 'active')
+    ..aOB(3, _omitFieldNames ? '' : 'sshAllowed')
+    ..aOS(4, _omitFieldNames ? '' : 'statusText')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  FirewallStatus clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  FirewallStatus copyWith(void Function(FirewallStatus) updates) =>
+      super.copyWith((message) => updates(message as FirewallStatus))
+          as FirewallStatus;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static FirewallStatus create() => FirewallStatus._();
+  @$core.override
+  FirewallStatus createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static FirewallStatus getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<FirewallStatus>(create);
+  static FirewallStatus? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  FirewallType get type => $_getN(0);
+  @$pb.TagNumber(1)
+  set type(FirewallType value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasType() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearType() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get active => $_getBF(1);
+  @$pb.TagNumber(2)
+  set active($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasActive() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearActive() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get sshAllowed => $_getBF(2);
+  @$pb.TagNumber(3)
+  set sshAllowed($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasSshAllowed() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearSshAllowed() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get statusText => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set statusText($core.String value) => $_setString(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasStatusText() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearStatusText() => $_clearField(4);
 }
 
 const $core.bool _omitFieldNames =

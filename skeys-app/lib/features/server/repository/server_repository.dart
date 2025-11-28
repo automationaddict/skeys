@@ -144,6 +144,8 @@ class ServerRepositoryImpl implements ServerRepository {
       distributionVersion: response.distributionVersion,
       client: _mapClientStatus(response.client),
       server: _mapServerStatus(response.server),
+      network: response.hasNetwork() ? _mapNetworkInfo(response.network) : null,
+      firewall: response.hasFirewall() ? _mapFirewallStatus(response.firewall) : null,
     );
   }
 
@@ -213,5 +215,37 @@ class ServerRepositoryImpl implements ServerRepository {
       message: response.message,
       status: response.hasStatus() ? _mapServiceStatus(response.status) : null,
     );
+  }
+
+  NetworkInfo _mapNetworkInfo(pb.NetworkInfo network) {
+    return NetworkInfo(
+      hostname: network.hostname,
+      ipAddresses: network.ipAddresses.toList(),
+      sshPort: network.sshPort,
+    );
+  }
+
+  FirewallStatus _mapFirewallStatus(pb.FirewallStatus firewall) {
+    return FirewallStatus(
+      type: _mapFirewallType(firewall.type),
+      active: firewall.active,
+      sshAllowed: firewall.sshAllowed,
+      statusText: firewall.statusText,
+    );
+  }
+
+  FirewallType _mapFirewallType(pb.FirewallType type) {
+    switch (type) {
+      case pb.FirewallType.FIREWALL_TYPE_UFW:
+        return FirewallType.ufw;
+      case pb.FirewallType.FIREWALL_TYPE_FIREWALLD:
+        return FirewallType.firewalld;
+      case pb.FirewallType.FIREWALL_TYPE_IPTABLES:
+        return FirewallType.iptables;
+      case pb.FirewallType.FIREWALL_TYPE_NONE:
+        return FirewallType.none;
+      default:
+        return FirewallType.unspecified;
+    }
   }
 }

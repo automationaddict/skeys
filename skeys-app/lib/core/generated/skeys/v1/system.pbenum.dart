@@ -67,5 +67,33 @@ class SSHComponent extends $pb.ProtobufEnum {
   const SSHComponent._(super.value, super.name);
 }
 
+class FirewallType extends $pb.ProtobufEnum {
+  static const FirewallType FIREWALL_TYPE_UNSPECIFIED =
+      FirewallType._(0, _omitEnumNames ? '' : 'FIREWALL_TYPE_UNSPECIFIED');
+  static const FirewallType FIREWALL_TYPE_UFW =
+      FirewallType._(1, _omitEnumNames ? '' : 'FIREWALL_TYPE_UFW');
+  static const FirewallType FIREWALL_TYPE_FIREWALLD =
+      FirewallType._(2, _omitEnumNames ? '' : 'FIREWALL_TYPE_FIREWALLD');
+  static const FirewallType FIREWALL_TYPE_IPTABLES =
+      FirewallType._(3, _omitEnumNames ? '' : 'FIREWALL_TYPE_IPTABLES');
+  static const FirewallType FIREWALL_TYPE_NONE =
+      FirewallType._(4, _omitEnumNames ? '' : 'FIREWALL_TYPE_NONE');
+
+  static const $core.List<FirewallType> values = <FirewallType>[
+    FIREWALL_TYPE_UNSPECIFIED,
+    FIREWALL_TYPE_UFW,
+    FIREWALL_TYPE_FIREWALLD,
+    FIREWALL_TYPE_IPTABLES,
+    FIREWALL_TYPE_NONE,
+  ];
+
+  static final $core.List<FirewallType?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 4);
+  static FirewallType? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const FirewallType._(super.value, super.name);
+}
+
 const $core.bool _omitEnumNames =
     $core.bool.fromEnvironment('protobuf.omit_enum_names');

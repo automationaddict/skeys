@@ -138,8 +138,73 @@ class _ServerPageState extends State<ServerPage> {
             _buildInfoRow('Distribution', _formatDistribution(status.distribution), theme),
             if (status.distributionVersion.isNotEmpty)
               _buildInfoRow('Version', status.distributionVersion, theme),
+            // Network information
+            if (status.network != null) ...[
+              if (status.network!.hostname.isNotEmpty)
+                _buildInfoRow('Hostname', status.network!.hostname, theme, copyable: true),
+              if (status.network!.ipAddresses.isNotEmpty)
+                _buildInfoRow('IP Address', status.network!.ipAddresses.join(', '), theme, copyable: true),
+              _buildInfoRow('SSH Port', status.network!.sshPort.toString(), theme),
+            ],
+            // Firewall status
+            if (status.firewall != null)
+              _buildFirewallRow(theme, colorScheme, status.firewall!),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFirewallRow(ThemeData theme, ColorScheme colorScheme, FirewallStatus firewall) {
+    String firewallName;
+    switch (firewall.type) {
+      case FirewallType.ufw:
+        firewallName = 'UFW';
+      case FirewallType.firewalld:
+        firewallName = 'firewalld';
+      case FirewallType.iptables:
+        firewallName = 'iptables';
+      case FirewallType.none:
+        firewallName = 'None';
+      default:
+        firewallName = 'Unknown';
+    }
+
+    final statusText = firewall.type == FirewallType.none
+        ? 'No firewall detected'
+        : firewall.active
+            ? '$firewallName (active)'
+            : '$firewallName (inactive)';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              'Firewall',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                Text(statusText, style: theme.textTheme.bodyMedium),
+                const SizedBox(width: 8),
+                if (firewall.type != FirewallType.none && firewall.active)
+                  _buildStatusChip(
+                    firewall.sshAllowed ? 'SSH Allowed' : 'SSH Blocked',
+                    firewall.sshAllowed,
+                    colorScheme,
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

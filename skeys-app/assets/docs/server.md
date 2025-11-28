@@ -6,7 +6,38 @@ The Server page displays the status of your SSH client and server installations,
 
 ## System Information
 
-Shows your Linux distribution and version. SKeys uses this to provide appropriate installation instructions if SSH components are missing.
+Shows your Linux distribution and version, along with network information relevant to SSH connections.
+
+### Network Information
+
+The System Information card displays:
+
+- **Hostname**: Your machine's hostname (useful for SSH connection commands)
+- **IP Address**: Non-loopback IP addresses on your system. Share these with users who need to connect to your machine.
+- **SSH Port**: The port SSH is configured to listen on (default: 22). This is parsed from `/etc/ssh/sshd_config`.
+
+### Firewall Status
+
+Shows the status of your system firewall and whether SSH traffic is allowed:
+
+- **UFW** (Ubuntu Uncomplicated Firewall): Common on Ubuntu/Debian systems
+- **firewalld**: Common on Fedora/RHEL systems
+- **None**: No firewall manager detected
+
+If a firewall is active, you'll see whether SSH is allowed through:
+- **SSH Allowed** (green): Port 22 is open for connections
+- **SSH Blocked** (red): Incoming SSH connections may be blocked
+
+To allow SSH through UFW:
+```bash
+sudo ufw allow ssh
+```
+
+To allow SSH through firewalld:
+```bash
+sudo firewall-cmd --add-service=ssh --permanent
+sudo firewall-cmd --reload
+```
 
 ### Backend Connection Status
 

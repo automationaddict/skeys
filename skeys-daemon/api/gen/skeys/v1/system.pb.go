@@ -128,6 +128,61 @@ func (SSHComponent) EnumDescriptor() ([]byte, []int) {
 	return file_skeys_v1_system_proto_rawDescGZIP(), []int{1}
 }
 
+type FirewallType int32
+
+const (
+	FirewallType_FIREWALL_TYPE_UNSPECIFIED FirewallType = 0
+	FirewallType_FIREWALL_TYPE_UFW         FirewallType = 1 // Ubuntu Uncomplicated Firewall
+	FirewallType_FIREWALL_TYPE_FIREWALLD   FirewallType = 2 // Fedora/RHEL firewalld
+	FirewallType_FIREWALL_TYPE_IPTABLES    FirewallType = 3 // Raw iptables (no manager detected)
+	FirewallType_FIREWALL_TYPE_NONE        FirewallType = 4 // No firewall detected
+)
+
+// Enum value maps for FirewallType.
+var (
+	FirewallType_name = map[int32]string{
+		0: "FIREWALL_TYPE_UNSPECIFIED",
+		1: "FIREWALL_TYPE_UFW",
+		2: "FIREWALL_TYPE_FIREWALLD",
+		3: "FIREWALL_TYPE_IPTABLES",
+		4: "FIREWALL_TYPE_NONE",
+	}
+	FirewallType_value = map[string]int32{
+		"FIREWALL_TYPE_UNSPECIFIED": 0,
+		"FIREWALL_TYPE_UFW":         1,
+		"FIREWALL_TYPE_FIREWALLD":   2,
+		"FIREWALL_TYPE_IPTABLES":    3,
+		"FIREWALL_TYPE_NONE":        4,
+	}
+)
+
+func (x FirewallType) Enum() *FirewallType {
+	p := new(FirewallType)
+	*p = x
+	return p
+}
+
+func (x FirewallType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (FirewallType) Descriptor() protoreflect.EnumDescriptor {
+	return file_skeys_v1_system_proto_enumTypes[2].Descriptor()
+}
+
+func (FirewallType) Type() protoreflect.EnumType {
+	return &file_skeys_v1_system_proto_enumTypes[2]
+}
+
+func (x FirewallType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use FirewallType.Descriptor instead.
+func (FirewallType) EnumDescriptor() ([]byte, []int) {
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{2}
+}
+
 type GetSSHStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Target        *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
@@ -224,7 +279,11 @@ type GetSSHStatusResponse struct {
 	// SSH Client status
 	Client *SSHClientStatus `protobuf:"bytes,3,opt,name=client,proto3" json:"client,omitempty"`
 	// SSH Server status
-	Server        *SSHServerStatus `protobuf:"bytes,4,opt,name=server,proto3" json:"server,omitempty"`
+	Server *SSHServerStatus `protobuf:"bytes,4,opt,name=server,proto3" json:"server,omitempty"`
+	// Network info
+	Network *NetworkInfo `protobuf:"bytes,5,opt,name=network,proto3" json:"network,omitempty"`
+	// Firewall status
+	Firewall      *FirewallStatus `protobuf:"bytes,6,opt,name=firewall,proto3" json:"firewall,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -287,6 +346,81 @@ func (x *GetSSHStatusResponse) GetServer() *SSHServerStatus {
 	return nil
 }
 
+func (x *GetSSHStatusResponse) GetNetwork() *NetworkInfo {
+	if x != nil {
+		return x.Network
+	}
+	return nil
+}
+
+func (x *GetSSHStatusResponse) GetFirewall() *FirewallStatus {
+	if x != nil {
+		return x.Firewall
+	}
+	return nil
+}
+
+// Network information for SSH connections
+type NetworkInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Hostname      string                 `protobuf:"bytes,1,opt,name=hostname,proto3" json:"hostname,omitempty"`                          // System hostname
+	IpAddresses   []string               `protobuf:"bytes,2,rep,name=ip_addresses,json=ipAddresses,proto3" json:"ip_addresses,omitempty"` // Non-loopback IP addresses
+	SshPort       int32                  `protobuf:"varint,3,opt,name=ssh_port,json=sshPort,proto3" json:"ssh_port,omitempty"`            // SSH listening port (from sshd_config)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NetworkInfo) Reset() {
+	*x = NetworkInfo{}
+	mi := &file_skeys_v1_system_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NetworkInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NetworkInfo) ProtoMessage() {}
+
+func (x *NetworkInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_system_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NetworkInfo.ProtoReflect.Descriptor instead.
+func (*NetworkInfo) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *NetworkInfo) GetHostname() string {
+	if x != nil {
+		return x.Hostname
+	}
+	return ""
+}
+
+func (x *NetworkInfo) GetIpAddresses() []string {
+	if x != nil {
+		return x.IpAddresses
+	}
+	return nil
+}
+
+func (x *NetworkInfo) GetSshPort() int32 {
+	if x != nil {
+		return x.SshPort
+	}
+	return 0
+}
+
 type SSHClientStatus struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Installed     bool                   `protobuf:"varint,1,opt,name=installed,proto3" json:"installed,omitempty"`
@@ -300,7 +434,7 @@ type SSHClientStatus struct {
 
 func (x *SSHClientStatus) Reset() {
 	*x = SSHClientStatus{}
-	mi := &file_skeys_v1_system_proto_msgTypes[3]
+	mi := &file_skeys_v1_system_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -312,7 +446,7 @@ func (x *SSHClientStatus) String() string {
 func (*SSHClientStatus) ProtoMessage() {}
 
 func (x *SSHClientStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_system_proto_msgTypes[3]
+	mi := &file_skeys_v1_system_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -325,7 +459,7 @@ func (x *SSHClientStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SSHClientStatus.ProtoReflect.Descriptor instead.
 func (*SSHClientStatus) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_system_proto_rawDescGZIP(), []int{3}
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SSHClientStatus) GetInstalled() bool {
@@ -376,7 +510,7 @@ type SSHServerStatus struct {
 
 func (x *SSHServerStatus) Reset() {
 	*x = SSHServerStatus{}
-	mi := &file_skeys_v1_system_proto_msgTypes[4]
+	mi := &file_skeys_v1_system_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -388,7 +522,7 @@ func (x *SSHServerStatus) String() string {
 func (*SSHServerStatus) ProtoMessage() {}
 
 func (x *SSHServerStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_system_proto_msgTypes[4]
+	mi := &file_skeys_v1_system_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -401,7 +535,7 @@ func (x *SSHServerStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SSHServerStatus.ProtoReflect.Descriptor instead.
 func (*SSHServerStatus) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_system_proto_rawDescGZIP(), []int{4}
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SSHServerStatus) GetInstalled() bool {
@@ -455,7 +589,7 @@ type ServiceStatus struct {
 
 func (x *ServiceStatus) Reset() {
 	*x = ServiceStatus{}
-	mi := &file_skeys_v1_system_proto_msgTypes[5]
+	mi := &file_skeys_v1_system_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -467,7 +601,7 @@ func (x *ServiceStatus) String() string {
 func (*ServiceStatus) ProtoMessage() {}
 
 func (x *ServiceStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_system_proto_msgTypes[5]
+	mi := &file_skeys_v1_system_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -480,7 +614,7 @@ func (x *ServiceStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServiceStatus.ProtoReflect.Descriptor instead.
 func (*ServiceStatus) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_system_proto_rawDescGZIP(), []int{5}
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ServiceStatus) GetState() ServiceState {
@@ -548,7 +682,7 @@ type GetSSHServiceStatusRequest struct {
 
 func (x *GetSSHServiceStatusRequest) Reset() {
 	*x = GetSSHServiceStatusRequest{}
-	mi := &file_skeys_v1_system_proto_msgTypes[6]
+	mi := &file_skeys_v1_system_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -560,7 +694,7 @@ func (x *GetSSHServiceStatusRequest) String() string {
 func (*GetSSHServiceStatusRequest) ProtoMessage() {}
 
 func (x *GetSSHServiceStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_system_proto_msgTypes[6]
+	mi := &file_skeys_v1_system_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -573,7 +707,7 @@ func (x *GetSSHServiceStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSSHServiceStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetSSHServiceStatusRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_system_proto_rawDescGZIP(), []int{6}
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetSSHServiceStatusRequest) GetTarget() *Target {
@@ -592,7 +726,7 @@ type GetSSHServiceStatusResponse struct {
 
 func (x *GetSSHServiceStatusResponse) Reset() {
 	*x = GetSSHServiceStatusResponse{}
-	mi := &file_skeys_v1_system_proto_msgTypes[7]
+	mi := &file_skeys_v1_system_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -604,7 +738,7 @@ func (x *GetSSHServiceStatusResponse) String() string {
 func (*GetSSHServiceStatusResponse) ProtoMessage() {}
 
 func (x *GetSSHServiceStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_system_proto_msgTypes[7]
+	mi := &file_skeys_v1_system_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -617,7 +751,7 @@ func (x *GetSSHServiceStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSSHServiceStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetSSHServiceStatusResponse) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_system_proto_rawDescGZIP(), []int{7}
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetSSHServiceStatusResponse) GetStatus() *ServiceStatus {
@@ -636,7 +770,7 @@ type StartSSHServiceRequest struct {
 
 func (x *StartSSHServiceRequest) Reset() {
 	*x = StartSSHServiceRequest{}
-	mi := &file_skeys_v1_system_proto_msgTypes[8]
+	mi := &file_skeys_v1_system_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -648,7 +782,7 @@ func (x *StartSSHServiceRequest) String() string {
 func (*StartSSHServiceRequest) ProtoMessage() {}
 
 func (x *StartSSHServiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_system_proto_msgTypes[8]
+	mi := &file_skeys_v1_system_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -661,7 +795,7 @@ func (x *StartSSHServiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartSSHServiceRequest.ProtoReflect.Descriptor instead.
 func (*StartSSHServiceRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_system_proto_rawDescGZIP(), []int{8}
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *StartSSHServiceRequest) GetTarget() *Target {
@@ -680,7 +814,7 @@ type StopSSHServiceRequest struct {
 
 func (x *StopSSHServiceRequest) Reset() {
 	*x = StopSSHServiceRequest{}
-	mi := &file_skeys_v1_system_proto_msgTypes[9]
+	mi := &file_skeys_v1_system_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -692,7 +826,7 @@ func (x *StopSSHServiceRequest) String() string {
 func (*StopSSHServiceRequest) ProtoMessage() {}
 
 func (x *StopSSHServiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_system_proto_msgTypes[9]
+	mi := &file_skeys_v1_system_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -705,7 +839,7 @@ func (x *StopSSHServiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopSSHServiceRequest.ProtoReflect.Descriptor instead.
 func (*StopSSHServiceRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_system_proto_rawDescGZIP(), []int{9}
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *StopSSHServiceRequest) GetTarget() *Target {
@@ -724,7 +858,7 @@ type RestartSSHServiceWithStatusRequest struct {
 
 func (x *RestartSSHServiceWithStatusRequest) Reset() {
 	*x = RestartSSHServiceWithStatusRequest{}
-	mi := &file_skeys_v1_system_proto_msgTypes[10]
+	mi := &file_skeys_v1_system_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -736,7 +870,7 @@ func (x *RestartSSHServiceWithStatusRequest) String() string {
 func (*RestartSSHServiceWithStatusRequest) ProtoMessage() {}
 
 func (x *RestartSSHServiceWithStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_system_proto_msgTypes[10]
+	mi := &file_skeys_v1_system_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -749,7 +883,7 @@ func (x *RestartSSHServiceWithStatusRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use RestartSSHServiceWithStatusRequest.ProtoReflect.Descriptor instead.
 func (*RestartSSHServiceWithStatusRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_system_proto_rawDescGZIP(), []int{10}
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *RestartSSHServiceWithStatusRequest) GetTarget() *Target {
@@ -768,7 +902,7 @@ type ReloadSSHServiceRequest struct {
 
 func (x *ReloadSSHServiceRequest) Reset() {
 	*x = ReloadSSHServiceRequest{}
-	mi := &file_skeys_v1_system_proto_msgTypes[11]
+	mi := &file_skeys_v1_system_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -780,7 +914,7 @@ func (x *ReloadSSHServiceRequest) String() string {
 func (*ReloadSSHServiceRequest) ProtoMessage() {}
 
 func (x *ReloadSSHServiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_system_proto_msgTypes[11]
+	mi := &file_skeys_v1_system_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -793,7 +927,7 @@ func (x *ReloadSSHServiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReloadSSHServiceRequest.ProtoReflect.Descriptor instead.
 func (*ReloadSSHServiceRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_system_proto_rawDescGZIP(), []int{11}
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ReloadSSHServiceRequest) GetTarget() *Target {
@@ -812,7 +946,7 @@ type EnableSSHServiceRequest struct {
 
 func (x *EnableSSHServiceRequest) Reset() {
 	*x = EnableSSHServiceRequest{}
-	mi := &file_skeys_v1_system_proto_msgTypes[12]
+	mi := &file_skeys_v1_system_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -824,7 +958,7 @@ func (x *EnableSSHServiceRequest) String() string {
 func (*EnableSSHServiceRequest) ProtoMessage() {}
 
 func (x *EnableSSHServiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_system_proto_msgTypes[12]
+	mi := &file_skeys_v1_system_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -837,7 +971,7 @@ func (x *EnableSSHServiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableSSHServiceRequest.ProtoReflect.Descriptor instead.
 func (*EnableSSHServiceRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_system_proto_rawDescGZIP(), []int{12}
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *EnableSSHServiceRequest) GetTarget() *Target {
@@ -856,7 +990,7 @@ type DisableSSHServiceRequest struct {
 
 func (x *DisableSSHServiceRequest) Reset() {
 	*x = DisableSSHServiceRequest{}
-	mi := &file_skeys_v1_system_proto_msgTypes[13]
+	mi := &file_skeys_v1_system_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -868,7 +1002,7 @@ func (x *DisableSSHServiceRequest) String() string {
 func (*DisableSSHServiceRequest) ProtoMessage() {}
 
 func (x *DisableSSHServiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_system_proto_msgTypes[13]
+	mi := &file_skeys_v1_system_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -881,7 +1015,7 @@ func (x *DisableSSHServiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableSSHServiceRequest.ProtoReflect.Descriptor instead.
 func (*DisableSSHServiceRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_system_proto_rawDescGZIP(), []int{13}
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *DisableSSHServiceRequest) GetTarget() *Target {
@@ -902,7 +1036,7 @@ type SSHServiceControlResponse struct {
 
 func (x *SSHServiceControlResponse) Reset() {
 	*x = SSHServiceControlResponse{}
-	mi := &file_skeys_v1_system_proto_msgTypes[14]
+	mi := &file_skeys_v1_system_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -914,7 +1048,7 @@ func (x *SSHServiceControlResponse) String() string {
 func (*SSHServiceControlResponse) ProtoMessage() {}
 
 func (x *SSHServiceControlResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_system_proto_msgTypes[14]
+	mi := &file_skeys_v1_system_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -927,7 +1061,7 @@ func (x *SSHServiceControlResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SSHServiceControlResponse.ProtoReflect.Descriptor instead.
 func (*SSHServiceControlResponse) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_system_proto_rawDescGZIP(), []int{14}
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *SSHServiceControlResponse) GetSuccess() bool {
@@ -961,7 +1095,7 @@ type GetInstallInstructionsRequest struct {
 
 func (x *GetInstallInstructionsRequest) Reset() {
 	*x = GetInstallInstructionsRequest{}
-	mi := &file_skeys_v1_system_proto_msgTypes[15]
+	mi := &file_skeys_v1_system_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -973,7 +1107,7 @@ func (x *GetInstallInstructionsRequest) String() string {
 func (*GetInstallInstructionsRequest) ProtoMessage() {}
 
 func (x *GetInstallInstructionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_system_proto_msgTypes[15]
+	mi := &file_skeys_v1_system_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -986,7 +1120,7 @@ func (x *GetInstallInstructionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInstallInstructionsRequest.ProtoReflect.Descriptor instead.
 func (*GetInstallInstructionsRequest) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_system_proto_rawDescGZIP(), []int{15}
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetInstallInstructionsRequest) GetTarget() *Target {
@@ -1017,7 +1151,7 @@ type GetInstallInstructionsResponse struct {
 
 func (x *GetInstallInstructionsResponse) Reset() {
 	*x = GetInstallInstructionsResponse{}
-	mi := &file_skeys_v1_system_proto_msgTypes[16]
+	mi := &file_skeys_v1_system_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1029,7 +1163,7 @@ func (x *GetInstallInstructionsResponse) String() string {
 func (*GetInstallInstructionsResponse) ProtoMessage() {}
 
 func (x *GetInstallInstructionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skeys_v1_system_proto_msgTypes[16]
+	mi := &file_skeys_v1_system_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1042,7 +1176,7 @@ func (x *GetInstallInstructionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInstallInstructionsResponse.ProtoReflect.Descriptor instead.
 func (*GetInstallInstructionsResponse) Descriptor() ([]byte, []int) {
-	return file_skeys_v1_system_proto_rawDescGZIP(), []int{16}
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetInstallInstructionsResponse) GetDistribution() string {
@@ -1087,6 +1221,74 @@ func (x *GetInstallInstructionsResponse) GetSteps() []string {
 	return nil
 }
 
+type FirewallStatus struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Type          FirewallType           `protobuf:"varint,1,opt,name=type,proto3,enum=skeys.v1.FirewallType" json:"type,omitempty"`    // Type of firewall detected
+	Active        bool                   `protobuf:"varint,2,opt,name=active,proto3" json:"active,omitempty"`                           // Is the firewall currently active
+	SshAllowed    bool                   `protobuf:"varint,3,opt,name=ssh_allowed,json=sshAllowed,proto3" json:"ssh_allowed,omitempty"` // Is SSH port allowed through firewall
+	StatusText    string                 `protobuf:"bytes,4,opt,name=status_text,json=statusText,proto3" json:"status_text,omitempty"`  // Human-readable status (e.g., "active", "inactive")
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FirewallStatus) Reset() {
+	*x = FirewallStatus{}
+	mi := &file_skeys_v1_system_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FirewallStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FirewallStatus) ProtoMessage() {}
+
+func (x *FirewallStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_system_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FirewallStatus.ProtoReflect.Descriptor instead.
+func (*FirewallStatus) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_system_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *FirewallStatus) GetType() FirewallType {
+	if x != nil {
+		return x.Type
+	}
+	return FirewallType_FIREWALL_TYPE_UNSPECIFIED
+}
+
+func (x *FirewallStatus) GetActive() bool {
+	if x != nil {
+		return x.Active
+	}
+	return false
+}
+
+func (x *FirewallStatus) GetSshAllowed() bool {
+	if x != nil {
+		return x.SshAllowed
+	}
+	return false
+}
+
+func (x *FirewallStatus) GetStatusText() string {
+	if x != nil {
+		return x.StatusText
+	}
+	return ""
+}
+
 var File_skeys_v1_system_proto protoreflect.FileDescriptor
 
 const file_skeys_v1_system_proto_rawDesc = "" +
@@ -1095,12 +1297,18 @@ const file_skeys_v1_system_proto_rawDesc = "" +
 	"\x13GetSSHStatusRequest\x12(\n" +
 	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\"A\n" +
 	"\x15WatchSSHStatusRequest\x12(\n" +
-	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\"\xd3\x01\n" +
+	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\"\xba\x02\n" +
 	"\x14GetSSHStatusResponse\x12\"\n" +
 	"\fdistribution\x18\x01 \x01(\tR\fdistribution\x121\n" +
 	"\x14distribution_version\x18\x02 \x01(\tR\x13distributionVersion\x121\n" +
 	"\x06client\x18\x03 \x01(\v2\x19.skeys.v1.SSHClientStatusR\x06client\x121\n" +
-	"\x06server\x18\x04 \x01(\v2\x19.skeys.v1.SSHServerStatusR\x06server\"\xe4\x01\n" +
+	"\x06server\x18\x04 \x01(\v2\x19.skeys.v1.SSHServerStatusR\x06server\x12/\n" +
+	"\anetwork\x18\x05 \x01(\v2\x15.skeys.v1.NetworkInfoR\anetwork\x124\n" +
+	"\bfirewall\x18\x06 \x01(\v2\x18.skeys.v1.FirewallStatusR\bfirewall\"g\n" +
+	"\vNetworkInfo\x12\x1a\n" +
+	"\bhostname\x18\x01 \x01(\tR\bhostname\x12!\n" +
+	"\fip_addresses\x18\x02 \x03(\tR\vipAddresses\x12\x19\n" +
+	"\bssh_port\x18\x03 \x01(\x05R\asshPort\"\xe4\x01\n" +
 	"\x0fSSHClientStatus\x12\x1c\n" +
 	"\tinstalled\x18\x01 \x01(\bR\tinstalled\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\tR\aversion\x12\x1f\n" +
@@ -1156,7 +1364,14 @@ const file_skeys_v1_system_proto_rawDesc = "" +
 	"\fpackage_name\x18\x03 \x01(\tR\vpackageName\x12'\n" +
 	"\x0finstall_command\x18\x04 \x01(\tR\x0einstallCommand\x12+\n" +
 	"\x11documentation_url\x18\x05 \x01(\tR\x10documentationUrl\x12\x14\n" +
-	"\x05steps\x18\x06 \x03(\tR\x05steps*\xb5\x01\n" +
+	"\x05steps\x18\x06 \x03(\tR\x05steps\"\x96\x01\n" +
+	"\x0eFirewallStatus\x12*\n" +
+	"\x04type\x18\x01 \x01(\x0e2\x16.skeys.v1.FirewallTypeR\x04type\x12\x16\n" +
+	"\x06active\x18\x02 \x01(\bR\x06active\x12\x1f\n" +
+	"\vssh_allowed\x18\x03 \x01(\bR\n" +
+	"sshAllowed\x12\x1f\n" +
+	"\vstatus_text\x18\x04 \x01(\tR\n" +
+	"statusText*\xb5\x01\n" +
 	"\fServiceState\x12\x1d\n" +
 	"\x19SERVICE_STATE_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15SERVICE_STATE_RUNNING\x10\x01\x12\x19\n" +
@@ -1167,7 +1382,13 @@ const file_skeys_v1_system_proto_rawDesc = "" +
 	"\fSSHComponent\x12\x1d\n" +
 	"\x19SSH_COMPONENT_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14SSH_COMPONENT_CLIENT\x10\x01\x12\x18\n" +
-	"\x14SSH_COMPONENT_SERVER\x10\x022\xbe\a\n" +
+	"\x14SSH_COMPONENT_SERVER\x10\x02*\x95\x01\n" +
+	"\fFirewallType\x12\x1d\n" +
+	"\x19FIREWALL_TYPE_UNSPECIFIED\x10\x00\x12\x15\n" +
+	"\x11FIREWALL_TYPE_UFW\x10\x01\x12\x1b\n" +
+	"\x17FIREWALL_TYPE_FIREWALLD\x10\x02\x12\x1a\n" +
+	"\x16FIREWALL_TYPE_IPTABLES\x10\x03\x12\x16\n" +
+	"\x12FIREWALL_TYPE_NONE\x10\x042\xbe\a\n" +
 	"\rSystemService\x12M\n" +
 	"\fGetSSHStatus\x12\x1d.skeys.v1.GetSSHStatusRequest\x1a\x1e.skeys.v1.GetSSHStatusResponse\x12S\n" +
 	"\x0eWatchSSHStatus\x12\x1f.skeys.v1.WatchSSHStatusRequest\x1a\x1e.skeys.v1.GetSSHStatusResponse0\x01\x12b\n" +
@@ -1192,78 +1413,84 @@ func file_skeys_v1_system_proto_rawDescGZIP() []byte {
 	return file_skeys_v1_system_proto_rawDescData
 }
 
-var file_skeys_v1_system_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_skeys_v1_system_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_skeys_v1_system_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_skeys_v1_system_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_skeys_v1_system_proto_goTypes = []any{
 	(ServiceState)(0),                          // 0: skeys.v1.ServiceState
 	(SSHComponent)(0),                          // 1: skeys.v1.SSHComponent
-	(*GetSSHStatusRequest)(nil),                // 2: skeys.v1.GetSSHStatusRequest
-	(*WatchSSHStatusRequest)(nil),              // 3: skeys.v1.WatchSSHStatusRequest
-	(*GetSSHStatusResponse)(nil),               // 4: skeys.v1.GetSSHStatusResponse
-	(*SSHClientStatus)(nil),                    // 5: skeys.v1.SSHClientStatus
-	(*SSHServerStatus)(nil),                    // 6: skeys.v1.SSHServerStatus
-	(*ServiceStatus)(nil),                      // 7: skeys.v1.ServiceStatus
-	(*GetSSHServiceStatusRequest)(nil),         // 8: skeys.v1.GetSSHServiceStatusRequest
-	(*GetSSHServiceStatusResponse)(nil),        // 9: skeys.v1.GetSSHServiceStatusResponse
-	(*StartSSHServiceRequest)(nil),             // 10: skeys.v1.StartSSHServiceRequest
-	(*StopSSHServiceRequest)(nil),              // 11: skeys.v1.StopSSHServiceRequest
-	(*RestartSSHServiceWithStatusRequest)(nil), // 12: skeys.v1.RestartSSHServiceWithStatusRequest
-	(*ReloadSSHServiceRequest)(nil),            // 13: skeys.v1.ReloadSSHServiceRequest
-	(*EnableSSHServiceRequest)(nil),            // 14: skeys.v1.EnableSSHServiceRequest
-	(*DisableSSHServiceRequest)(nil),           // 15: skeys.v1.DisableSSHServiceRequest
-	(*SSHServiceControlResponse)(nil),          // 16: skeys.v1.SSHServiceControlResponse
-	(*GetInstallInstructionsRequest)(nil),      // 17: skeys.v1.GetInstallInstructionsRequest
-	(*GetInstallInstructionsResponse)(nil),     // 18: skeys.v1.GetInstallInstructionsResponse
-	(*Target)(nil),                             // 19: skeys.v1.Target
-	(*ConfigPathInfo)(nil),                     // 20: skeys.v1.ConfigPathInfo
+	(FirewallType)(0),                          // 2: skeys.v1.FirewallType
+	(*GetSSHStatusRequest)(nil),                // 3: skeys.v1.GetSSHStatusRequest
+	(*WatchSSHStatusRequest)(nil),              // 4: skeys.v1.WatchSSHStatusRequest
+	(*GetSSHStatusResponse)(nil),               // 5: skeys.v1.GetSSHStatusResponse
+	(*NetworkInfo)(nil),                        // 6: skeys.v1.NetworkInfo
+	(*SSHClientStatus)(nil),                    // 7: skeys.v1.SSHClientStatus
+	(*SSHServerStatus)(nil),                    // 8: skeys.v1.SSHServerStatus
+	(*ServiceStatus)(nil),                      // 9: skeys.v1.ServiceStatus
+	(*GetSSHServiceStatusRequest)(nil),         // 10: skeys.v1.GetSSHServiceStatusRequest
+	(*GetSSHServiceStatusResponse)(nil),        // 11: skeys.v1.GetSSHServiceStatusResponse
+	(*StartSSHServiceRequest)(nil),             // 12: skeys.v1.StartSSHServiceRequest
+	(*StopSSHServiceRequest)(nil),              // 13: skeys.v1.StopSSHServiceRequest
+	(*RestartSSHServiceWithStatusRequest)(nil), // 14: skeys.v1.RestartSSHServiceWithStatusRequest
+	(*ReloadSSHServiceRequest)(nil),            // 15: skeys.v1.ReloadSSHServiceRequest
+	(*EnableSSHServiceRequest)(nil),            // 16: skeys.v1.EnableSSHServiceRequest
+	(*DisableSSHServiceRequest)(nil),           // 17: skeys.v1.DisableSSHServiceRequest
+	(*SSHServiceControlResponse)(nil),          // 18: skeys.v1.SSHServiceControlResponse
+	(*GetInstallInstructionsRequest)(nil),      // 19: skeys.v1.GetInstallInstructionsRequest
+	(*GetInstallInstructionsResponse)(nil),     // 20: skeys.v1.GetInstallInstructionsResponse
+	(*FirewallStatus)(nil),                     // 21: skeys.v1.FirewallStatus
+	(*Target)(nil),                             // 22: skeys.v1.Target
+	(*ConfigPathInfo)(nil),                     // 23: skeys.v1.ConfigPathInfo
 }
 var file_skeys_v1_system_proto_depIdxs = []int32{
-	19, // 0: skeys.v1.GetSSHStatusRequest.target:type_name -> skeys.v1.Target
-	19, // 1: skeys.v1.WatchSSHStatusRequest.target:type_name -> skeys.v1.Target
-	5,  // 2: skeys.v1.GetSSHStatusResponse.client:type_name -> skeys.v1.SSHClientStatus
-	6,  // 3: skeys.v1.GetSSHStatusResponse.server:type_name -> skeys.v1.SSHServerStatus
-	20, // 4: skeys.v1.SSHClientStatus.system_config:type_name -> skeys.v1.ConfigPathInfo
-	20, // 5: skeys.v1.SSHClientStatus.user_config:type_name -> skeys.v1.ConfigPathInfo
-	7,  // 6: skeys.v1.SSHServerStatus.service:type_name -> skeys.v1.ServiceStatus
-	20, // 7: skeys.v1.SSHServerStatus.config:type_name -> skeys.v1.ConfigPathInfo
-	0,  // 8: skeys.v1.ServiceStatus.state:type_name -> skeys.v1.ServiceState
-	19, // 9: skeys.v1.GetSSHServiceStatusRequest.target:type_name -> skeys.v1.Target
-	7,  // 10: skeys.v1.GetSSHServiceStatusResponse.status:type_name -> skeys.v1.ServiceStatus
-	19, // 11: skeys.v1.StartSSHServiceRequest.target:type_name -> skeys.v1.Target
-	19, // 12: skeys.v1.StopSSHServiceRequest.target:type_name -> skeys.v1.Target
-	19, // 13: skeys.v1.RestartSSHServiceWithStatusRequest.target:type_name -> skeys.v1.Target
-	19, // 14: skeys.v1.ReloadSSHServiceRequest.target:type_name -> skeys.v1.Target
-	19, // 15: skeys.v1.EnableSSHServiceRequest.target:type_name -> skeys.v1.Target
-	19, // 16: skeys.v1.DisableSSHServiceRequest.target:type_name -> skeys.v1.Target
-	7,  // 17: skeys.v1.SSHServiceControlResponse.status:type_name -> skeys.v1.ServiceStatus
-	19, // 18: skeys.v1.GetInstallInstructionsRequest.target:type_name -> skeys.v1.Target
-	1,  // 19: skeys.v1.GetInstallInstructionsRequest.component:type_name -> skeys.v1.SSHComponent
-	1,  // 20: skeys.v1.GetInstallInstructionsResponse.component:type_name -> skeys.v1.SSHComponent
-	2,  // 21: skeys.v1.SystemService.GetSSHStatus:input_type -> skeys.v1.GetSSHStatusRequest
-	3,  // 22: skeys.v1.SystemService.WatchSSHStatus:input_type -> skeys.v1.WatchSSHStatusRequest
-	8,  // 23: skeys.v1.SystemService.GetSSHServiceStatus:input_type -> skeys.v1.GetSSHServiceStatusRequest
-	10, // 24: skeys.v1.SystemService.StartSSHService:input_type -> skeys.v1.StartSSHServiceRequest
-	11, // 25: skeys.v1.SystemService.StopSSHService:input_type -> skeys.v1.StopSSHServiceRequest
-	12, // 26: skeys.v1.SystemService.RestartSSHServiceWithStatus:input_type -> skeys.v1.RestartSSHServiceWithStatusRequest
-	13, // 27: skeys.v1.SystemService.ReloadSSHService:input_type -> skeys.v1.ReloadSSHServiceRequest
-	14, // 28: skeys.v1.SystemService.EnableSSHService:input_type -> skeys.v1.EnableSSHServiceRequest
-	15, // 29: skeys.v1.SystemService.DisableSSHService:input_type -> skeys.v1.DisableSSHServiceRequest
-	17, // 30: skeys.v1.SystemService.GetInstallInstructions:input_type -> skeys.v1.GetInstallInstructionsRequest
-	4,  // 31: skeys.v1.SystemService.GetSSHStatus:output_type -> skeys.v1.GetSSHStatusResponse
-	4,  // 32: skeys.v1.SystemService.WatchSSHStatus:output_type -> skeys.v1.GetSSHStatusResponse
-	9,  // 33: skeys.v1.SystemService.GetSSHServiceStatus:output_type -> skeys.v1.GetSSHServiceStatusResponse
-	16, // 34: skeys.v1.SystemService.StartSSHService:output_type -> skeys.v1.SSHServiceControlResponse
-	16, // 35: skeys.v1.SystemService.StopSSHService:output_type -> skeys.v1.SSHServiceControlResponse
-	16, // 36: skeys.v1.SystemService.RestartSSHServiceWithStatus:output_type -> skeys.v1.SSHServiceControlResponse
-	16, // 37: skeys.v1.SystemService.ReloadSSHService:output_type -> skeys.v1.SSHServiceControlResponse
-	16, // 38: skeys.v1.SystemService.EnableSSHService:output_type -> skeys.v1.SSHServiceControlResponse
-	16, // 39: skeys.v1.SystemService.DisableSSHService:output_type -> skeys.v1.SSHServiceControlResponse
-	18, // 40: skeys.v1.SystemService.GetInstallInstructions:output_type -> skeys.v1.GetInstallInstructionsResponse
-	31, // [31:41] is the sub-list for method output_type
-	21, // [21:31] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	22, // 0: skeys.v1.GetSSHStatusRequest.target:type_name -> skeys.v1.Target
+	22, // 1: skeys.v1.WatchSSHStatusRequest.target:type_name -> skeys.v1.Target
+	7,  // 2: skeys.v1.GetSSHStatusResponse.client:type_name -> skeys.v1.SSHClientStatus
+	8,  // 3: skeys.v1.GetSSHStatusResponse.server:type_name -> skeys.v1.SSHServerStatus
+	6,  // 4: skeys.v1.GetSSHStatusResponse.network:type_name -> skeys.v1.NetworkInfo
+	21, // 5: skeys.v1.GetSSHStatusResponse.firewall:type_name -> skeys.v1.FirewallStatus
+	23, // 6: skeys.v1.SSHClientStatus.system_config:type_name -> skeys.v1.ConfigPathInfo
+	23, // 7: skeys.v1.SSHClientStatus.user_config:type_name -> skeys.v1.ConfigPathInfo
+	9,  // 8: skeys.v1.SSHServerStatus.service:type_name -> skeys.v1.ServiceStatus
+	23, // 9: skeys.v1.SSHServerStatus.config:type_name -> skeys.v1.ConfigPathInfo
+	0,  // 10: skeys.v1.ServiceStatus.state:type_name -> skeys.v1.ServiceState
+	22, // 11: skeys.v1.GetSSHServiceStatusRequest.target:type_name -> skeys.v1.Target
+	9,  // 12: skeys.v1.GetSSHServiceStatusResponse.status:type_name -> skeys.v1.ServiceStatus
+	22, // 13: skeys.v1.StartSSHServiceRequest.target:type_name -> skeys.v1.Target
+	22, // 14: skeys.v1.StopSSHServiceRequest.target:type_name -> skeys.v1.Target
+	22, // 15: skeys.v1.RestartSSHServiceWithStatusRequest.target:type_name -> skeys.v1.Target
+	22, // 16: skeys.v1.ReloadSSHServiceRequest.target:type_name -> skeys.v1.Target
+	22, // 17: skeys.v1.EnableSSHServiceRequest.target:type_name -> skeys.v1.Target
+	22, // 18: skeys.v1.DisableSSHServiceRequest.target:type_name -> skeys.v1.Target
+	9,  // 19: skeys.v1.SSHServiceControlResponse.status:type_name -> skeys.v1.ServiceStatus
+	22, // 20: skeys.v1.GetInstallInstructionsRequest.target:type_name -> skeys.v1.Target
+	1,  // 21: skeys.v1.GetInstallInstructionsRequest.component:type_name -> skeys.v1.SSHComponent
+	1,  // 22: skeys.v1.GetInstallInstructionsResponse.component:type_name -> skeys.v1.SSHComponent
+	2,  // 23: skeys.v1.FirewallStatus.type:type_name -> skeys.v1.FirewallType
+	3,  // 24: skeys.v1.SystemService.GetSSHStatus:input_type -> skeys.v1.GetSSHStatusRequest
+	4,  // 25: skeys.v1.SystemService.WatchSSHStatus:input_type -> skeys.v1.WatchSSHStatusRequest
+	10, // 26: skeys.v1.SystemService.GetSSHServiceStatus:input_type -> skeys.v1.GetSSHServiceStatusRequest
+	12, // 27: skeys.v1.SystemService.StartSSHService:input_type -> skeys.v1.StartSSHServiceRequest
+	13, // 28: skeys.v1.SystemService.StopSSHService:input_type -> skeys.v1.StopSSHServiceRequest
+	14, // 29: skeys.v1.SystemService.RestartSSHServiceWithStatus:input_type -> skeys.v1.RestartSSHServiceWithStatusRequest
+	15, // 30: skeys.v1.SystemService.ReloadSSHService:input_type -> skeys.v1.ReloadSSHServiceRequest
+	16, // 31: skeys.v1.SystemService.EnableSSHService:input_type -> skeys.v1.EnableSSHServiceRequest
+	17, // 32: skeys.v1.SystemService.DisableSSHService:input_type -> skeys.v1.DisableSSHServiceRequest
+	19, // 33: skeys.v1.SystemService.GetInstallInstructions:input_type -> skeys.v1.GetInstallInstructionsRequest
+	5,  // 34: skeys.v1.SystemService.GetSSHStatus:output_type -> skeys.v1.GetSSHStatusResponse
+	5,  // 35: skeys.v1.SystemService.WatchSSHStatus:output_type -> skeys.v1.GetSSHStatusResponse
+	11, // 36: skeys.v1.SystemService.GetSSHServiceStatus:output_type -> skeys.v1.GetSSHServiceStatusResponse
+	18, // 37: skeys.v1.SystemService.StartSSHService:output_type -> skeys.v1.SSHServiceControlResponse
+	18, // 38: skeys.v1.SystemService.StopSSHService:output_type -> skeys.v1.SSHServiceControlResponse
+	18, // 39: skeys.v1.SystemService.RestartSSHServiceWithStatus:output_type -> skeys.v1.SSHServiceControlResponse
+	18, // 40: skeys.v1.SystemService.ReloadSSHService:output_type -> skeys.v1.SSHServiceControlResponse
+	18, // 41: skeys.v1.SystemService.EnableSSHService:output_type -> skeys.v1.SSHServiceControlResponse
+	18, // 42: skeys.v1.SystemService.DisableSSHService:output_type -> skeys.v1.SSHServiceControlResponse
+	20, // 43: skeys.v1.SystemService.GetInstallInstructions:output_type -> skeys.v1.GetInstallInstructionsResponse
+	34, // [34:44] is the sub-list for method output_type
+	24, // [24:34] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_skeys_v1_system_proto_init() }
@@ -1278,8 +1505,8 @@ func file_skeys_v1_system_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skeys_v1_system_proto_rawDesc), len(file_skeys_v1_system_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   17,
+			NumEnums:      3,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

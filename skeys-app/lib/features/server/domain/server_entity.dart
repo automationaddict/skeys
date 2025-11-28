@@ -117,18 +117,65 @@ class SSHServerStatus extends Equatable {
       ];
 }
 
+/// Firewall type.
+enum FirewallType {
+  unspecified,
+  ufw,
+  firewalld,
+  iptables,
+  none,
+}
+
+/// Network information for SSH.
+class NetworkInfo extends Equatable {
+  final String hostname;
+  final List<String> ipAddresses;
+  final int sshPort;
+
+  const NetworkInfo({
+    required this.hostname,
+    required this.ipAddresses,
+    required this.sshPort,
+  });
+
+  @override
+  List<Object?> get props => [hostname, ipAddresses, sshPort];
+}
+
+/// Firewall status.
+class FirewallStatus extends Equatable {
+  final FirewallType type;
+  final bool active;
+  final bool sshAllowed;
+  final String statusText;
+
+  const FirewallStatus({
+    required this.type,
+    required this.active,
+    required this.sshAllowed,
+    required this.statusText,
+  });
+
+  @override
+  List<Object?> get props => [type, active, sshAllowed, statusText];
+}
+
 /// Complete SSH system status.
 class SSHSystemStatus extends Equatable {
   final String distribution;
   final String distributionVersion;
   final SSHClientStatus client;
   final SSHServerStatus server;
+  final NetworkInfo? network;
+  final FirewallStatus? firewall;
 
   const SSHSystemStatus({
     required this.distribution,
     required this.distributionVersion,
     required this.client,
     required this.server,
+    this.network,
+    this.firewall,
   });
 
   @override
@@ -137,5 +184,7 @@ class SSHSystemStatus extends Equatable {
         distributionVersion,
         client,
         server,
+        network,
+        firewall,
       ];
 }

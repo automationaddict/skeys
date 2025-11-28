@@ -50,6 +50,24 @@ final $typed_data.Uint8List sSHComponentDescriptor = $convert.base64Decode(
     'CgxTU0hDb21wb25lbnQSHQoZU1NIX0NPTVBPTkVOVF9VTlNQRUNJRklFRBAAEhgKFFNTSF9DT0'
     '1QT05FTlRfQ0xJRU5UEAESGAoUU1NIX0NPTVBPTkVOVF9TRVJWRVIQAg==');
 
+@$core.Deprecated('Use firewallTypeDescriptor instead')
+const FirewallType$json = {
+  '1': 'FirewallType',
+  '2': [
+    {'1': 'FIREWALL_TYPE_UNSPECIFIED', '2': 0},
+    {'1': 'FIREWALL_TYPE_UFW', '2': 1},
+    {'1': 'FIREWALL_TYPE_FIREWALLD', '2': 2},
+    {'1': 'FIREWALL_TYPE_IPTABLES', '2': 3},
+    {'1': 'FIREWALL_TYPE_NONE', '2': 4},
+  ],
+};
+
+/// Descriptor for `FirewallType`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List firewallTypeDescriptor = $convert.base64Decode(
+    'CgxGaXJld2FsbFR5cGUSHQoZRklSRVdBTExfVFlQRV9VTlNQRUNJRklFRBAAEhUKEUZJUkVXQU'
+    'xMX1RZUEVfVUZXEAESGwoXRklSRVdBTExfVFlQRV9GSVJFV0FMTEQQAhIaChZGSVJFV0FMTF9U'
+    'WVBFX0lQVEFCTEVTEAMSFgoSRklSRVdBTExfVFlQRV9OT05FEAQ=');
+
 @$core.Deprecated('Use getSSHStatusRequestDescriptor instead')
 const GetSSHStatusRequest$json = {
   '1': 'GetSSHStatusRequest',
@@ -118,6 +136,22 @@ const GetSSHStatusResponse$json = {
       '6': '.skeys.v1.SSHServerStatus',
       '10': 'server'
     },
+    {
+      '1': 'network',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.NetworkInfo',
+      '10': 'network'
+    },
+    {
+      '1': 'firewall',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.FirewallStatus',
+      '10': 'firewall'
+    },
   ],
 };
 
@@ -126,7 +160,24 @@ final $typed_data.Uint8List getSSHStatusResponseDescriptor = $convert.base64Deco
     'ChRHZXRTU0hTdGF0dXNSZXNwb25zZRIiCgxkaXN0cmlidXRpb24YASABKAlSDGRpc3RyaWJ1dG'
     'lvbhIxChRkaXN0cmlidXRpb25fdmVyc2lvbhgCIAEoCVITZGlzdHJpYnV0aW9uVmVyc2lvbhIx'
     'CgZjbGllbnQYAyABKAsyGS5za2V5cy52MS5TU0hDbGllbnRTdGF0dXNSBmNsaWVudBIxCgZzZX'
-    'J2ZXIYBCABKAsyGS5za2V5cy52MS5TU0hTZXJ2ZXJTdGF0dXNSBnNlcnZlcg==');
+    'J2ZXIYBCABKAsyGS5za2V5cy52MS5TU0hTZXJ2ZXJTdGF0dXNSBnNlcnZlchIvCgduZXR3b3Jr'
+    'GAUgASgLMhUuc2tleXMudjEuTmV0d29ya0luZm9SB25ldHdvcmsSNAoIZmlyZXdhbGwYBiABKA'
+    'syGC5za2V5cy52MS5GaXJld2FsbFN0YXR1c1IIZmlyZXdhbGw=');
+
+@$core.Deprecated('Use networkInfoDescriptor instead')
+const NetworkInfo$json = {
+  '1': 'NetworkInfo',
+  '2': [
+    {'1': 'hostname', '3': 1, '4': 1, '5': 9, '10': 'hostname'},
+    {'1': 'ip_addresses', '3': 2, '4': 3, '5': 9, '10': 'ipAddresses'},
+    {'1': 'ssh_port', '3': 3, '4': 1, '5': 5, '10': 'sshPort'},
+  ],
+};
+
+/// Descriptor for `NetworkInfo`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List networkInfoDescriptor = $convert.base64Decode(
+    'CgtOZXR3b3JrSW5mbxIaCghob3N0bmFtZRgBIAEoCVIIaG9zdG5hbWUSIQoMaXBfYWRkcmVzc2'
+    'VzGAIgAygJUgtpcEFkZHJlc3NlcxIZCghzc2hfcG9ydBgDIAEoBVIHc3NoUG9ydA==');
 
 @$core.Deprecated('Use sSHClientStatusDescriptor instead')
 const SSHClientStatus$json = {
@@ -478,3 +529,27 @@ final $typed_data.Uint8List getInstallInstructionsResponseDescriptor = $convert.
     'Ugljb21wb25lbnQSIQoMcGFja2FnZV9uYW1lGAMgASgJUgtwYWNrYWdlTmFtZRInCg9pbnN0YW'
     'xsX2NvbW1hbmQYBCABKAlSDmluc3RhbGxDb21tYW5kEisKEWRvY3VtZW50YXRpb25fdXJsGAUg'
     'ASgJUhBkb2N1bWVudGF0aW9uVXJsEhQKBXN0ZXBzGAYgAygJUgVzdGVwcw==');
+
+@$core.Deprecated('Use firewallStatusDescriptor instead')
+const FirewallStatus$json = {
+  '1': 'FirewallStatus',
+  '2': [
+    {
+      '1': 'type',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.skeys.v1.FirewallType',
+      '10': 'type'
+    },
+    {'1': 'active', '3': 2, '4': 1, '5': 8, '10': 'active'},
+    {'1': 'ssh_allowed', '3': 3, '4': 1, '5': 8, '10': 'sshAllowed'},
+    {'1': 'status_text', '3': 4, '4': 1, '5': 9, '10': 'statusText'},
+  ],
+};
+
+/// Descriptor for `FirewallStatus`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List firewallStatusDescriptor = $convert.base64Decode(
+    'Cg5GaXJld2FsbFN0YXR1cxIqCgR0eXBlGAEgASgOMhYuc2tleXMudjEuRmlyZXdhbGxUeXBlUg'
+    'R0eXBlEhYKBmFjdGl2ZRgCIAEoCFIGYWN0aXZlEh8KC3NzaF9hbGxvd2VkGAMgASgIUgpzc2hB'
+    'bGxvd2VkEh8KC3N0YXR1c190ZXh0GAQgASgJUgpzdGF0dXNUZXh0');

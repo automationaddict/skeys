@@ -50,6 +50,19 @@ message GetSSHStatusResponse {
 
   // SSH Server status
   SSHServerStatus server = 4;
+
+  // Network info
+  NetworkInfo network = 5;
+
+  // Firewall status
+  FirewallStatus firewall = 6;
+}
+
+// Network information for SSH connections
+message NetworkInfo {
+  string hostname = 1;                   // System hostname
+  repeated string ip_addresses = 2;      // Non-loopback IP addresses
+  int32 ssh_port = 3;                    // SSH listening port (from sshd_config)
 }
 
 message SSHClientStatus {
@@ -152,4 +165,23 @@ message GetInstallInstructionsResponse {
   string install_command = 4;            // e.g., "sudo apt install openssh-server"
   string documentation_url = 5;          // Link to official docs
   repeated string steps = 6;             // Step-by-step instructions
+}
+
+// ============================================================
+// Firewall Status
+// ============================================================
+
+enum FirewallType {
+  FIREWALL_TYPE_UNSPECIFIED = 0;
+  FIREWALL_TYPE_UFW = 1;                 // Ubuntu Uncomplicated Firewall
+  FIREWALL_TYPE_FIREWALLD = 2;           // Fedora/RHEL firewalld
+  FIREWALL_TYPE_IPTABLES = 3;            // Raw iptables (no manager detected)
+  FIREWALL_TYPE_NONE = 4;                // No firewall detected
+}
+
+message FirewallStatus {
+  FirewallType type = 1;                 // Type of firewall detected
+  bool active = 2;                       // Is the firewall currently active
+  bool ssh_allowed = 3;                  // Is SSH port allowed through firewall
+  string status_text = 4;                // Human-readable status (e.g., "active", "inactive")
 }

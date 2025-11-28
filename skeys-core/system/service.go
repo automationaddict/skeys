@@ -88,6 +88,8 @@ type SSHStatus struct {
 	DistributionVersion string
 	Client              SSHClientStatus
 	Server              SSHServerStatus
+	Network             *NetworkInfo
+	Firewall            *FirewallStatus
 }
 
 // InstallInstructions contains installation instructions for a component.
@@ -130,6 +132,12 @@ func (m *SystemManager) GetSSHStatus(ctx context.Context) (*SSHStatus, error) {
 
 	// Get server status
 	status.Server = m.getSSHServerStatus(ctx)
+
+	// Get network info
+	status.Network = m.GetNetworkInfo()
+
+	// Get firewall status
+	status.Firewall = m.GetFirewallStatus()
 
 	return status, nil
 }

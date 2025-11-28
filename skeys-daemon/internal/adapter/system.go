@@ -41,6 +41,8 @@ func (a *SystemServiceAdapter) WatchSSHStatus(req *pb.WatchSSHStatusRequest, str
 			DistributionVersion: update.Status.DistributionVersion,
 			Client:              toProtoSSHClientStatus(&update.Status.Client),
 			Server:              toProtoSSHServerStatus(&update.Status.Server),
+			Network:             toProtoNetworkInfo(update.Status.Network),
+			Firewall:            toProtoFirewallStatus(update.Status.Firewall),
 		}
 
 		if err := stream.Send(resp); err != nil {
@@ -63,6 +65,8 @@ func (a *SystemServiceAdapter) GetSSHStatus(ctx context.Context, req *pb.GetSSHS
 		DistributionVersion: sshStatus.DistributionVersion,
 		Client:              toProtoSSHClientStatus(&sshStatus.Client),
 		Server:              toProtoSSHServerStatus(&sshStatus.Server),
+		Network:             toProtoNetworkInfo(sshStatus.Network),
+		Firewall:            toProtoFirewallStatus(sshStatus.Firewall),
 	}, nil
 }
 
@@ -264,5 +268,43 @@ func toProtoServiceStatus(s *system.ServiceStatus) *pb.ServiceStatus {
 		Pid:         s.PID,
 		StartedAt:   startedAt,
 		ServiceName: s.ServiceName,
+	}
+}
+
+func toProtoNetworkInfo(n *system.NetworkInfo) *pb.NetworkInfo {
+	if n == nil {
+		return nil
+	}
+	return &pb.NetworkInfo{
+		Hostname:    n.Hostname,
+		IpAddresses: n.IPAddresses,
+		SshPort:     int32(n.SSHPort),
+	}
+}
+
+func toProtoFirewallStatus(f *system.FirewallStatus) *pb.FirewallStatus {
+	if f == nil {
+		return nil
+	}
+
+	var fwType pb.FirewallType
+	switch f.Type {
+	case system.FirewallTypeUFW:
+		fwType = pb.FirewallType_FIREWALL_TYPE_UFW
+	case system.FirewallTypeFirewalld:
+		fwType = pb.FirewallType_FIREWALL_TYPE_FIREWALLD
+	case system.FirewallTypeIPTables:
+		fwType = pb.FirewallType_FIREWALL_TYPE_IPTABLES
+	case system.FirewallTypeNone:
+		fwType = pb.FirewallType_FIREWALL_TYPE_NONE
+	default:
+		fwType = pb.FirewallType_FIREWALL_TYPE_UNSPECIFIED
+	}
+
+	return &pb.FirewallStatus{
+		Type:       fwType,
+		Active:     f.Active,
+		SshAllowed: f.SSHAllowed,
+		StatusText: f.StatusText,
 	}
 }
