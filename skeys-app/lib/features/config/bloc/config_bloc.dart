@@ -18,9 +18,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../core/backend/daemon_status_service.dart';
+import '../../../core/di/injection.dart';
 import '../../../core/logging/app_logger.dart';
 import '../domain/config_entity.dart';
 import '../domain/ssh_config_entry.dart';
@@ -33,6 +37,7 @@ part 'config_state.dart';
 class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
   final ConfigRepository _repository;
   final AppLogger _log = AppLogger('bloc.config');
+  StreamSubscription<void>? _reconnectionSubscription;
 
   /// Creates a ConfigBloc with the given repository.
   ConfigBloc(this._repository) : super(const ConfigState()) {
@@ -61,8 +66,22 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
     on<ConfigRestartSSHServerRequested>(_onRestartSSHServer);
 
     _log.debug('ConfigBloc initialized');
+
+    // Listen for reconnection events to refresh streams
+    _reconnectionSubscription = getIt<DaemonStatusService>().onReconnected
+        .listen((_) {
+          _log.info('daemon reconnected, refreshing config stream');
+          add(ConfigWatchSSHEntriesRequested());
+        });
+
     // Auto-start watching on creation (singleton pattern)
     add(ConfigWatchSSHEntriesRequested());
+  }
+
+  @override
+  Future<void> close() {
+    _reconnectionSubscription?.cancel();
+    return super.close();
   }
 
   // ============================================================

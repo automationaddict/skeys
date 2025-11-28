@@ -18,8 +18,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import 'dart:async';
+
 import 'package:mocktail/mocktail.dart';
 
+import 'package:skeys_app/core/backend/daemon_status_service.dart';
 import 'package:skeys_app/features/keys/repository/keys_repository.dart';
 import 'package:skeys_app/features/hosts/repository/hosts_repository.dart';
 import 'package:skeys_app/features/agent/repository/agent_repository.dart';
@@ -48,3 +51,21 @@ class MockMetadataRepository extends Mock implements MetadataRepository {}
 
 /// Mock implementation of SettingsService for testing.
 class MockSettingsService extends Mock implements SettingsService {}
+
+/// Mock implementation of DaemonStatusService for testing.
+class MockDaemonStatusService extends Mock implements DaemonStatusService {
+  final _reconnectionController = StreamController<void>.broadcast();
+
+  @override
+  Stream<void> get onReconnected => _reconnectionController.stream;
+
+  @override
+  DaemonStatus get status => DaemonStatus.connected;
+
+  @override
+  bool get isConnected => true;
+
+  void dispose() {
+    _reconnectionController.close();
+  }
+}

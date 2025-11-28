@@ -22,6 +22,8 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:skeys_app/core/backend/daemon_status_service.dart';
+import 'package:skeys_app/core/di/injection.dart';
 import 'package:skeys_app/features/keys/bloc/keys_bloc.dart';
 import '../../../mocks/mocks.dart';
 import '../../../mocks/test_helpers.dart';
@@ -29,6 +31,7 @@ import '../../../mocks/test_helpers.dart';
 void main() {
   late MockKeysRepository mockKeysRepository;
   late MockRemoteRepository mockRemoteRepository;
+  late MockDaemonStatusService mockDaemonStatusService;
 
   setUpAll(() {
     // Register fallback values for any() matchers
@@ -38,11 +41,24 @@ void main() {
   setUp(() {
     mockKeysRepository = MockKeysRepository();
     mockRemoteRepository = MockRemoteRepository();
+    mockDaemonStatusService = MockDaemonStatusService();
+
+    // Register mock DaemonStatusService
+    if (getIt.isRegistered<DaemonStatusService>()) {
+      getIt.unregister<DaemonStatusService>();
+    }
+    getIt.registerSingleton<DaemonStatusService>(mockDaemonStatusService);
 
     // Default mock for watchKeys (used in constructor)
     when(() => mockKeysRepository.watchKeys()).thenAnswer(
       (_) => Stream.fromIterable([<KeyEntity>[]]),
     );
+  });
+
+  tearDown(() {
+    if (getIt.isRegistered<DaemonStatusService>()) {
+      getIt.unregister<DaemonStatusService>();
+    }
   });
 
   group('KeysBloc', () {

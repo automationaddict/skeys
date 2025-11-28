@@ -18,9 +18,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../core/backend/daemon_status_service.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/settings/settings_service.dart';
@@ -34,6 +37,7 @@ part 'agent_state.dart';
 class AgentBloc extends Bloc<AgentEvent, AgentState> {
   final AgentRepository _repository;
   final AppLogger _log = AppLogger('bloc.agent');
+  StreamSubscription<void>? _reconnectionSubscription;
 
   /// Creates an AgentBloc with the given repository.
   AgentBloc(this._repository) : super(const AgentState()) {
@@ -46,8 +50,22 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
     on<AgentLockRequested>(_onLock);
     on<AgentUnlockRequested>(_onUnlock);
     _log.debug('AgentBloc initialized');
+
+    // Listen for reconnection events to refresh streams
+    _reconnectionSubscription = getIt<DaemonStatusService>().onReconnected
+        .listen((_) {
+          _log.info('daemon reconnected, refreshing agent stream');
+          add(AgentWatchRequested());
+        });
+
     // Auto-start watching on creation (singleton pattern)
     add(AgentWatchRequested());
+  }
+
+  @override
+  Future<void> close() {
+    _reconnectionSubscription?.cancel();
+    return super.close();
   }
 
   Future<void> _onLoadStatus(

@@ -23,8 +23,10 @@ package server
 import (
 	"os"
 	"path/filepath"
+	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 
 	"github.com/johnnelson/skeys-core/agent"
@@ -104,11 +106,33 @@ func New(opts ...ServerOption) (*Server, error) {
 
 	s.log.Info("initializing gRPC server")
 
-	// Create gRPC server with logging interceptor
+	// Configure keepalive to detect dead connections and keep streams alive
+	kaParams := keepalive.ServerParameters{
+		// Send pings every 15 seconds if there is no activity
+		Time: 15 * time.Second,
+		// Wait 5 seconds for ping ack before considering connection dead
+		Timeout: 5 * time.Second,
+	}
+
+	kaPolicy := keepalive.EnforcementPolicy{
+		// Allow pings even when there are no active streams
+		PermitWithoutStream: true,
+		// Allow clients to send pings as frequently as they want
+		MinTime: 5 * time.Second,
+	}
+
+	// Create gRPC server with keepalive and logging interceptor
 	grpcServer := grpc.NewServer(
+		grpc.KeepaliveParams(kaParams),
+		grpc.KeepaliveEnforcementPolicy(kaPolicy),
 		grpc.UnaryInterceptor(newLoggingInterceptor(s.log)),
 	)
 	s.Server = grpcServer
+
+	s.log.InfoWithFields("gRPC keepalive configured", map[string]interface{}{
+		"ping_interval": "15s",
+		"ping_timeout":  "5s",
+	})
 
 	// Start managed SSH agent
 	agentLog := s.log.WithComponent("agent")

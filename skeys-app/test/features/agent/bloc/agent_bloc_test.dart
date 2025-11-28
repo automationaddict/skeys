@@ -23,6 +23,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:skeys_app/core/backend/daemon_status_service.dart';
 import 'package:skeys_app/features/agent/bloc/agent_bloc.dart';
 import 'package:skeys_app/features/agent/repository/agent_repository.dart';
 import 'package:skeys_app/core/settings/settings_service.dart';
@@ -32,6 +33,7 @@ import '../../../mocks/test_helpers.dart';
 void main() {
   late MockAgentRepository mockAgentRepository;
   late MockSettingsService mockSettingsService;
+  late MockDaemonStatusService mockDaemonStatusService;
   final getIt = GetIt.instance;
 
   setUpAll(() {
@@ -42,12 +44,19 @@ void main() {
   setUp(() {
     mockAgentRepository = MockAgentRepository();
     mockSettingsService = MockSettingsService();
+    mockDaemonStatusService = MockDaemonStatusService();
 
     // Register mock settings service in getIt
     if (getIt.isRegistered<SettingsService>()) {
       getIt.unregister<SettingsService>();
     }
     getIt.registerSingleton<SettingsService>(mockSettingsService);
+
+    // Register mock DaemonStatusService
+    if (getIt.isRegistered<DaemonStatusService>()) {
+      getIt.unregister<DaemonStatusService>();
+    }
+    getIt.registerSingleton<DaemonStatusService>(mockDaemonStatusService);
 
     // Default mock for watchAgent (used in constructor)
     when(() => mockAgentRepository.watchAgent()).thenAnswer(
@@ -66,6 +75,9 @@ void main() {
   tearDown(() {
     if (getIt.isRegistered<SettingsService>()) {
       getIt.unregister<SettingsService>();
+    }
+    if (getIt.isRegistered<DaemonStatusService>()) {
+      getIt.unregister<DaemonStatusService>();
     }
   });
 

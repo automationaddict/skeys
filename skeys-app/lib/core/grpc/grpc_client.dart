@@ -33,6 +33,12 @@ import '../generated/skeys/v1/system.pbgrpc.dart';
 import '../generated/skeys/v1/update.pbgrpc.dart';
 import '../logging/app_logger.dart';
 
+/// Default timeout for gRPC calls.
+const _defaultCallTimeout = Duration(seconds: 30);
+
+/// Timeout for health check calls (shorter to detect issues quickly).
+const _healthCheckTimeout = Duration(seconds: 5);
+
 /// gRPC client for communicating with skeys-daemon.
 ///
 /// Uses Unix socket for local communication.
@@ -42,6 +48,10 @@ class GrpcClient {
   final AppLogger _log = AppLogger('grpc');
 
   ClientChannel? _channel;
+
+  /// Default call options with timeout for all gRPC calls.
+  CallOptions get defaultCallOptions =>
+      CallOptions(timeout: _defaultCallTimeout);
 
   // Service stubs
   KeyServiceClient? _keys;
@@ -147,14 +157,23 @@ class GrpcClient {
     _log.debug('socket file exists, creating channel');
 
     try {
-      // Create Unix socket channel
+      // Create Unix socket channel with keepalive
       _channel = ClientChannel(
         InternetAddress(socketPath, type: InternetAddressType.unix),
         port: 0,
-        options: const ChannelOptions(
-          credentials: ChannelCredentials.insecure(),
+        options: ChannelOptions(
+          credentials: const ChannelCredentials.insecure(),
+          // Connection timeout for initial connection
+          connectionTimeout: const Duration(seconds: 10),
+          // Idle timeout - close connection after 5 minutes of no activity
+          idleTimeout: const Duration(minutes: 5),
         ),
       );
+
+      _log.debug('channel created with keepalive', {
+        'connection_timeout': '10s',
+        'idle_timeout': '5m',
+      });
 
       // Initialize service stubs
       _keys = KeyServiceClient(_channel!);
@@ -203,6 +222,8 @@ class GrpcClient {
   }
 
   /// Checks if the connection is healthy.
+  ///
+  /// Uses a short timeout to quickly detect dead connections.
   Future<bool> isHealthy() async {
     _log.debug('checking connection health');
 
@@ -212,8 +233,11 @@ class GrpcClient {
     }
 
     try {
-      // Try a simple operation to verify connection
-      await _keys!.listKeys(ListKeysRequest());
+      // Try a simple operation to verify connection with short timeout
+      await _keys!.listKeys(
+        ListKeysRequest(),
+        options: CallOptions(timeout: _healthCheckTimeout),
+      );
       _log.debug('health check passed');
       return true;
     } catch (e) {

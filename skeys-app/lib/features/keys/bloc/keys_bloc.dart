@@ -18,9 +18,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../core/backend/daemon_status_service.dart';
+import '../../../core/di/injection.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../remote/domain/remote_entity.dart';
 import '../../remote/repository/remote_repository.dart';
@@ -35,6 +39,7 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
   final KeysRepository _repository;
   final RemoteRepository _remoteRepository;
   final AppLogger _log = AppLogger('bloc.keys');
+  StreamSubscription<void>? _reconnectionSubscription;
 
   /// Creates a KeysBloc with the given repositories.
   KeysBloc(this._repository, this._remoteRepository)
@@ -48,8 +53,22 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
     on<KeysTestConnectionRequested>(_onTestConnectionRequested);
     on<KeysTestConnectionCleared>(_onTestConnectionCleared);
     _log.debug('KeysBloc initialized');
+
+    // Listen for reconnection events to refresh streams
+    _reconnectionSubscription = getIt<DaemonStatusService>().onReconnected
+        .listen((_) {
+          _log.info('daemon reconnected, refreshing keys stream');
+          add(KeysWatchRequested());
+        });
+
     // Auto-start watching on creation (singleton pattern)
     add(KeysWatchRequested());
+  }
+
+  @override
+  Future<void> close() {
+    _reconnectionSubscription?.cancel();
+    return super.close();
   }
 
   Future<void> _onLoadRequested(

@@ -18,9 +18,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../core/backend/daemon_status_service.dart';
+import '../../../core/di/injection.dart';
 import '../../../core/logging/app_logger.dart';
 import '../domain/host_entity.dart';
 import '../repository/hosts_repository.dart';
@@ -32,6 +36,7 @@ part 'hosts_state.dart';
 class HostsBloc extends Bloc<HostsEvent, HostsState> {
   final HostsRepository _repository;
   final AppLogger _log = AppLogger('bloc.hosts');
+  StreamSubscription<void>? _reconnectionSubscription;
 
   /// Creates a HostsBloc with the given repository.
   HostsBloc(this._repository) : super(const HostsState()) {
@@ -47,9 +52,24 @@ class HostsBloc extends Bloc<HostsEvent, HostsState> {
     on<HostsAddKnownHostRequested>(_onAddKnownHost);
     on<HostsClearScannedKeysRequested>(_onClearScannedKeys);
     _log.debug('HostsBloc initialized');
+
+    // Listen for reconnection events to refresh streams
+    _reconnectionSubscription = getIt<DaemonStatusService>().onReconnected
+        .listen((_) {
+          _log.info('daemon reconnected, refreshing hosts streams');
+          add(HostsWatchKnownHostsRequested());
+          add(HostsWatchAuthorizedKeysRequested());
+        });
+
     // Auto-start watching on creation (singleton pattern)
     add(HostsWatchKnownHostsRequested());
     add(HostsWatchAuthorizedKeysRequested());
+  }
+
+  @override
+  Future<void> close() {
+    _reconnectionSubscription?.cancel();
+    return super.close();
   }
 
   Future<void> _onLoadKnownHosts(

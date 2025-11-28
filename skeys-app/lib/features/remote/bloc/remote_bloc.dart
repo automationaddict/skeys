@@ -18,9 +18,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../core/backend/daemon_status_service.dart';
+import '../../../core/di/injection.dart';
 import '../../../core/logging/app_logger.dart';
 import '../domain/remote_entity.dart';
 import '../repository/remote_repository.dart';
@@ -32,6 +36,7 @@ part 'remote_state.dart';
 class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
   final RemoteRepository _repository;
   final AppLogger _log = AppLogger('bloc.remote');
+  StreamSubscription<void>? _reconnectionSubscription;
 
   /// Creates a RemoteBloc with the given repository.
   RemoteBloc(this._repository) : super(const RemoteState()) {
@@ -44,8 +49,22 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
     on<RemoteWatchConnectionsRequested>(_onWatchConnections);
     on<RemoteExecuteCommandRequested>(_onExecuteCommand);
     _log.debug('RemoteBloc initialized');
+
+    // Listen for reconnection events to refresh streams
+    _reconnectionSubscription = getIt<DaemonStatusService>().onReconnected
+        .listen((_) {
+          _log.info('daemon reconnected, refreshing connections stream');
+          add(RemoteWatchConnectionsRequested());
+        });
+
     // Auto-start watching on creation (singleton pattern)
     add(RemoteWatchConnectionsRequested());
+  }
+
+  @override
+  Future<void> close() {
+    _reconnectionSubscription?.cancel();
+    return super.close();
   }
 
   Future<void> _onLoadRequested(

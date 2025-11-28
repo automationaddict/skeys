@@ -22,15 +22,25 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:skeys_app/core/backend/daemon_status_service.dart';
+import 'package:skeys_app/core/di/injection.dart';
 import 'package:skeys_app/features/hosts/bloc/hosts_bloc.dart';
 import '../../../mocks/mocks.dart';
 import '../../../mocks/test_helpers.dart';
 
 void main() {
   late MockHostsRepository mockHostsRepository;
+  late MockDaemonStatusService mockDaemonStatusService;
 
   setUp(() {
     mockHostsRepository = MockHostsRepository();
+    mockDaemonStatusService = MockDaemonStatusService();
+
+    // Register mock DaemonStatusService
+    if (getIt.isRegistered<DaemonStatusService>()) {
+      getIt.unregister<DaemonStatusService>();
+    }
+    getIt.registerSingleton<DaemonStatusService>(mockDaemonStatusService);
 
     // Default mocks for auto-watch on construction
     when(() => mockHostsRepository.watchKnownHosts()).thenAnswer(
@@ -39,6 +49,12 @@ void main() {
     when(() => mockHostsRepository.watchAuthorizedKeys()).thenAnswer(
       (_) => Stream.fromIterable([<AuthorizedKeyEntry>[]]),
     );
+  });
+
+  tearDown(() {
+    if (getIt.isRegistered<DaemonStatusService>()) {
+      getIt.unregister<DaemonStatusService>();
+    }
   });
 
   group('HostsBloc', () {

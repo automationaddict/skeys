@@ -22,12 +22,15 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:skeys_app/core/backend/daemon_status_service.dart';
+import 'package:skeys_app/core/di/injection.dart';
 import 'package:skeys_app/features/config/bloc/config_bloc.dart';
 import '../../../mocks/mocks.dart';
 import '../../../mocks/test_helpers.dart';
 
 void main() {
   late MockConfigRepository mockConfigRepository;
+  late MockDaemonStatusService mockDaemonStatusService;
 
   setUpAll(() {
     // Register fallback values for any() matchers
@@ -37,11 +40,24 @@ void main() {
 
   setUp(() {
     mockConfigRepository = MockConfigRepository();
+    mockDaemonStatusService = MockDaemonStatusService();
+
+    // Register mock DaemonStatusService
+    if (getIt.isRegistered<DaemonStatusService>()) {
+      getIt.unregister<DaemonStatusService>();
+    }
+    getIt.registerSingleton<DaemonStatusService>(mockDaemonStatusService);
 
     // Default mock for auto-watch on construction
     when(() => mockConfigRepository.watchSSHConfigEntries()).thenAnswer(
       (_) => Stream.fromIterable([<SSHConfigEntry>[]]),
     );
+  });
+
+  tearDown(() {
+    if (getIt.isRegistered<DaemonStatusService>()) {
+      getIt.unregister<DaemonStatusService>();
+    }
   });
 
   group('ConfigBloc', () {

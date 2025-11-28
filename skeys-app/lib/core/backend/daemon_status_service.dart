@@ -50,6 +50,13 @@ class DaemonStatusService extends ChangeNotifier {
   static const _healthCheckInterval = Duration(seconds: 30);
   static const _reconnectDelay = Duration(seconds: 2);
 
+  // Stream controller to notify listeners when connection is restored
+  final _reconnectionController = StreamController<void>.broadcast();
+
+  /// Stream that emits when the connection is restored.
+  /// BLoCs should listen to this to refresh their streams.
+  Stream<void> get onReconnected => _reconnectionController.stream;
+
   /// Current connection status.
   DaemonStatus get status => _status;
 
@@ -83,10 +90,17 @@ class DaemonStatusService extends ChangeNotifier {
       if (healthy) {
         if (_status != DaemonStatus.connected) {
           _log.info('daemon connection restored');
+          final wasDisconnected = _status == DaemonStatus.disconnected;
           _status = DaemonStatus.connected;
           _lastError = null;
           _reconnectAttempts = 0;
           notifyListeners();
+
+          // Notify listeners to refresh their streams
+          if (wasDisconnected) {
+            _log.info('notifying listeners to refresh streams');
+            _reconnectionController.add(null);
+          }
         }
       } else {
         _handleDisconnection('Health check failed');
@@ -138,6 +152,10 @@ class DaemonStatusService extends ChangeNotifier {
         _lastError = null;
         _reconnectAttempts = 0;
         notifyListeners();
+
+        // Notify listeners to refresh their streams
+        _log.info('notifying listeners to refresh streams after reconnect');
+        _reconnectionController.add(null);
         return true;
       } else {
         throw Exception('Connection established but health check failed');
@@ -159,6 +177,7 @@ class DaemonStatusService extends ChangeNotifier {
   @override
   void dispose() {
     _healthCheckTimer?.cancel();
+    _reconnectionController.close();
     super.dispose();
   }
 }
