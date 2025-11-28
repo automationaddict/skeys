@@ -31,8 +31,7 @@ class _ConfigPageState extends State<ConfigPage> with SingleTickerProviderStateM
     _tabController.addListener(_onTabChanged);
     // Set initial context
     _helpContextService.setContextSuffix(_tabContexts[0]);
-    // Start streaming SSH config entries and load global directives
-    context.read<ConfigBloc>().add(const ConfigWatchSSHEntriesRequested());
+    // Load global directives (watch is auto-started by BLoC singleton)
     context.read<ConfigBloc>().add(const ConfigLoadGlobalDirectivesRequested());
   }
 

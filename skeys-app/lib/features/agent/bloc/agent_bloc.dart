@@ -25,6 +25,8 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
     on<AgentLockRequested>(_onLock);
     on<AgentUnlockRequested>(_onUnlock);
     _log.debug('AgentBloc initialized');
+    // Auto-start watching on creation (singleton pattern)
+    add(AgentWatchRequested());
   }
 
   Future<void> _onLoadStatus(

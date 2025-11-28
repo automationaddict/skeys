@@ -3,7 +3,10 @@ package hosts
 import (
 	"context"
 	"reflect"
+	"sync"
 	"time"
+
+	"github.com/johnnelson/skeys-core/broadcast"
 )
 
 // KnownHostsUpdate represents a change notification for known_hosts
@@ -18,104 +21,224 @@ type AuthorizedKeysUpdate struct {
 	Err  error
 }
 
-// Watch monitors the known_hosts file and sends updates when changes are detected.
-// It sends an initial update immediately, then polls for changes.
-// The returned channel is closed when the context is cancelled.
-func (m *KnownHostsManager) Watch(ctx context.Context) <-chan KnownHostsUpdate {
-	updates := make(chan KnownHostsUpdate, 1)
-
-	go func() {
-		defer close(updates)
-
-		// Poll interval for checking file changes
-		pollInterval := 2 * time.Second
-		ticker := time.NewTicker(pollInterval)
-		defer ticker.Stop()
-
-		// Send initial status
-		hosts, err := m.List()
-		if err != nil {
-			updates <- KnownHostsUpdate{Err: err}
-			return
-		}
-		updates <- KnownHostsUpdate{Hosts: hosts}
-
-		// Track previous state to detect changes
-		prevHosts := hosts
-
-		for {
-			select {
-			case <-ctx.Done():
-				return
-
-			case <-ticker.C:
-				// Get current state
-				currentHosts, err := m.List()
-				if err != nil {
-					// Don't send error on transient failures, just skip this poll
-					continue
-				}
-
-				// Only send update if something changed
-				if !knownHostsEqual(prevHosts, currentHosts) {
-					updates <- KnownHostsUpdate{Hosts: currentHosts}
-					prevHosts = currentHosts
-				}
-			}
-		}
-	}()
-
-	return updates
+// knownHostsWatcher manages a single polling loop that broadcasts to all subscribers
+type knownHostsWatcher struct {
+	manager     *KnownHostsManager
+	broadcaster *broadcast.Broadcaster[KnownHostsUpdate]
+	cancel      context.CancelFunc
+	started     bool
+	mu          sync.Mutex
 }
 
-// Watch monitors the authorized_keys file and sends updates when changes are detected.
-// It sends an initial update immediately, then polls for changes.
-// The returned channel is closed when the context is cancelled.
-func (m *AuthorizedKeysManager) Watch(ctx context.Context) <-chan AuthorizedKeysUpdate {
-	updates := make(chan AuthorizedKeysUpdate, 1)
+func newKnownHostsWatcher(m *KnownHostsManager) *knownHostsWatcher {
+	return &knownHostsWatcher{
+		manager:     m,
+		broadcaster: broadcast.New[KnownHostsUpdate](),
+	}
+}
+
+func (w *knownHostsWatcher) start() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	if w.started {
+		return
+	}
+	w.started = true
+
+	ctx, cancel := context.WithCancel(context.Background())
+	w.cancel = cancel
+
+	go w.pollLoop(ctx)
+}
+
+func (w *knownHostsWatcher) subscribe() chan KnownHostsUpdate {
+	w.start()
+	return w.broadcaster.Subscribe(true)
+}
+
+func (w *knownHostsWatcher) unsubscribe(ch chan KnownHostsUpdate) {
+	w.broadcaster.Unsubscribe(ch)
+}
+
+func (w *knownHostsWatcher) pollLoop(ctx context.Context) {
+	pollInterval := 2 * time.Second
+	ticker := time.NewTicker(pollInterval)
+	defer ticker.Stop()
+
+	hosts, err := w.manager.List()
+	if err != nil {
+		w.broadcaster.Broadcast(KnownHostsUpdate{Err: err})
+		return
+	}
+	w.broadcaster.Broadcast(KnownHostsUpdate{Hosts: hosts})
+
+	prevHosts := hosts
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			currentHosts, err := w.manager.List()
+			if err != nil {
+				continue
+			}
+			if !knownHostsEqual(prevHosts, currentHosts) {
+				w.broadcaster.Broadcast(KnownHostsUpdate{Hosts: currentHosts})
+				prevHosts = currentHosts
+			}
+		}
+	}
+}
+
+// Watch subscribes to known hosts updates.
+// Multiple callers share the same underlying polling loop.
+func (m *KnownHostsManager) Watch(ctx context.Context) <-chan KnownHostsUpdate {
+	m.ensureWatcher()
+	subCh := m.watcher.subscribe()
+	outCh := make(chan KnownHostsUpdate, 1)
 
 	go func() {
-		defer close(updates)
-
-		// Poll interval for checking file changes
-		pollInterval := 2 * time.Second
-		ticker := time.NewTicker(pollInterval)
-		defer ticker.Stop()
-
-		// Send initial status
-		keys, err := m.List()
-		if err != nil {
-			updates <- AuthorizedKeysUpdate{Err: err}
-			return
-		}
-		updates <- AuthorizedKeysUpdate{Keys: keys}
-
-		// Track previous state to detect changes
-		prevKeys := keys
+		defer close(outCh)
+		defer m.watcher.unsubscribe(subCh)
 
 		for {
 			select {
 			case <-ctx.Done():
 				return
-
-			case <-ticker.C:
-				// Get current state
-				currentKeys, err := m.List()
-				if err != nil {
-					// Don't send error on transient failures, just skip this poll
-					continue
+			case update, ok := <-subCh:
+				if !ok {
+					return
 				}
-
-				// Only send update if something changed
-				if !authorizedKeysEqual(prevKeys, currentKeys) {
-					updates <- AuthorizedKeysUpdate{Keys: currentKeys}
-					prevKeys = currentKeys
+				select {
+				case outCh <- update:
+				case <-ctx.Done():
+					return
 				}
 			}
 		}
 	}()
 
-	return updates
+	return outCh
+}
+
+func (m *KnownHostsManager) ensureWatcher() {
+	m.watcherMu.Lock()
+	defer m.watcherMu.Unlock()
+	if m.watcher == nil {
+		m.watcher = newKnownHostsWatcher(m)
+	}
+}
+
+// authorizedKeysWatcher manages a single polling loop that broadcasts to all subscribers
+type authorizedKeysWatcher struct {
+	manager     *AuthorizedKeysManager
+	broadcaster *broadcast.Broadcaster[AuthorizedKeysUpdate]
+	cancel      context.CancelFunc
+	started     bool
+	mu          sync.Mutex
+}
+
+func newAuthorizedKeysWatcher(m *AuthorizedKeysManager) *authorizedKeysWatcher {
+	return &authorizedKeysWatcher{
+		manager:     m,
+		broadcaster: broadcast.New[AuthorizedKeysUpdate](),
+	}
+}
+
+func (w *authorizedKeysWatcher) start() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	if w.started {
+		return
+	}
+	w.started = true
+
+	ctx, cancel := context.WithCancel(context.Background())
+	w.cancel = cancel
+
+	go w.pollLoop(ctx)
+}
+
+func (w *authorizedKeysWatcher) subscribe() chan AuthorizedKeysUpdate {
+	w.start()
+	return w.broadcaster.Subscribe(true)
+}
+
+func (w *authorizedKeysWatcher) unsubscribe(ch chan AuthorizedKeysUpdate) {
+	w.broadcaster.Unsubscribe(ch)
+}
+
+func (w *authorizedKeysWatcher) pollLoop(ctx context.Context) {
+	pollInterval := 2 * time.Second
+	ticker := time.NewTicker(pollInterval)
+	defer ticker.Stop()
+
+	keys, err := w.manager.List()
+	if err != nil {
+		w.broadcaster.Broadcast(AuthorizedKeysUpdate{Err: err})
+		return
+	}
+	w.broadcaster.Broadcast(AuthorizedKeysUpdate{Keys: keys})
+
+	prevKeys := keys
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			currentKeys, err := w.manager.List()
+			if err != nil {
+				continue
+			}
+			if !authorizedKeysEqual(prevKeys, currentKeys) {
+				w.broadcaster.Broadcast(AuthorizedKeysUpdate{Keys: currentKeys})
+				prevKeys = currentKeys
+			}
+		}
+	}
+}
+
+// Watch subscribes to authorized keys updates.
+// Multiple callers share the same underlying polling loop.
+func (m *AuthorizedKeysManager) Watch(ctx context.Context) <-chan AuthorizedKeysUpdate {
+	m.ensureWatcher()
+	subCh := m.watcher.subscribe()
+	outCh := make(chan AuthorizedKeysUpdate, 1)
+
+	go func() {
+		defer close(outCh)
+		defer m.watcher.unsubscribe(subCh)
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case update, ok := <-subCh:
+				if !ok {
+					return
+				}
+				select {
+				case outCh <- update:
+				case <-ctx.Done():
+					return
+				}
+			}
+		}
+	}()
+
+	return outCh
+}
+
+func (m *AuthorizedKeysManager) ensureWatcher() {
+	m.watcherMu.Lock()
+	defer m.watcherMu.Unlock()
+	if m.watcher == nil {
+		m.watcher = newAuthorizedKeysWatcher(m)
+	}
 }
 
 // knownHostsEqual compares two KnownHost slices for equality
@@ -123,13 +246,11 @@ func knownHostsEqual(a, b []*KnownHost) bool {
 	if len(a) != len(b) {
 		return false
 	}
-
 	for i := range a {
 		if !reflect.DeepEqual(a[i], b[i]) {
 			return false
 		}
 	}
-
 	return true
 }
 
@@ -138,12 +259,10 @@ func authorizedKeysEqual(a, b []*AuthorizedKey) bool {
 	if len(a) != len(b) {
 		return false
 	}
-
 	for i := range a {
 		if !reflect.DeepEqual(a[i], b[i]) {
 			return false
 		}
 	}
-
 	return true
 }

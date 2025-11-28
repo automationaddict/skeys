@@ -22,6 +22,8 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     on<ServerDisableRequested>(_onDisableRequested);
     on<ServerActionResultCleared>(_onActionResultCleared);
     _log.debug('ServerBloc initialized');
+    // Auto-start watching on creation (singleton pattern)
+    add(ServerWatchRequested());
   }
 
   Future<void> _onWatchRequested(

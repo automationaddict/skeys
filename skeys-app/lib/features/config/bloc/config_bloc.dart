@@ -39,6 +39,8 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
     on<ConfigUpdateServerOptionRequested>(_onUpdateServerOption);
 
     _log.debug('ConfigBloc initialized');
+    // Auto-start watching on creation (singleton pattern)
+    add(ConfigWatchSSHEntriesRequested());
   }
 
   // ============================================================

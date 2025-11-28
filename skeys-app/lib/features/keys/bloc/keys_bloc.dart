@@ -26,6 +26,8 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
     on<KeysTestConnectionRequested>(_onTestConnectionRequested);
     on<KeysTestConnectionCleared>(_onTestConnectionCleared);
     _log.debug('KeysBloc initialized');
+    // Auto-start watching on creation (singleton pattern)
+    add(KeysWatchRequested());
   }
 
   Future<void> _onLoadRequested(

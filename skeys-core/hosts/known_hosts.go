@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/johnnelson/skeys-core/executor"
 	"github.com/johnnelson/skeys-core/logging"
@@ -30,9 +31,11 @@ type KnownHost struct {
 
 // KnownHostsManager manages the known_hosts file
 type KnownHostsManager struct {
-	path     string
-	executor executor.Executor
-	log      *logging.Logger
+	path      string
+	executor  executor.Executor
+	log       *logging.Logger
+	watcher   *knownHostsWatcher
+	watcherMu sync.Mutex
 }
 
 // KnownHostsOption is a functional option

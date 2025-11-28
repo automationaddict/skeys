@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/johnnelson/skeys-core/logging"
 )
@@ -23,8 +24,10 @@ type AuthorizedKey struct {
 
 // AuthorizedKeysManager manages the authorized_keys file
 type AuthorizedKeysManager struct {
-	path string
-	log  *logging.Logger
+	path      string
+	log       *logging.Logger
+	watcher   *authorizedKeysWatcher
+	watcherMu sync.Mutex
 }
 
 // AuthorizedKeysOption is a functional option

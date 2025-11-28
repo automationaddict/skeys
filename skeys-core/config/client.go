@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/johnnelson/skeys-core/logging"
 	"github.com/patrikkj/sshconf"
@@ -80,9 +81,11 @@ type HostEntry struct {
 
 // ClientConfig manages the SSH client configuration file
 type ClientConfig struct {
-	path   string
-	config *sshconf.SSHConfig
-	log    *logging.Logger
+	path      string
+	config    *sshconf.SSHConfig
+	log       *logging.Logger
+	watcher   *configWatcher
+	watcherMu sync.Mutex
 }
 
 // ClientConfigOption is a functional option for ClientConfig

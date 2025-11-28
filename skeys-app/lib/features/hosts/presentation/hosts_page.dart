@@ -19,7 +19,6 @@ class HostsPage extends StatefulWidget {
 class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _helpContextService = getIt<HelpContextService>();
-  bool _authorizedKeysWatching = false;
 
   static const _tabContexts = ['known', 'authorized'];
 
@@ -28,9 +27,8 @@ class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMix
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_onTabChanged);
-    // Set initial context
+    // Set initial context (watch is auto-started by BLoC singleton)
     _helpContextService.setContextSuffix(_tabContexts[0]);
-    context.read<HostsBloc>().add(const HostsWatchKnownHostsRequested());
   }
 
   void _onTabChanged() {
@@ -147,14 +145,6 @@ class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMix
   }
 
   Widget _buildAuthorizedKeysTab(BuildContext context, HostsState state) {
-    // Start watching when first viewing the tab
-    if (!_authorizedKeysWatching && state.status != HostsStatus.loading) {
-      _authorizedKeysWatching = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<HostsBloc>().add(const HostsWatchAuthorizedKeysRequested());
-      });
-    }
-
     if (state.status == HostsStatus.loading && state.authorizedKeys.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }

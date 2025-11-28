@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -105,6 +106,8 @@ type InstallInstructions struct {
 // SystemManager provides system-level SSH operations.
 type SystemManager struct {
 	privilegeCmd string // Command for privilege escalation (pkexec, sudo)
+	watcher      *systemWatcher
+	watcherMu    sync.Mutex
 }
 
 // NewSystemManager creates a new system manager.

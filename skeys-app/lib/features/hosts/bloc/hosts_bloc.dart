@@ -26,6 +26,9 @@ class HostsBloc extends Bloc<HostsEvent, HostsState> {
     on<HostsAddKnownHostRequested>(_onAddKnownHost);
     on<HostsClearScannedKeysRequested>(_onClearScannedKeys);
     _log.debug('HostsBloc initialized');
+    // Auto-start watching on creation (singleton pattern)
+    add(HostsWatchKnownHostsRequested());
+    add(HostsWatchAuthorizedKeysRequested());
   }
 
   Future<void> _onLoadKnownHosts(

@@ -16,8 +16,8 @@ class _RemotePageState extends State<RemotePage> {
   @override
   void initState() {
     super.initState();
+    // Load remotes on first visit (watch is auto-started by BLoC singleton)
     context.read<RemoteBloc>().add(const RemoteLoadRequested());
-    context.read<RemoteBloc>().add(const RemoteWatchConnectionsRequested());
   }
 
   @override

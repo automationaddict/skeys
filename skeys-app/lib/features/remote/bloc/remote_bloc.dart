@@ -23,6 +23,8 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
     on<RemoteWatchConnectionsRequested>(_onWatchConnections);
     on<RemoteExecuteCommandRequested>(_onExecuteCommand);
     _log.debug('RemoteBloc initialized');
+    // Auto-start watching on creation (singleton pattern)
+    add(RemoteWatchConnectionsRequested());
   }
 
   Future<void> _onLoadRequested(

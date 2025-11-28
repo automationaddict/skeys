@@ -16,26 +16,10 @@ class AgentPage extends StatefulWidget {
 
 class _AgentPageState extends State<AgentPage> {
   @override
-  void initState() {
-    super.initState();
-    context.read<AgentBloc>().add(const AgentWatchRequested());
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('SSH Agent'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              // Restart stream subscription if it errored
-              context.read<AgentBloc>().add(const AgentWatchRequested());
-            },
-            tooltip: 'Reconnect',
-          ),
-        ],
       ),
       body: BlocBuilder<AgentBloc, AgentState>(
         builder: (context, state) {

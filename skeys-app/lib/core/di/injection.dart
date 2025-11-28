@@ -113,24 +113,24 @@ Future<void> configureDependencies() async {
     () => ServerRepositoryImpl(grpcClient),
   );
 
-  // BLoCs
-  _log.debug('registering BLoCs');
-  getIt.registerFactory<KeysBloc>(
+  // BLoCs (singletons that auto-start watching)
+  _log.debug('registering BLoCs as singletons');
+  getIt.registerLazySingleton<KeysBloc>(
     () => KeysBloc(getIt<KeysRepository>(), getIt<RemoteRepository>()),
   );
-  getIt.registerFactory<ConfigBloc>(
+  getIt.registerLazySingleton<ConfigBloc>(
     () => ConfigBloc(getIt<ConfigRepository>()),
   );
-  getIt.registerFactory<HostsBloc>(
+  getIt.registerLazySingleton<HostsBloc>(
     () => HostsBloc(getIt<HostsRepository>()),
   );
-  getIt.registerFactory<AgentBloc>(
+  getIt.registerLazySingleton<AgentBloc>(
     () => AgentBloc(getIt<AgentRepository>()),
   );
-  getIt.registerFactory<RemoteBloc>(
+  getIt.registerLazySingleton<RemoteBloc>(
     () => RemoteBloc(getIt<RemoteRepository>()),
   );
-  getIt.registerFactory<ServerBloc>(
+  getIt.registerLazySingleton<ServerBloc>(
     () => ServerBloc(getIt<ServerRepository>()),
   );
 

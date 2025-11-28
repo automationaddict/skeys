@@ -1,7 +1,7 @@
 name: skeys_app
 description: "SSH Key Management Application - Keep your SSH keys on track!"
 publish_to: 'none'
-version: 0.0.1+1
+version: 0.0.3+1
 
 environment:
   sdk: ^3.10.1

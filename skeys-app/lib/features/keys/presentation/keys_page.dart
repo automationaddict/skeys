@@ -22,26 +22,10 @@ class KeysPage extends StatefulWidget {
 
 class _KeysPageState extends State<KeysPage> {
   @override
-  void initState() {
-    super.initState();
-    context.read<KeysBloc>().add(const KeysWatchRequested());
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('SSH Keys'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              // Restart stream subscription if it errored
-              context.read<KeysBloc>().add(const KeysWatchRequested());
-            },
-            tooltip: 'Reconnect',
-          ),
-        ],
       ),
       body: BlocConsumer<KeysBloc, KeysState>(
         listener: (context, state) {
@@ -102,28 +86,22 @@ class _KeysPageState extends State<KeysPage> {
             );
           }
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              // Restart stream subscription if it errored
-              context.read<KeysBloc>().add(const KeysWatchRequested());
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: state.keys.length,
+            itemBuilder: (context, index) {
+              final key = state.keys[index];
+              return KeyListTile(
+                keyEntity: key,
+                onCopyPublicKey: () {
+                  context.read<KeysBloc>().add(KeysCopyPublicKeyRequested(key.path));
+                },
+                onDelete: () => _confirmDelete(context, key),
+                onAddToAgent: () => _addToAgent(context, key),
+                // Only show Test Connection when key is in agent
+                onTestConnection: key.isInAgent ? () => _testConnection(context, key) : null,
+              );
             },
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: state.keys.length,
-              itemBuilder: (context, index) {
-                final key = state.keys[index];
-                return KeyListTile(
-                  keyEntity: key,
-                  onCopyPublicKey: () {
-                    context.read<KeysBloc>().add(KeysCopyPublicKeyRequested(key.path));
-                  },
-                  onDelete: () => _confirmDelete(context, key),
-                  onAddToAgent: () => _addToAgent(context, key),
-                  // Only show Test Connection when key is in agent
-                  onTestConnection: key.isInAgent ? () => _testConnection(context, key) : null,
-                );
-              },
-            ),
           );
         },
       ),

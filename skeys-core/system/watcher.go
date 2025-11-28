@@ -3,7 +3,10 @@ package system
 import (
 	"context"
 	"reflect"
+	"sync"
 	"time"
+
+	"github.com/johnnelson/skeys-core/broadcast"
 )
 
 // SSHStatusUpdate represents a change notification for SSH status
@@ -12,58 +15,120 @@ type SSHStatusUpdate struct {
 	Err    error
 }
 
-// Watch monitors SSH system status and sends updates when changes are detected.
-// It sends an initial update immediately, then polls for changes.
-// The returned channel is closed when the context is cancelled.
+// systemWatcher manages a single polling loop that broadcasts to all subscribers
+type systemWatcher struct {
+	manager     *SystemManager
+	broadcaster *broadcast.Broadcaster[SSHStatusUpdate]
+	cancel      context.CancelFunc
+	started     bool
+	mu          sync.Mutex
+}
+
+func newSystemWatcher(m *SystemManager) *systemWatcher {
+	return &systemWatcher{
+		manager:     m,
+		broadcaster: broadcast.New[SSHStatusUpdate](),
+	}
+}
+
+func (w *systemWatcher) start() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	if w.started {
+		return
+	}
+	w.started = true
+
+	ctx, cancel := context.WithCancel(context.Background())
+	w.cancel = cancel
+
+	go w.pollLoop(ctx)
+}
+
+func (w *systemWatcher) subscribe() chan SSHStatusUpdate {
+	w.start()
+	return w.broadcaster.Subscribe(true)
+}
+
+func (w *systemWatcher) unsubscribe(ch chan SSHStatusUpdate) {
+	w.broadcaster.Unsubscribe(ch)
+}
+
+func (w *systemWatcher) pollLoop(ctx context.Context) {
+	pollInterval := 2 * time.Second
+	ticker := time.NewTicker(pollInterval)
+	defer ticker.Stop()
+
+	// Send initial status
+	status, err := w.manager.GetSSHStatus(ctx)
+	if err != nil {
+		w.broadcaster.Broadcast(SSHStatusUpdate{Err: err})
+		return
+	}
+	w.broadcaster.Broadcast(SSHStatusUpdate{Status: status})
+
+	prevStatus := status
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			currentStatus, err := w.manager.GetSSHStatus(ctx)
+			if err != nil {
+				// Don't send error on transient failures, just skip this poll
+				continue
+			}
+			if !statusEqual(prevStatus, currentStatus) {
+				w.broadcaster.Broadcast(SSHStatusUpdate{Status: currentStatus})
+				prevStatus = currentStatus
+			}
+		}
+	}
+}
+
+// Watch subscribes to SSH status updates.
+// Multiple callers share the same underlying polling loop.
 func (m *SystemManager) Watch(ctx context.Context) <-chan SSHStatusUpdate {
-	updates := make(chan SSHStatusUpdate, 1)
+	m.ensureWatcher()
+	subCh := m.watcher.subscribe()
+	outCh := make(chan SSHStatusUpdate, 1)
 
 	go func() {
-		defer close(updates)
-
-		// Poll interval for checking service status
-		pollInterval := 2 * time.Second
-		ticker := time.NewTicker(pollInterval)
-		defer ticker.Stop()
-
-		// Send initial status
-		status, err := m.GetSSHStatus(ctx)
-		if err != nil {
-			updates <- SSHStatusUpdate{Err: err}
-			return
-		}
-		updates <- SSHStatusUpdate{Status: status}
-
-		// Track previous status to detect changes
-		prevStatus := status
+		defer close(outCh)
+		defer m.watcher.unsubscribe(subCh)
 
 		for {
 			select {
 			case <-ctx.Done():
 				return
-
-			case <-ticker.C:
-				// Get current status
-				currentStatus, err := m.GetSSHStatus(ctx)
-				if err != nil {
-					// Don't send error on transient failures, just skip this poll
-					continue
+			case update, ok := <-subCh:
+				if !ok {
+					return
 				}
-
-				// Only send update if something changed
-				if !m.statusEqual(prevStatus, currentStatus) {
-					updates <- SSHStatusUpdate{Status: currentStatus}
-					prevStatus = currentStatus
+				select {
+				case outCh <- update:
+				case <-ctx.Done():
+					return
 				}
 			}
 		}
 	}()
 
-	return updates
+	return outCh
+}
+
+func (m *SystemManager) ensureWatcher() {
+	m.watcherMu.Lock()
+	defer m.watcherMu.Unlock()
+	if m.watcher == nil {
+		m.watcher = newSystemWatcher(m)
+	}
 }
 
 // statusEqual compares two SSHStatus structs for equality
-func (m *SystemManager) statusEqual(a, b *SSHStatus) bool {
+func statusEqual(a, b *SSHStatus) bool {
 	if a == nil || b == nil {
 		return a == b
 	}

@@ -50,6 +50,8 @@ type ConnectionPool struct {
 	mu          sync.RWMutex
 	config      PoolConfig
 	log         *logging.Logger
+	watcher     *connectionsWatcher
+	watcherMu   sync.Mutex
 }
 
 // PoolOption is a functional option for configuring the pool

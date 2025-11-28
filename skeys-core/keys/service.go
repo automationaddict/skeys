@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/johnnelson/skeys-core/logging"
@@ -70,6 +71,8 @@ type Service struct {
 	agentChecker AgentChecker
 	keyGenerator *KeyGenerator
 	log          *logging.Logger
+	watcher      *keysWatcher
+	watcherMu    sync.Mutex
 }
 
 // ServiceOption is a functional option for configuring the Service
