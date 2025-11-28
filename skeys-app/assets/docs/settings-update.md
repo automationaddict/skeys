@@ -79,7 +79,7 @@ If an update fails, the previous version is automatically restored from the back
 
 You can also update manually by downloading from GitHub:
 
-1. Visit the [Releases page](https://github.com/johnnelson/skeys/releases)
+1. Visit the [Releases page](https://github.com/automationaddict/skeys/releases)
 2. Download the latest tarball
 3. Extract and run `./install.sh`
 

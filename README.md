@@ -59,12 +59,12 @@
 Download and run the installer directly from the latest release:
 
 ```bash
-curl -fsSL https://github.com/johnnelson/skeys/releases/latest/download/install.sh | bash
+curl -fsSL https://github.com/automationaddict/skeys/releases/latest/download/install.sh | bash
 ```
 
 Or download manually:
 
-1. Go to [Releases](https://github.com/johnnelson/skeys/releases)
+1. Go to [Releases](https://github.com/automationaddict/skeys/releases)
 2. Download `skeys-vX.X.X-linux-x64.tar.gz`
 3. Extract and run the install script:
 
@@ -110,7 +110,7 @@ Run the uninstall script:
 Or download and run directly:
 
 ```bash
-curl -fsSL https://github.com/johnnelson/skeys/releases/latest/download/uninstall.sh | bash
+curl -fsSL https://github.com/automationaddict/skeys/releases/latest/download/uninstall.sh | bash
 ```
 
 The uninstaller will:
