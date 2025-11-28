@@ -25,6 +25,7 @@ import '../../../core/di/injection.dart';
 import '../../../core/help/help_context_service.dart';
 import '../bloc/config_bloc.dart';
 import '../domain/config_entity.dart';
+import '../domain/ssh_client_directives.dart';
 import '../domain/ssh_config_entry.dart';
 import 'widgets/global_directive_dialog.dart';
 import 'widgets/server_config_tab.dart';
@@ -517,6 +518,8 @@ class _GlobalDirectiveListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final helpText = getSshClientDirectiveHelpText(directive.key);
+    final description = getSshClientDirectiveDescription(directive.key);
 
     return ListTile(
       onTap: onEdit,
@@ -532,11 +535,23 @@ class _GlobalDirectiveListTile extends StatelessWidget {
           size: 18,
         ),
       ),
-      title: Text(
-        directive.key,
-        style: theme.textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.w500,
-        ),
+      title: Row(
+        children: [
+          Text(
+            directive.key,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          if (helpText != null) ...[
+            const SizedBox(width: 8),
+            _DirectiveHelpTooltip(
+              directiveKey: directive.key,
+              description: description,
+              helpText: helpText,
+            ),
+          ],
+        ],
       ),
       subtitle: Text(
         directive.value,
@@ -585,6 +600,75 @@ class _GlobalDirectiveListTile extends StatelessWidget {
       return Icons.password;
     }
     return Icons.tune;
+  }
+}
+
+/// Help tooltip widget for SSH client directives.
+class _DirectiveHelpTooltip extends StatelessWidget {
+  final String directiveKey;
+  final String? description;
+  final String helpText;
+
+  const _DirectiveHelpTooltip({
+    required this.directiveKey,
+    this.description,
+    required this.helpText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Tooltip(
+      richMessage: WidgetSpan(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 400),
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                directiveKey,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onInverseSurface,
+                ),
+              ),
+              if (description != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  description!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 8),
+              Text(
+                helpText,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onInverseSurface,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      decoration: BoxDecoration(
+        color: colorScheme.inverseSurface,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      waitDuration: const Duration(milliseconds: 300),
+      showDuration: const Duration(seconds: 15),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.help,
+        child: Icon(Icons.help_outline, size: 16, color: colorScheme.outline),
+      ),
+    );
   }
 }
 

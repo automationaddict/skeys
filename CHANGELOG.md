@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Add help tooltips and search to SSH config UI
+- Add help tooltips to client config global directives
 
 ### Documentation
 
