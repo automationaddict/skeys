@@ -38,11 +38,17 @@ import '../notifications/app_toast.dart';
 import 'settings_service.dart';
 
 /// Settings dialog with tabbed interface.
+///
+/// Provides access to display, security, backup, logging, update, and about
+/// settings in a tabbed layout.
 class SettingsDialog extends StatefulWidget {
+  /// The initial tab index to display when the dialog opens.
   final int initialTab;
 
+  /// Creates a SettingsDialog with an optional initial tab.
   const SettingsDialog({super.key, this.initialTab = 0});
 
+  /// Shows the settings dialog as a modal.
   static Future<void> show(BuildContext context, {int initialTab = 0}) {
     return showDialog(
       context: context,
@@ -50,12 +56,22 @@ class SettingsDialog extends StatefulWidget {
     );
   }
 
-  /// Tab index constants for external use.
+  /// Tab index for the Display settings tab.
   static const int tabDisplay = 0;
+
+  /// Tab index for the Security settings tab.
   static const int tabSecurity = 1;
+
+  /// Tab index for the Backup settings tab.
   static const int tabBackup = 2;
+
+  /// Tab index for the Logging settings tab.
   static const int tabLogging = 3;
+
+  /// Tab index for the Update settings tab.
   static const int tabUpdate = 4;
+
+  /// Tab index for the About tab.
   static const int tabAbout = 5;
 
   @override

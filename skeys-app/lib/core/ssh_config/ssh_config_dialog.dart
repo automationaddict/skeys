@@ -29,8 +29,10 @@ import '../logging/app_logger.dart';
 /// Shows when user first launches the app (or from Settings) to configure
 /// skeys as the default SSH agent.
 class SshConfigDialog extends StatefulWidget {
+  /// The gRPC client used to communicate with the daemon.
   final GrpcClient grpcClient;
 
+  /// Creates an SshConfigDialog with the given gRPC client.
   const SshConfigDialog({super.key, required this.grpcClient});
 
   /// Shows the dialog and returns true if user enabled, false if declined.

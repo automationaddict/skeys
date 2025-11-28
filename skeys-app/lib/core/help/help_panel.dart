@@ -28,15 +28,25 @@ import 'help_navigation_service.dart';
 import 'help_service.dart';
 
 /// A flyout panel for displaying context-aware help documentation.
+///
+/// This panel slides in from the right side of the screen and displays
+/// markdown-formatted help content based on the current route and context.
+/// It supports searching, topic navigation, and handling of internal links.
 class HelpPanel extends StatefulWidget {
+  /// The base route to derive help content from.
   final String baseRoute;
+
+  /// Callback invoked when the user closes the help panel.
   final VoidCallback onClose;
+
+  /// The help service used to load and search documentation.
   final HelpService helpService;
 
   /// Optional override route to show instead of the base route.
   /// Used when navigating to help from dialogs.
   final String? overrideRoute;
 
+  /// Creates a HelpPanel widget.
   const HelpPanel({
     super.key,
     required this.baseRoute,

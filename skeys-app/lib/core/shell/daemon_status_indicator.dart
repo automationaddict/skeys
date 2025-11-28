@@ -26,7 +26,12 @@ import '../di/injection.dart';
 import '../notifications/app_toast.dart';
 
 /// A small indicator showing the daemon connection status.
+///
+/// Displays a colored dot indicating connected (green), disconnected (red),
+/// or reconnecting (orange with spinner) state. Tapping when disconnected
+/// shows a dialog with reconnection options.
 class DaemonStatusIndicator extends StatelessWidget {
+  /// Creates a DaemonStatusIndicator widget.
   const DaemonStatusIndicator({super.key});
 
   @override

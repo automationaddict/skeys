@@ -26,26 +26,49 @@ import '../logging/app_logger.dart';
 
 /// Text scale options matching M3 accessibility guidelines.
 enum TextScale {
+  /// Small text scale (85% of normal).
   small(0.85, 'Small'),
+
+  /// Normal text scale (100%).
   normal(1.0, 'Normal'),
+
+  /// Large text scale (115% of normal).
   large(1.15, 'Large'),
+
+  /// Extra large text scale (130% of normal).
   extraLarge(1.3, 'Extra Large');
 
+  /// The numeric scale factor to apply to text.
   final double scale;
+
+  /// Human-readable label for this scale option.
   final String label;
+
+  /// Creates a TextScale option with the given scale factor and label.
   const TextScale(this.scale, this.label);
 }
 
 /// Theme mode options for the app.
 enum AppThemeMode {
+  /// Follow the system's theme preference (light or dark).
   system('System', 'Follow system preference'),
+
+  /// Always use the light theme.
   light('Light', 'Always use light theme'),
+
+  /// Always use the dark theme.
   dark('Dark', 'Always use dark theme');
 
+  /// Human-readable label for this theme mode.
   final String label;
+
+  /// Description of what this theme mode does.
   final String description;
+
+  /// Creates an AppThemeMode with the given label and description.
   const AppThemeMode(this.label, this.description);
 
+  /// Converts this app theme mode to a Flutter ThemeMode.
   ThemeMode toThemeMode() {
     switch (this) {
       case AppThemeMode.system:
@@ -284,5 +307,14 @@ class SettingsService extends ChangeNotifier {
   }
 }
 
-/// Key expiration status levels.
-enum KeyExpirationStatus { ok, warning, critical }
+/// Key expiration status levels based on key age.
+enum KeyExpirationStatus {
+  /// Key age is within acceptable range.
+  ok,
+
+  /// Key age has exceeded the warning threshold.
+  warning,
+
+  /// Key age has exceeded the critical threshold and should be rotated.
+  critical,
+}

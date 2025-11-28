@@ -35,9 +35,14 @@ import '../ssh_config/ssh_config_dialog.dart';
 import '../update/update_service.dart';
 
 /// Application shell with navigation rail.
+///
+/// Provides the main application layout with a navigation rail on the left,
+/// optional help panel on the right, and content area in the center.
 class AppShell extends StatefulWidget {
+  /// The child widget to display in the main content area.
   final Widget child;
 
+  /// Creates an AppShell with the given child content.
   const AppShell({super.key, required this.child});
 
   @override

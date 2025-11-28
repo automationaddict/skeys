@@ -112,19 +112,34 @@ class HelpNavigationService extends ChangeNotifier {
 }
 
 /// An action to take from a skeys:// link.
+///
+/// This is a sealed class hierarchy representing the possible actions
+/// that can be triggered by internal skeys:// URLs in help documentation.
 sealed class SkeysLinkAction {
+  /// Creates a SkeysLinkAction.
   const SkeysLinkAction();
 
+  /// Creates an action to open the settings dialog at a specific tab.
   factory SkeysLinkAction.openSettings(int tabIndex) = OpenSettingsAction;
+
+  /// Creates an action to show help for a specific route.
   factory SkeysLinkAction.showHelp(String route) = ShowHelpAction;
 }
 
+/// Action to open the settings dialog at a specific tab.
 class OpenSettingsAction extends SkeysLinkAction {
+  /// The zero-based index of the settings tab to open.
   final int tabIndex;
+
+  /// Creates an OpenSettingsAction for the given tab index.
   const OpenSettingsAction(this.tabIndex);
 }
 
+/// Action to show help documentation for a specific route.
 class ShowHelpAction extends SkeysLinkAction {
+  /// The help route to navigate to.
   final String route;
+
+  /// Creates a ShowHelpAction for the given route.
   const ShowHelpAction(this.route);
 }

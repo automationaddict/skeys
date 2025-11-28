@@ -142,11 +142,20 @@ class HelpService {
 }
 
 /// A search result for a single document.
+///
+/// Contains metadata about the document and all matching lines found
+/// within it when searching help documentation.
 class SearchResult {
+  /// The name of the documentation file (without extension).
   final String docName;
+
+  /// The title of the documentation (extracted from the first heading).
   final String title;
+
+  /// All matching lines found within this document.
   final List<SearchMatch> matches;
 
+  /// Creates a SearchResult with the given document info and matches.
   SearchResult({
     required this.docName,
     required this.title,
@@ -155,11 +164,20 @@ class SearchResult {
 }
 
 /// A single match within a document.
+///
+/// Represents one line that matched the search query, along with
+/// surrounding context for display purposes.
 class SearchMatch {
+  /// The 1-based line number where the match was found.
   final int lineNumber;
+
+  /// The full text of the matching line.
   final String line;
+
+  /// Surrounding lines for context display.
   final String context;
 
+  /// Creates a SearchMatch with the given line info and context.
   SearchMatch({
     required this.lineNumber,
     required this.line,
