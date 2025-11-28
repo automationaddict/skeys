@@ -40,6 +40,15 @@ class RemoteServiceClient extends $grpc.Client {
     return $createUnaryCall(_$listRemotes, request, options: options);
   }
 
+  $grpc.ResponseStream<$0.ListConnectionsResponse> watchConnections(
+    $0.WatchConnectionsRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createStreamingCall(
+        _$watchConnections, $async.Stream.fromIterable([request]),
+        options: options);
+  }
+
   $grpc.ResponseFuture<$0.Remote> getRemote(
     $0.GetRemoteRequest request, {
     $grpc.CallOptions? options,
@@ -110,6 +119,11 @@ class RemoteServiceClient extends $grpc.Client {
           '/skeys.v1.RemoteService/ListRemotes',
           ($0.ListRemotesRequest value) => value.writeToBuffer(),
           $0.ListRemotesResponse.fromBuffer);
+  static final _$watchConnections = $grpc.ClientMethod<
+          $0.WatchConnectionsRequest, $0.ListConnectionsResponse>(
+      '/skeys.v1.RemoteService/WatchConnections',
+      ($0.WatchConnectionsRequest value) => value.writeToBuffer(),
+      $0.ListConnectionsResponse.fromBuffer);
   static final _$getRemote = $grpc.ClientMethod<$0.GetRemoteRequest, $0.Remote>(
       '/skeys.v1.RemoteService/GetRemote',
       ($0.GetRemoteRequest value) => value.writeToBuffer(),
@@ -169,6 +183,15 @@ abstract class RemoteServiceBase extends $grpc.Service {
             ($core.List<$core.int> value) =>
                 $0.ListRemotesRequest.fromBuffer(value),
             ($0.ListRemotesResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.WatchConnectionsRequest,
+            $0.ListConnectionsResponse>(
+        'WatchConnections',
+        watchConnections_Pre,
+        false,
+        true,
+        ($core.List<$core.int> value) =>
+            $0.WatchConnectionsRequest.fromBuffer(value),
+        ($0.ListConnectionsResponse value) => value.writeToBuffer()));
     $addMethod($grpc.ServiceMethod<$0.GetRemoteRequest, $0.Remote>(
         'GetRemote',
         getRemote_Pre,
@@ -249,6 +272,15 @@ abstract class RemoteServiceBase extends $grpc.Service {
 
   $async.Future<$0.ListRemotesResponse> listRemotes(
       $grpc.ServiceCall call, $0.ListRemotesRequest request);
+
+  $async.Stream<$0.ListConnectionsResponse> watchConnections_Pre(
+      $grpc.ServiceCall $call,
+      $async.Future<$0.WatchConnectionsRequest> $request) async* {
+    yield* watchConnections($call, await $request);
+  }
+
+  $async.Stream<$0.ListConnectionsResponse> watchConnections(
+      $grpc.ServiceCall call, $0.WatchConnectionsRequest request);
 
   $async.Future<$0.Remote> getRemote_Pre($grpc.ServiceCall $call,
       $async.Future<$0.GetRemoteRequest> $request) async {

@@ -9,6 +9,7 @@ import "google/protobuf/timestamp.proto";
 
 service RemoteService {
   rpc ListRemotes(ListRemotesRequest) returns (ListRemotesResponse);
+  rpc WatchConnections(WatchConnectionsRequest) returns (stream ListConnectionsResponse);
   rpc GetRemote(GetRemoteRequest) returns (Remote);
   rpc AddRemote(AddRemoteRequest) returns (Remote);
   rpc UpdateRemote(UpdateRemoteRequest) returns (Remote);
@@ -137,6 +138,8 @@ message DisconnectRequest {
 }
 
 message ListConnectionsRequest {}
+
+message WatchConnectionsRequest {}
 
 message ListConnectionsResponse {
   repeated Connection connections = 1;

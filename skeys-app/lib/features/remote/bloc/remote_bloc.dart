@@ -20,6 +20,7 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
     on<RemoteConnectRequested>(_onConnectRequested);
     on<RemoteDisconnectRequested>(_onDisconnectRequested);
     on<RemoteLoadConnectionsRequested>(_onLoadConnections);
+    on<RemoteWatchConnectionsRequested>(_onWatchConnections);
     on<RemoteExecuteCommandRequested>(_onExecuteCommand);
     _log.debug('RemoteBloc initialized');
   }
@@ -176,6 +177,28 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
         errorMessage: e.toString(),
       ));
     }
+  }
+
+  Future<void> _onWatchConnections(
+    RemoteWatchConnectionsRequested event,
+    Emitter<RemoteState> emit,
+  ) async {
+    _log.debug('subscribing to connections stream');
+
+    await emit.forEach<List<ConnectionEntity>>(
+      _repository.watchConnections(),
+      onData: (connections) {
+        _log.debug('connections stream update', {'count': connections.length});
+        return state.copyWith(connections: connections);
+      },
+      onError: (error, stackTrace) {
+        _log.error('connections stream error', error, stackTrace);
+        return state.copyWith(
+          status: RemoteBlocStatus.failure,
+          errorMessage: error.toString(),
+        );
+      },
+    );
   }
 
   Future<void> _onExecuteCommand(

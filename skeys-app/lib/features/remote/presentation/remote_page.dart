@@ -17,7 +17,7 @@ class _RemotePageState extends State<RemotePage> {
   void initState() {
     super.initState();
     context.read<RemoteBloc>().add(const RemoteLoadRequested());
-    context.read<RemoteBloc>().add(const RemoteLoadConnectionsRequested());
+    context.read<RemoteBloc>().add(const RemoteWatchConnectionsRequested());
   }
 
   @override
@@ -25,16 +25,6 @@ class _RemotePageState extends State<RemotePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Remote Servers'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<RemoteBloc>().add(const RemoteLoadRequested());
-              context.read<RemoteBloc>().add(const RemoteLoadConnectionsRequested());
-            },
-            tooltip: 'Refresh',
-          ),
-        ],
       ),
       body: BlocBuilder<RemoteBloc, RemoteState>(
         builder: (context, state) {

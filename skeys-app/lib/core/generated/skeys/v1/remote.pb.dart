@@ -1349,6 +1349,45 @@ class ListConnectionsRequest extends $pb.GeneratedMessage {
   static ListConnectionsRequest? _defaultInstance;
 }
 
+class WatchConnectionsRequest extends $pb.GeneratedMessage {
+  factory WatchConnectionsRequest() => create();
+
+  WatchConnectionsRequest._();
+
+  factory WatchConnectionsRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory WatchConnectionsRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'WatchConnectionsRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  WatchConnectionsRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  WatchConnectionsRequest copyWith(
+          void Function(WatchConnectionsRequest) updates) =>
+      super.copyWith((message) => updates(message as WatchConnectionsRequest))
+          as WatchConnectionsRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static WatchConnectionsRequest create() => WatchConnectionsRequest._();
+  @$core.override
+  WatchConnectionsRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static WatchConnectionsRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<WatchConnectionsRequest>(create);
+  static WatchConnectionsRequest? _defaultInstance;
+}
+
 class ListConnectionsResponse extends $pb.GeneratedMessage {
   factory ListConnectionsResponse({
     $core.Iterable<Connection>? connections,

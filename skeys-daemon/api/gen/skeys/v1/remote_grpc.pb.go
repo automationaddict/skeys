@@ -20,16 +20,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	RemoteService_ListRemotes_FullMethodName     = "/skeys.v1.RemoteService/ListRemotes"
-	RemoteService_GetRemote_FullMethodName       = "/skeys.v1.RemoteService/GetRemote"
-	RemoteService_AddRemote_FullMethodName       = "/skeys.v1.RemoteService/AddRemote"
-	RemoteService_UpdateRemote_FullMethodName    = "/skeys.v1.RemoteService/UpdateRemote"
-	RemoteService_DeleteRemote_FullMethodName    = "/skeys.v1.RemoteService/DeleteRemote"
-	RemoteService_TestConnection_FullMethodName  = "/skeys.v1.RemoteService/TestConnection"
-	RemoteService_Connect_FullMethodName         = "/skeys.v1.RemoteService/Connect"
-	RemoteService_Disconnect_FullMethodName      = "/skeys.v1.RemoteService/Disconnect"
-	RemoteService_ListConnections_FullMethodName = "/skeys.v1.RemoteService/ListConnections"
-	RemoteService_ExecuteCommand_FullMethodName  = "/skeys.v1.RemoteService/ExecuteCommand"
+	RemoteService_ListRemotes_FullMethodName      = "/skeys.v1.RemoteService/ListRemotes"
+	RemoteService_WatchConnections_FullMethodName = "/skeys.v1.RemoteService/WatchConnections"
+	RemoteService_GetRemote_FullMethodName        = "/skeys.v1.RemoteService/GetRemote"
+	RemoteService_AddRemote_FullMethodName        = "/skeys.v1.RemoteService/AddRemote"
+	RemoteService_UpdateRemote_FullMethodName     = "/skeys.v1.RemoteService/UpdateRemote"
+	RemoteService_DeleteRemote_FullMethodName     = "/skeys.v1.RemoteService/DeleteRemote"
+	RemoteService_TestConnection_FullMethodName   = "/skeys.v1.RemoteService/TestConnection"
+	RemoteService_Connect_FullMethodName          = "/skeys.v1.RemoteService/Connect"
+	RemoteService_Disconnect_FullMethodName       = "/skeys.v1.RemoteService/Disconnect"
+	RemoteService_ListConnections_FullMethodName  = "/skeys.v1.RemoteService/ListConnections"
+	RemoteService_ExecuteCommand_FullMethodName   = "/skeys.v1.RemoteService/ExecuteCommand"
 )
 
 // RemoteServiceClient is the client API for RemoteService service.
@@ -37,6 +38,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RemoteServiceClient interface {
 	ListRemotes(ctx context.Context, in *ListRemotesRequest, opts ...grpc.CallOption) (*ListRemotesResponse, error)
+	WatchConnections(ctx context.Context, in *WatchConnectionsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ListConnectionsResponse], error)
 	GetRemote(ctx context.Context, in *GetRemoteRequest, opts ...grpc.CallOption) (*Remote, error)
 	AddRemote(ctx context.Context, in *AddRemoteRequest, opts ...grpc.CallOption) (*Remote, error)
 	UpdateRemote(ctx context.Context, in *UpdateRemoteRequest, opts ...grpc.CallOption) (*Remote, error)
@@ -65,6 +67,25 @@ func (c *remoteServiceClient) ListRemotes(ctx context.Context, in *ListRemotesRe
 	}
 	return out, nil
 }
+
+func (c *remoteServiceClient) WatchConnections(ctx context.Context, in *WatchConnectionsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ListConnectionsResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &RemoteService_ServiceDesc.Streams[0], RemoteService_WatchConnections_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[WatchConnectionsRequest, ListConnectionsResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type RemoteService_WatchConnectionsClient = grpc.ServerStreamingClient[ListConnectionsResponse]
 
 func (c *remoteServiceClient) GetRemote(ctx context.Context, in *GetRemoteRequest, opts ...grpc.CallOption) (*Remote, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -161,6 +182,7 @@ func (c *remoteServiceClient) ExecuteCommand(ctx context.Context, in *ExecuteCom
 // for forward compatibility.
 type RemoteServiceServer interface {
 	ListRemotes(context.Context, *ListRemotesRequest) (*ListRemotesResponse, error)
+	WatchConnections(*WatchConnectionsRequest, grpc.ServerStreamingServer[ListConnectionsResponse]) error
 	GetRemote(context.Context, *GetRemoteRequest) (*Remote, error)
 	AddRemote(context.Context, *AddRemoteRequest) (*Remote, error)
 	UpdateRemote(context.Context, *UpdateRemoteRequest) (*Remote, error)
@@ -182,6 +204,9 @@ type UnimplementedRemoteServiceServer struct{}
 
 func (UnimplementedRemoteServiceServer) ListRemotes(context.Context, *ListRemotesRequest) (*ListRemotesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRemotes not implemented")
+}
+func (UnimplementedRemoteServiceServer) WatchConnections(*WatchConnectionsRequest, grpc.ServerStreamingServer[ListConnectionsResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method WatchConnections not implemented")
 }
 func (UnimplementedRemoteServiceServer) GetRemote(context.Context, *GetRemoteRequest) (*Remote, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRemote not implemented")
@@ -248,6 +273,17 @@ func _RemoteService_ListRemotes_Handler(srv interface{}, ctx context.Context, de
 	}
 	return interceptor(ctx, in, info, handler)
 }
+
+func _RemoteService_WatchConnections_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WatchConnectionsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(RemoteServiceServer).WatchConnections(m, &grpc.GenericServerStream[WatchConnectionsRequest, ListConnectionsResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type RemoteService_WatchConnectionsServer = grpc.ServerStreamingServer[ListConnectionsResponse]
 
 func _RemoteService_GetRemote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetRemoteRequest)
@@ -459,6 +495,12 @@ var RemoteService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _RemoteService_ExecuteCommand_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "WatchConnections",
+			Handler:       _RemoteService_WatchConnections_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "skeys/v1/remote.proto",
 }

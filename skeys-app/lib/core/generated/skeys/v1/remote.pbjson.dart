@@ -363,6 +363,15 @@ const ListConnectionsRequest$json = {
 final $typed_data.Uint8List listConnectionsRequestDescriptor =
     $convert.base64Decode('ChZMaXN0Q29ubmVjdGlvbnNSZXF1ZXN0');
 
+@$core.Deprecated('Use watchConnectionsRequestDescriptor instead')
+const WatchConnectionsRequest$json = {
+  '1': 'WatchConnectionsRequest',
+};
+
+/// Descriptor for `WatchConnectionsRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List watchConnectionsRequestDescriptor =
+    $convert.base64Decode('ChdXYXRjaENvbm5lY3Rpb25zUmVxdWVzdA==');
+
 @$core.Deprecated('Use listConnectionsResponseDescriptor instead')
 const ListConnectionsResponse$json = {
   '1': 'ListConnectionsResponse',

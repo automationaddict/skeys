@@ -67,6 +67,10 @@ final class RemoteLoadConnectionsRequested extends RemoteEvent {
   const RemoteLoadConnectionsRequested();
 }
 
+final class RemoteWatchConnectionsRequested extends RemoteEvent {
+  const RemoteWatchConnectionsRequested();
+}
+
 final class RemoteExecuteCommandRequested extends RemoteEvent {
   final String connectionId;
   final String command;

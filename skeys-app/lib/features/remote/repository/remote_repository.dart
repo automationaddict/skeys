@@ -19,6 +19,7 @@ abstract class RemoteRepository {
   Future<ConnectionEntity> connect(String remoteId, {String? passphrase});
   Future<void> disconnect(String connectionId);
   Future<List<ConnectionEntity>> listConnections();
+  Stream<List<ConnectionEntity>> watchConnections();
   Future<CommandResult> executeCommand(String connectionId, String command, {int? timeout});
   Future<TestConnectionResult> testConnection({
     required String host,
@@ -113,6 +114,14 @@ class RemoteRepositoryImpl implements RemoteRepository {
   Future<List<ConnectionEntity>> listConnections() async {
     final response = await _client.remote.listConnections(pb.ListConnectionsRequest());
     return response.connections.map(_mapConnection).toList();
+  }
+
+  @override
+  Stream<List<ConnectionEntity>> watchConnections() {
+    final request = pb.WatchConnectionsRequest();
+    return _client.remote.watchConnections(request).map(
+      (response) => response.connections.map(_mapConnection).toList()
+    );
   }
 
   @override

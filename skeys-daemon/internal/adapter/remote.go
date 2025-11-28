@@ -155,6 +155,29 @@ func (a *RemoteServiceAdapter) ListConnections(ctx context.Context, req *pb.List
 	return &pb.ListConnectionsResponse{Connections: pbConns}, nil
 }
 
+// WatchConnections streams connection updates to the client
+func (a *RemoteServiceAdapter) WatchConnections(req *pb.WatchConnectionsRequest, stream pb.RemoteService_WatchConnectionsServer) error {
+	ctx := stream.Context()
+	updates := a.pool.Watch(ctx)
+
+	for update := range updates {
+		if update.Err != nil {
+			return status.Errorf(codes.Internal, "failed to watch connections: %v", update.Err)
+		}
+
+		var pbConns []*pb.Connection
+		for _, c := range update.Connections {
+			pbConns = append(pbConns, toProtoConnection(c))
+		}
+
+		if err := stream.Send(&pb.ListConnectionsResponse{Connections: pbConns}); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // ExecuteCommand runs a command on a connected remote server
 func (a *RemoteServiceAdapter) ExecuteCommand(ctx context.Context, req *pb.ExecuteCommandRequest) (*pb.ExecuteCommandResponse, error) {
 	conn, err := a.pool.Get(req.GetConnectionId())
