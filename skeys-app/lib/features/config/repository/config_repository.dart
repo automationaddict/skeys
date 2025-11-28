@@ -30,6 +30,7 @@ abstract class ConfigRepository {
   // Server config
   Future<ServerConfig> getServerConfig();
   Future<void> updateServerConfig(List<ServerConfigUpdate> updates);
+  Future<void> restartSSHServer();
 }
 
 /// Update operation for server config
@@ -244,6 +245,14 @@ class ConfigRepositoryImpl implements ConfigRepository {
     }
 
     await _client.config.updateServerConfig(request);
+  }
+
+  @override
+  Future<void> restartSSHServer() async {
+    final request = pb.RestartSSHServiceRequest()
+      ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL);
+
+    await _client.config.restartSSHService(request);
   }
 
   ConfigHostEntry _mapHostEntry(pb.HostConfig host) {

@@ -148,3 +148,8 @@ final class ConfigUpdateServerOptionRequested extends ConfigEvent {
   @override
   List<Object?> get props => [key, value];
 }
+
+/// Restart the SSH server service to apply config changes
+final class ConfigRestartSSHServerRequested extends ConfigEvent {
+  const ConfigRestartSSHServerRequested();
+}

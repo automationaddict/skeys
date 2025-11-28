@@ -22,6 +22,9 @@ final class ConfigState extends Equatable {
   // Server config
   final ServerConfig? serverConfig;
 
+  // Server config has been modified and needs SSH service restart
+  final bool serverConfigPendingRestart;
+
   // Error handling
   final String? errorMessage;
 
@@ -31,6 +34,7 @@ final class ConfigState extends Equatable {
     this.globalDirectives = const [],
     this.clientHosts = const [],
     this.serverConfig,
+    this.serverConfigPendingRestart = false,
     this.errorMessage,
   });
 
@@ -40,6 +44,7 @@ final class ConfigState extends Equatable {
     List<GlobalDirective>? globalDirectives,
     List<ConfigHostEntry>? clientHosts,
     ServerConfig? serverConfig,
+    bool? serverConfigPendingRestart,
     String? errorMessage,
   }) {
     return ConfigState(
@@ -48,10 +53,11 @@ final class ConfigState extends Equatable {
       globalDirectives: globalDirectives ?? this.globalDirectives,
       clientHosts: clientHosts ?? this.clientHosts,
       serverConfig: serverConfig ?? this.serverConfig,
+      serverConfigPendingRestart: serverConfigPendingRestart ?? this.serverConfigPendingRestart,
       errorMessage: errorMessage,
     );
   }
 
   @override
-  List<Object?> get props => [status, sshEntries, globalDirectives, clientHosts, serverConfig, errorMessage];
+  List<Object?> get props => [status, sshEntries, globalDirectives, clientHosts, serverConfig, serverConfigPendingRestart, errorMessage];
 }

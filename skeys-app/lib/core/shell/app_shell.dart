@@ -146,10 +146,13 @@ class _AppShellState extends State<AppShell> {
                 labelType: NavigationRailLabelType.all,
                 leading: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Icon(
-                    Icons.vpn_key,
-                    size: 32,
-                    color: Theme.of(context).colorScheme.primary,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset(
+                      'assets/images/skeys_icon.png',
+                      width: 40,
+                      height: 40,
+                    ),
                   ),
                 ),
                 trailing: Expanded(

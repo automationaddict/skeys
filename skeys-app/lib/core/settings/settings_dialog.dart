@@ -189,11 +189,13 @@ class _DisplayTab extends StatefulWidget {
 
 class _DisplayTabState extends State<_DisplayTab> {
   late TextScale _selectedScale;
+  late AppThemeMode _selectedTheme;
 
   @override
   void initState() {
     super.initState();
     _selectedScale = getIt<SettingsService>().textScale;
+    _selectedTheme = getIt<SettingsService>().themeMode;
   }
 
   @override
@@ -206,6 +208,26 @@ class _DisplayTabState extends State<_DisplayTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Theme section
+          Text(
+            'Theme',
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Choose your preferred color theme.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Theme mode options as segmented button
+          _buildThemeSelector(context),
+
+          const SizedBox(height: 32),
+
+          // Text size section
           Text(
             'Text Size',
             style: theme.textTheme.titleMedium,
@@ -353,6 +375,93 @@ class _DisplayTabState extends State<_DisplayTab> {
         ),
       ),
     );
+  }
+
+  Widget _buildThemeSelector(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: AppThemeMode.values.map((mode) {
+              final isSelected = _selectedTheme == mode;
+              return Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    right: mode != AppThemeMode.values.last ? 8 : 0,
+                  ),
+                  child: InkWell(
+                    onTap: () async {
+                      setState(() => _selectedTheme = mode);
+                      await getIt<SettingsService>().setThemeMode(mode);
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? colorScheme.primaryContainer
+                            : colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(8),
+                        border: isSelected
+                            ? Border.all(color: colorScheme.primary, width: 2)
+                            : null,
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            _getThemeIcon(mode),
+                            color: isSelected
+                                ? colorScheme.onPrimaryContainer
+                                : colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            mode.label,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: isSelected
+                                  ? colorScheme.onPrimaryContainer
+                                  : colorScheme.onSurfaceVariant,
+                              fontWeight: isSelected ? FontWeight.w600 : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _selectedTheme.description,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getThemeIcon(AppThemeMode mode) {
+    switch (mode) {
+      case AppThemeMode.system:
+        return Icons.brightness_auto;
+      case AppThemeMode.light:
+        return Icons.light_mode;
+      case AppThemeMode.dark:
+        return Icons.dark_mode;
+    }
   }
 }
 
@@ -1160,7 +1269,10 @@ class _UpdateTabState extends State<_UpdateTab> {
       );
       if (mounted) {
         if (response.success) {
-          AppToast.success(context, message: 'Update applied! Restart to use new version.');
+          AppToast.success(context, message: 'Update applied! Restarting...');
+          // Give the toast time to display, then restart the app
+          await Future.delayed(const Duration(seconds: 1));
+          await _restartApp();
         } else {
           AppToast.error(context, message: 'Update failed: ${response.error}');
         }
@@ -1171,6 +1283,47 @@ class _UpdateTabState extends State<_UpdateTab> {
         AppToast.error(context, message: 'Failed to apply update');
       }
     }
+  }
+
+  Future<void> _restartApp() async {
+    _log.info('restarting app after update');
+
+    // Find the app executable - check common install locations
+    final homeDir = Platform.environment['HOME'] ?? '';
+    final possiblePaths = [
+      '$homeDir/.local/share/skeys/skeys-app',
+      '$homeDir/.local/bin/skeys-app',
+      '/usr/local/bin/skeys-app',
+      '/usr/bin/skeys-app',
+    ];
+
+    String? appPath;
+    for (final path in possiblePaths) {
+      if (await File(path).exists()) {
+        appPath = path;
+        break;
+      }
+    }
+
+    if (appPath == null) {
+      _log.warning('could not find app executable for restart');
+      if (mounted) {
+        AppToast.info(context, message: 'Please restart the app manually');
+      }
+      return;
+    }
+
+    _log.info('launching new app instance', {'path': appPath});
+
+    // Start the new app process detached
+    await Process.start(
+      appPath,
+      [],
+      mode: ProcessStartMode.detached,
+    );
+
+    // Exit the current app
+    exit(0);
   }
 
   Future<void> _updateSettings(UpdateSettings newSettings) async {
@@ -1524,10 +1677,13 @@ class _AboutTabState extends State<_AboutTab> {
           // App header
           Row(
             children: [
-              Icon(
-                Icons.vpn_key,
-                size: 40,
-                color: colorScheme.primary,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  'assets/images/skeys_icon.png',
+                  width: 48,
+                  height: 48,
+                ),
               ),
               const SizedBox(width: 12),
               Column(

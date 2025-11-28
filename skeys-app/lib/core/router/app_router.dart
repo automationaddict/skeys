@@ -10,7 +10,7 @@ import '../shell/app_shell.dart';
 
 /// Application router configuration.
 final appRouter = GoRouter(
-  initialLocation: '/keys',
+  initialLocation: '/server',
   routes: [
     ShellRoute(
       builder: (context, state, child) => AppShell(child: child),

@@ -44,6 +44,23 @@ Remove keys from the agent when:
 - Using a shared computer
 - Reducing exposure of sensitive keys
 
+### Locking the Agent
+The **Lock** button password-protects the entire SSH agent. When locked:
+
+- The agent refuses all signing requests
+- Keys remain loaded but cannot be used
+- SSH connections will fail authentication
+- The agent must be unlocked with the same passphrase to resume operation
+
+This is useful when:
+- Stepping away from your computer temporarily
+- You want to pause SSH access without removing keys
+- Working in an environment where someone might attempt SSH connections
+
+To unlock, click **Unlock** and enter the passphrase you used when locking.
+
+**Note:** Locking is different from removing keys - your keys stay loaded and ready to use once unlocked, so you won't need to re-enter key passphrases.
+
 ### Key Timeout
 SKeys can automatically remove keys from the agent after a specified time. Configure this in **Settings > Security > SSH Agent Timeout**.
 

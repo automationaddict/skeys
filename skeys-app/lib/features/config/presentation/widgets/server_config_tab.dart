@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/notifications/app_toast.dart';
 import '../../bloc/config_bloc.dart';
 import '../../domain/sshd_directives.dart';
 import 'server_directive_dialog.dart';
@@ -25,24 +26,29 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
       return _buildEmptyState(context);
     }
 
-    return CustomScrollView(
-      slivers: [
-        // Header with info and controls
-        SliverToBoxAdapter(
-          child: _buildHeader(context),
-        ),
-        // Expandable category sections
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final category = sshdDirectiveCategories[index];
-              return _buildCategorySection(context, category);
-            },
-            childCount: sshdDirectiveCategories.length,
+    return Column(
+      children: [
+        // Fixed header with info and controls
+        _buildHeader(context),
+        // Scrollable category sections
+        Expanded(
+          child: CustomScrollView(
+            slivers: [
+              // Expandable category sections
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final category = sshdDirectiveCategories[index];
+                    return _buildCategorySection(context, category);
+                  },
+                  childCount: sshdDirectiveCategories.length,
+                ),
+              ),
+              // Bottom padding
+              const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
+            ],
           ),
         ),
-        // Bottom padding
-        const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
       ],
     );
   }
@@ -104,6 +110,7 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
   Widget _buildHeader(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final pendingRestart = widget.state.serverConfigPendingRestart;
 
     return Card(
       margin: const EdgeInsets.all(16),
@@ -146,29 +153,46 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
                     size: 18,
                   ),
                 ),
+                // Restart button (only show when changes pending)
+                if (pendingRestart) ...[
+                  const SizedBox(width: 8),
+                  FilledButton.icon(
+                    onPressed: () => _restartSSHServer(context),
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: const Text('Restart SSH'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                    ),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 12),
-            // Info banner
+            // Info/warning banner
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                color: pendingRestart
+                    ? colorScheme.errorContainer.withValues(alpha: 0.3)
+                    : colorScheme.primaryContainer.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
                   Icon(
-                    Icons.info_outline,
+                    pendingRestart ? Icons.warning_amber : Icons.info_outline,
                     size: 18,
-                    color: colorScheme.primary,
+                    color: pendingRestart ? colorScheme.error : colorScheme.primary,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Changes require restarting the SSH service to take effect.',
+                      pendingRestart
+                          ? 'Configuration changed. Restart the SSH service to apply changes.'
+                          : 'Changes require restarting the SSH service to take effect.',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurface,
+                        color: pendingRestart ? colorScheme.error : colorScheme.onSurface,
+                        fontWeight: pendingRestart ? FontWeight.w500 : null,
                       ),
                     ),
                   ),
@@ -177,6 +201,33 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _restartSSHServer(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Restart SSH Server'),
+        content: const Text(
+          'This will restart the SSH service to apply your configuration changes. '
+          'Active SSH connections may be briefly interrupted.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              context.read<ConfigBloc>().add(const ConfigRestartSSHServerRequested());
+              AppToast.success(context, message: 'SSH service restarting...');
+            },
+            child: const Text('Restart'),
+          ),
+        ],
       ),
     );
   }
@@ -193,8 +244,8 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
 
     if (visibleDirectives.isEmpty) return const SizedBox.shrink();
 
-    // Count configured directives in this category
-    final configuredCount = _getConfiguredDirectivesInCategory(category);
+    // Count configured directives in this category (only visible ones)
+    final configuredCount = _getConfiguredDirectivesInCategory(category, visibleDirectives);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -239,23 +290,25 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
                       ],
                     ),
                   ),
-                  if (configuredCount > 0) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '$configuredCount',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.w600,
-                        ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: configuredCount > 0
+                          ? colorScheme.primaryContainer
+                          : colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '$configuredCount / ${visibleDirectives.length}',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: configuredCount > 0
+                            ? colorScheme.onPrimaryContainer
+                            : colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                  ],
+                  ),
+                  const SizedBox(width: 8),
                   Icon(
                     isExpanded ? Icons.expand_less : Icons.expand_more,
                     color: colorScheme.onSurfaceVariant,
@@ -356,10 +409,10 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
     );
   }
 
-  int _getConfiguredDirectivesInCategory(SshdDirectiveCategory category) {
+  int _getConfiguredDirectivesInCategory(SshdDirectiveCategory category, List<SshdDirectiveDefinition> visibleDirectives) {
     if (widget.state.serverConfig == null) return 0;
     final configuredKeys = widget.state.serverConfig!.options.map((o) => o.key).toSet();
-    return category.directives.where((d) => configuredKeys.contains(d.key)).length;
+    return visibleDirectives.where((d) => configuredKeys.contains(d.key)).length;
   }
 
   String? _getCurrentValue(String key) {

@@ -184,12 +184,13 @@ class _SKeysAppState extends State<SKeysApp> {
           listenable: _settingsService,
           builder: (context, _) {
             final textScale = _settingsService.textScale;
+            final themeMode = _settingsService.themeMode;
             return MaterialApp.router(
               title: 'SKeys - SSH Key Manager',
               debugShowCheckedModeBanner: false,
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
-              themeMode: ThemeMode.system,
+              themeMode: themeMode.toThemeMode(),
               routerConfig: appRouter,
               builder: (context, child) {
                 return MediaQuery(

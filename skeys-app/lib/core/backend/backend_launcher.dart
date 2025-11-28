@@ -52,32 +52,26 @@ class BackendLauncher {
     _socketPath = defaultSocketPath;
     _log.debug('using socket path', {'socket_path': _socketPath});
 
-    // Check if socket already exists (daemon already running externally)
-    final socketFile = File(_socketPath!);
-    if (await socketFile.exists()) {
-      // Verify the socket is actually listening by trying to connect
-      if (await _isSocketListening(_socketPath!)) {
-        _log.info('found existing daemon socket, connecting to external daemon', {
+    // In dev mode, connect to existing daemon (managed externally by Tilt/container)
+    if (isDevMode) {
+      final socketFile = File(_socketPath!);
+      if (await socketFile.exists() && await _isSocketListening(_socketPath!)) {
+        _log.info('dev mode: connecting to external daemon', {
           'socket_path': _socketPath,
         });
         _isRunning = true;
         _externalDaemon = true;
         return;
-      } else {
-        // Stale socket file - remove it
-        _log.warning('found stale socket file, removing', {'path': _socketPath});
-        await socketFile.delete();
       }
-    }
-
-    // In dev mode, the daemon should be running via Tilt/container
-    // Don't try to start it ourselves
-    if (isDevMode) {
       throw StateError(
         'Dev mode: daemon not running. Start it with "tilt up" or "just dev".\n'
         'Expected socket at: $_socketPath',
       );
     }
+
+    // Production mode: always kill any existing daemon to ensure we run the
+    // latest version (important after updates)
+    await _killExistingDaemon();
 
     // Production mode: find and launch the daemon
     String daemonPath;
@@ -161,6 +155,35 @@ class BackendLauncher {
     _isRunning = false;
     _process = null;
     _log.info('backend launcher stopped');
+  }
+
+  /// Kills any existing skeys-daemon process to ensure we start fresh.
+  /// This is important after updates to ensure the new binary is used.
+  Future<void> _killExistingDaemon() async {
+    _log.debug('killing any existing daemon process');
+
+    // Kill daemon by name (covers any socket path)
+    try {
+      final result = await Process.run('pkill', ['-f', 'skeys-daemon']);
+      if (result.exitCode == 0) {
+        _log.info('killed existing daemon process');
+        // Give it time to shut down gracefully
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+    } catch (e) {
+      _log.debug('pkill returned non-zero (no daemon running)', {'error': e});
+    }
+
+    // Clean up any stale socket file
+    final socketFile = File(_socketPath!);
+    if (await socketFile.exists()) {
+      _log.debug('removing stale socket file', {'path': _socketPath});
+      try {
+        await socketFile.delete();
+      } catch (e) {
+        _log.warning('failed to remove socket file', {'error': e});
+      }
+    }
   }
 
   Future<String> _findDaemonExecutable() async {

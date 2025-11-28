@@ -16,10 +16,33 @@ enum TextScale {
   const TextScale(this.scale, this.label);
 }
 
+/// Theme mode options for the app.
+enum AppThemeMode {
+  system('System', 'Follow system preference'),
+  light('Light', 'Always use light theme'),
+  dark('Dark', 'Always use dark theme');
+
+  final String label;
+  final String description;
+  const AppThemeMode(this.label, this.description);
+
+  ThemeMode toThemeMode() {
+    switch (this) {
+      case AppThemeMode.system:
+        return ThemeMode.system;
+      case AppThemeMode.light:
+        return ThemeMode.light;
+      case AppThemeMode.dark:
+        return ThemeMode.dark;
+    }
+  }
+}
+
 /// Service for managing application settings with persistence.
 class SettingsService extends ChangeNotifier {
   static const _logLevelKey = 'log_level';
   static const _textScaleKey = 'text_scale';
+  static const _themeModeKey = 'theme_mode';
   static const _windowWidthKey = 'window_width';
   static const _windowHeightKey = 'window_height';
   static const _helpPanelWidthKey = 'help_panel_width';
@@ -86,6 +109,22 @@ class SettingsService extends ChangeNotifier {
   Future<void> setTextScale(TextScale scale) async {
     await _prefs.setString(_textScaleKey, scale.name);
     _log.info('text scale changed', {'scale': scale.name});
+    notifyListeners();
+  }
+
+  /// Get the current theme mode.
+  AppThemeMode get themeMode {
+    final modeStr = _prefs.getString(_themeModeKey) ?? 'system';
+    return AppThemeMode.values.firstWhere(
+      (m) => m.name == modeStr,
+      orElse: () => AppThemeMode.system,
+    );
+  }
+
+  /// Set the theme mode and persist it.
+  Future<void> setThemeMode(AppThemeMode mode) async {
+    await _prefs.setString(_themeModeKey, mode.name);
+    _log.info('theme mode changed', {'mode': mode.name});
     notifyListeners();
   }
 
