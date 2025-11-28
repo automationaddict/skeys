@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.0.6] - 2025-11-28
 
 ### Added
 
@@ -17,6 +17,10 @@ All notable changes to this project will be documented in this file.
 
 - Show first-start dialog after reinstall and use XDG runtime dir
 - Make help tooltips scrollable on smaller screens
+
+### Miscellaneous
+
+- Update changelog for v0.0.6
 ## [0.0.5] - 2025-11-28
 
 ### Added
