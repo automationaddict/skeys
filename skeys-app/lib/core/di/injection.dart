@@ -7,6 +7,7 @@ import '../help/help_context_service.dart';
 import '../help/help_navigation_service.dart';
 import '../logging/app_logger.dart';
 import '../settings/settings_service.dart';
+import '../update/update_service.dart';
 import '../../features/keys/bloc/keys_bloc.dart';
 import '../../features/keys/repository/keys_repository.dart';
 import '../../features/config/bloc/config_bloc.dart';
@@ -78,6 +79,13 @@ Future<void> configureDependencies() async {
   final daemonStatusService = DaemonStatusService();
   getIt.registerSingleton<DaemonStatusService>(daemonStatusService);
 
+  // Update service (monitors for available updates)
+  _log.debug('creating update service');
+  final updateService = UpdateService(grpcClient: grpcClient);
+  getIt.registerSingleton<UpdateService>(updateService);
+  // Initialize in the background (don't block startup)
+  updateService.initialize();
+
   // Repositories (Adapter Pattern - adapts gRPC to domain interfaces)
   _log.debug('registering repositories');
   getIt.registerLazySingleton<KeysRepository>(
@@ -123,6 +131,13 @@ Future<void> configureDependencies() async {
 
 Future<void> disposeDependencies() async {
   _log.info('disposing dependencies');
+
+  try {
+    getIt<UpdateService>().dispose();
+    _log.debug('update service disposed');
+  } catch (e, st) {
+    _log.error('error disposing update service', e, st);
+  }
 
   try {
     await getIt<GrpcClient>().disconnect();

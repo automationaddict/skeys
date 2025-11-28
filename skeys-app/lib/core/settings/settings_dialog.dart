@@ -9,6 +9,7 @@ import '../backup/import_dialog.dart';
 import '../di/injection.dart';
 import '../generated/google/protobuf/empty.pb.dart';
 import '../generated/skeys/v1/config.pb.dart';
+import '../generated/skeys/v1/update.pbgrpc.dart';
 import '../generated/skeys/v1/version.pb.dart';
 import '../grpc/grpc_client.dart';
 import '../help/help_navigation_service.dart';
@@ -34,7 +35,8 @@ class SettingsDialog extends StatefulWidget {
   static const int tabSecurity = 1;
   static const int tabBackup = 2;
   static const int tabLogging = 3;
-  static const int tabAbout = 4;
+  static const int tabUpdate = 4;
+  static const int tabAbout = 5;
 
   @override
   State<SettingsDialog> createState() => _SettingsDialogState();
@@ -47,7 +49,7 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 5,
+      length: 6,
       vsync: this,
       initialIndex: widget.initialTab,
     );
@@ -66,6 +68,7 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
       'settings/security',
       'settings/backup',
       'settings/logging',
+      'settings/update',
       'settings/about',
     ];
 
@@ -83,8 +86,8 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
     return Dialog(
       child: ConstrainedBox(
         constraints: const BoxConstraints(
-          maxWidth: 500,
-          maxHeight: 400,
+          maxWidth: 600,
+          maxHeight: 500,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -127,7 +130,7 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
             TabBar(
               controller: _tabController,
               isScrollable: true,
-              tabAlignment: TabAlignment.start,
+              tabAlignment: TabAlignment.center,
               tabs: const [
                 Tab(
                   icon: Icon(Icons.text_fields_outlined),
@@ -146,6 +149,10 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
                   text: 'Logging',
                 ),
                 Tab(
+                  icon: Icon(Icons.system_update_outlined),
+                  text: 'Update',
+                ),
+                Tab(
                   icon: Icon(Icons.info_outline),
                   text: 'About',
                 ),
@@ -160,6 +167,7 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
                   _SecurityTab(),
                   _BackupTab(),
                   _LoggingTab(),
+                  _UpdateTab(),
                   _AboutTab(),
                 ],
               ),
@@ -1027,6 +1035,422 @@ class _LoggingTabState extends State<_LoggingTab> {
       default:
         return Colors.grey;
     }
+  }
+}
+
+/// Update settings tab for automatic updates.
+class _UpdateTab extends StatefulWidget {
+  const _UpdateTab();
+
+  @override
+  State<_UpdateTab> createState() => _UpdateTabState();
+}
+
+class _UpdateTabState extends State<_UpdateTab> {
+  final _log = AppLogger('settings_update');
+  final _grpcClient = getIt<GrpcClient>();
+
+  UpdateSettings? _settings;
+  UpdateStatus? _status;
+  bool _loading = true;
+  bool _checking = false;
+  bool _downloading = false;
+  String? _downloadedPath;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final settings = await _grpcClient.update.getUpdateSettings(Empty());
+      final status = await _grpcClient.update.getUpdateStatus(Empty());
+      if (mounted) {
+        setState(() {
+          _settings = settings;
+          _status = status;
+          _loading = false;
+        });
+      }
+    } catch (e, st) {
+      _log.error('error loading update data', e, st);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  Future<void> _checkForUpdates() async {
+    setState(() => _checking = true);
+    try {
+      await _grpcClient.update.checkForUpdates(Empty());
+      // Reload status to get the result
+      final status = await _grpcClient.update.getUpdateStatus(Empty());
+      if (mounted) {
+        setState(() {
+          _status = status;
+          _checking = false;
+        });
+        if (status.hasAvailableUpdate() && status.availableUpdate.updateAvailable) {
+          AppToast.success(context, message: 'Update available: ${status.availableUpdate.latestVersion}');
+        } else {
+          AppToast.info(context, message: 'You are running the latest version');
+        }
+      }
+    } catch (e, st) {
+      _log.error('error checking for updates', e, st);
+      if (mounted) {
+        setState(() => _checking = false);
+        // Show user-friendly message based on error
+        final errorStr = e.toString().toLowerCase();
+        String message;
+        if (errorStr.contains('no releases found')) {
+          message = 'No releases available yet';
+        } else if (errorStr.contains('network') || errorStr.contains('socket')) {
+          message = 'Network error - check your connection';
+        } else {
+          message = 'Failed to check for updates';
+        }
+        AppToast.error(context, message: message);
+      }
+    }
+  }
+
+  Future<void> _downloadUpdate() async {
+    setState(() => _downloading = true);
+    try {
+      final stream = _grpcClient.update.downloadUpdate(DownloadUpdateRequest());
+      await for (final progress in stream) {
+        if (mounted) {
+          setState(() {
+            _status = _status?..downloadProgress = progress;
+          });
+        }
+        if (progress.state == DownloadState.DOWNLOAD_STATE_COMPLETED) {
+          _downloadedPath = progress.downloadedPath;
+        }
+        if (progress.state == DownloadState.DOWNLOAD_STATE_ERROR) {
+          throw Exception(progress.error);
+        }
+      }
+      if (mounted) {
+        setState(() => _downloading = false);
+        AppToast.success(context, message: 'Download complete');
+        // Reload status
+        final status = await _grpcClient.update.getUpdateStatus(Empty());
+        setState(() => _status = status);
+      }
+    } catch (e, st) {
+      _log.error('error downloading update', e, st);
+      if (mounted) {
+        setState(() => _downloading = false);
+        AppToast.error(context, message: 'Download failed: $e');
+      }
+    }
+  }
+
+  Future<void> _applyUpdate() async {
+    if (_downloadedPath == null) return;
+
+    try {
+      final response = await _grpcClient.update.applyUpdate(
+        ApplyUpdateRequest(tarballPath: _downloadedPath),
+      );
+      if (mounted) {
+        if (response.success) {
+          AppToast.success(context, message: 'Update applied! Restart to use new version.');
+        } else {
+          AppToast.error(context, message: 'Update failed: ${response.error}');
+        }
+      }
+    } catch (e, st) {
+      _log.error('error applying update', e, st);
+      if (mounted) {
+        AppToast.error(context, message: 'Failed to apply update');
+      }
+    }
+  }
+
+  Future<void> _updateSettings(UpdateSettings newSettings) async {
+    try {
+      final updated = await _grpcClient.update.setUpdateSettings(newSettings);
+      if (mounted) {
+        setState(() => _settings = updated);
+      }
+    } catch (e, st) {
+      _log.error('error saving update settings', e, st);
+      if (mounted) {
+        AppToast.error(context, message: 'Failed to save settings');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Current status card
+          _buildStatusCard(context),
+
+          const SizedBox(height: 24),
+
+          // Update settings
+          Text(
+            'Automatic Updates',
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Configure how updates are checked and applied.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Settings toggles
+          _buildSettingTile(
+            context: context,
+            icon: Icons.search,
+            title: 'Check automatically',
+            description: 'Check for updates when daemon starts',
+            value: _settings?.autoCheck ?? true,
+            onChanged: (v) => _updateSettings(
+              UpdateSettings(
+                autoCheck: v,
+                autoDownload: _settings?.autoDownload ?? false,
+                autoApply: _settings?.autoApply ?? false,
+                includePrereleases: _settings?.includePrereleases ?? false,
+                checkIntervalHours: _settings?.checkIntervalHours ?? 24,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          _buildSettingTile(
+            context: context,
+            icon: Icons.download_outlined,
+            title: 'Download automatically',
+            description: 'Download updates in the background',
+            value: _settings?.autoDownload ?? false,
+            onChanged: (v) => _updateSettings(
+              UpdateSettings(
+                autoCheck: _settings?.autoCheck ?? true,
+                autoDownload: v,
+                autoApply: _settings?.autoApply ?? false,
+                includePrereleases: _settings?.includePrereleases ?? false,
+                checkIntervalHours: _settings?.checkIntervalHours ?? 24,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          _buildSettingTile(
+            context: context,
+            icon: Icons.system_update,
+            title: 'Apply automatically',
+            description: 'Install updates and restart daemon',
+            value: _settings?.autoApply ?? false,
+            onChanged: (v) => _updateSettings(
+              UpdateSettings(
+                autoCheck: _settings?.autoCheck ?? true,
+                autoDownload: _settings?.autoDownload ?? false,
+                autoApply: v,
+                includePrereleases: _settings?.includePrereleases ?? false,
+                checkIntervalHours: _settings?.checkIntervalHours ?? 24,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          _buildSettingTile(
+            context: context,
+            icon: Icons.science_outlined,
+            title: 'Include prereleases',
+            description: 'Get beta and preview versions',
+            value: _settings?.includePrereleases ?? false,
+            onChanged: (v) => _updateSettings(
+              UpdateSettings(
+                autoCheck: _settings?.autoCheck ?? true,
+                autoDownload: _settings?.autoDownload ?? false,
+                autoApply: _settings?.autoApply ?? false,
+                includePrereleases: v,
+                checkIntervalHours: _settings?.checkIntervalHours ?? 24,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final hasUpdate = _status?.hasAvailableUpdate() == true &&
+        _status!.availableUpdate.updateAvailable;
+    final isDownloading = _downloading ||
+        _status?.state == UpdateState.UPDATE_STATE_DOWNLOADING;
+    final isReady = _status?.state == UpdateState.UPDATE_STATE_READY_TO_APPLY;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: hasUpdate
+              ? colorScheme.primary
+              : colorScheme.outline.withValues(alpha: 0.5),
+          width: hasUpdate ? 2 : 1,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        color: hasUpdate
+            ? colorScheme.primaryContainer.withValues(alpha: 0.2)
+            : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                hasUpdate
+                    ? Icons.system_update
+                    : Icons.check_circle_outline,
+                color: hasUpdate ? colorScheme.primary : Colors.green,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      hasUpdate
+                          ? 'Update Available'
+                          : 'Up to Date',
+                      style: theme.textTheme.titleSmall,
+                    ),
+                    if (hasUpdate)
+                      Text(
+                        'Version ${_status!.availableUpdate.latestVersion}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              if (_checking)
+                const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else if (isDownloading)
+                const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else if (isReady)
+                FilledButton(
+                  onPressed: _applyUpdate,
+                  child: const Text('Install'),
+                )
+              else if (hasUpdate)
+                FilledButton.tonal(
+                  onPressed: _downloadUpdate,
+                  child: const Text('Download'),
+                )
+              else
+                TextButton(
+                  onPressed: _checkForUpdates,
+                  child: const Text('Check Now'),
+                ),
+            ],
+          ),
+          if (isDownloading && _status?.hasDownloadProgress() == true) ...[
+            const SizedBox(height: 12),
+            LinearProgressIndicator(
+              value: _status!.downloadProgress.totalBytes.toInt() > 0
+                  ? _status!.downloadProgress.bytesDownloaded.toInt() /
+                      _status!.downloadProgress.totalBytes.toInt()
+                  : null,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _formatBytes(_status!.downloadProgress.bytesDownloaded.toInt()),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String description,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: colorScheme.onSurfaceVariant, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: theme.textTheme.bodyMedium),
+                Text(
+                  description,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(value: value, onChanged: onChanged),
+        ],
+      ),
+    );
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 }
 

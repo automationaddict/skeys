@@ -52,6 +52,73 @@
 - Searchable help panel
 - Bidirectional navigation between settings and help
 
+## Installation
+
+### Quick Install (Recommended)
+
+Download and run the installer directly from the latest release:
+
+```bash
+curl -fsSL https://github.com/johnnelson/skeys/releases/latest/download/install.sh | bash
+```
+
+Or download manually:
+
+1. Go to [Releases](https://github.com/johnnelson/skeys/releases)
+2. Download `skeys-vX.X.X-linux-x64.tar.gz`
+3. Extract and run the install script:
+
+```bash
+tar -xzf skeys-vX.X.X-linux-x64.tar.gz
+cd skeys-vX.X.X-linux-x64
+./install.sh
+```
+
+### What Gets Installed
+
+| Location | Contents |
+|----------|----------|
+| `~/.local/share/skeys/` | Application bundle |
+| `~/.local/bin/skeys-daemon` | Backend daemon (symlink) |
+| `~/.local/share/applications/` | Desktop entry |
+| `~/.local/share/icons/` | App icons |
+| `~/.config/systemd/user/` | Systemd services |
+
+### Updating
+
+Updates can be installed via:
+
+1. **In-app**: Settings > Update tab > Check for Updates
+2. **Command line**: Re-run the install script (same as installation)
+
+The update process:
+- Downloads the new release tarball
+- Verifies the SHA256 checksum
+- Stops the running daemon
+- Backs up current installation
+- Installs new version
+- Restarts services
+
+### Uninstalling
+
+Run the uninstall script:
+
+```bash
+~/.local/share/skeys/uninstall.sh
+```
+
+Or download and run directly:
+
+```bash
+curl -fsSL https://github.com/johnnelson/skeys/releases/latest/download/uninstall.sh | bash
+```
+
+The uninstaller will:
+- Stop and disable systemd services
+- Remove the skeys SSH config block from `~/.ssh/config`
+- Remove all installed files
+- Optionally remove user configuration and cache
+
 ## Architecture
 
 ```

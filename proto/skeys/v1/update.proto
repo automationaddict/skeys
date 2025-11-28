@@ -1,0 +1,165 @@
+syntax = "proto3";
+
+package skeys.v1;
+
+option go_package = "github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+// UpdateService provides automatic update functionality
+service UpdateService {
+  // CheckForUpdates checks GitHub for a newer version
+  rpc CheckForUpdates(google.protobuf.Empty) returns (UpdateInfo);
+
+  // DownloadUpdate downloads the latest release tarball
+  rpc DownloadUpdate(DownloadUpdateRequest) returns (stream DownloadProgress);
+
+  // ApplyUpdate extracts and applies a downloaded update
+  rpc ApplyUpdate(ApplyUpdateRequest) returns (ApplyUpdateResponse);
+
+  // GetUpdateSettings returns the current update configuration
+  rpc GetUpdateSettings(google.protobuf.Empty) returns (UpdateSettings);
+
+  // SetUpdateSettings updates the update configuration
+  rpc SetUpdateSettings(UpdateSettings) returns (UpdateSettings);
+
+  // GetUpdateStatus returns the current update state (checking, downloading, ready, etc.)
+  rpc GetUpdateStatus(google.protobuf.Empty) returns (UpdateStatus);
+}
+
+// UpdateInfo contains information about an available update
+message UpdateInfo {
+  // Whether an update is available
+  bool update_available = 1;
+
+  // Current installed version
+  string current_version = 2;
+
+  // Latest available version
+  string latest_version = 3;
+
+  // URL to the release page on GitHub
+  string release_url = 4;
+
+  // Release notes/changelog
+  string release_notes = 5;
+
+  // Size of the download in bytes
+  int64 download_size = 6;
+
+  // When the release was published
+  google.protobuf.Timestamp published_at = 7;
+
+  // Whether this is a prerelease
+  bool prerelease = 8;
+}
+
+// DownloadUpdateRequest initiates a download
+message DownloadUpdateRequest {
+  // Version to download (empty for latest)
+  string version = 1;
+}
+
+// DownloadProgress reports download status
+message DownloadProgress {
+  // Current state of the download
+  DownloadState state = 1;
+
+  // Bytes downloaded so far
+  int64 bytes_downloaded = 2;
+
+  // Total bytes to download
+  int64 total_bytes = 3;
+
+  // Download speed in bytes per second
+  int64 bytes_per_second = 4;
+
+  // Error message if state is ERROR
+  string error = 5;
+
+  // Path to downloaded file when state is COMPLETED
+  string downloaded_path = 6;
+}
+
+// DownloadState represents the state of a download
+enum DownloadState {
+  DOWNLOAD_STATE_UNSPECIFIED = 0;
+  DOWNLOAD_STATE_STARTING = 1;
+  DOWNLOAD_STATE_DOWNLOADING = 2;
+  DOWNLOAD_STATE_VERIFYING = 3;
+  DOWNLOAD_STATE_COMPLETED = 4;
+  DOWNLOAD_STATE_ERROR = 5;
+}
+
+// ApplyUpdateRequest triggers update application
+message ApplyUpdateRequest {
+  // Path to the downloaded tarball (from DownloadProgress.downloaded_path)
+  string tarball_path = 1;
+
+  // Force update even if version check fails
+  bool force = 2;
+}
+
+// ApplyUpdateResponse contains the result of applying an update
+message ApplyUpdateResponse {
+  // Whether the update was applied successfully
+  bool success = 1;
+
+  // Error message if success is false
+  string error = 2;
+
+  // Whether a restart is required (daemon will restart itself)
+  bool restart_required = 3;
+
+  // The new version that was installed
+  string new_version = 4;
+}
+
+// UpdateSettings configures automatic update behavior
+message UpdateSettings {
+  // Check for updates automatically on daemon startup
+  bool auto_check = 1;
+
+  // Download updates automatically when available
+  bool auto_download = 2;
+
+  // Apply updates automatically (requires auto_download)
+  bool auto_apply = 3;
+
+  // Include prerelease versions
+  bool include_prereleases = 4;
+
+  // How often to check for updates (in hours, 0 = only on startup)
+  int32 check_interval_hours = 5;
+}
+
+// UpdateStatus represents the current state of the update system
+message UpdateStatus {
+  // Current state
+  UpdateState state = 1;
+
+  // Information about available update (if any)
+  UpdateInfo available_update = 2;
+
+  // Download progress (if downloading)
+  DownloadProgress download_progress = 3;
+
+  // Last time updates were checked
+  google.protobuf.Timestamp last_check = 4;
+
+  // Error message if state is ERROR
+  string error = 5;
+}
+
+// UpdateState represents the overall update system state
+enum UpdateState {
+  UPDATE_STATE_UNSPECIFIED = 0;
+  UPDATE_STATE_IDLE = 1;
+  UPDATE_STATE_CHECKING = 2;
+  UPDATE_STATE_UPDATE_AVAILABLE = 3;
+  UPDATE_STATE_DOWNLOADING = 4;
+  UPDATE_STATE_READY_TO_APPLY = 5;
+  UPDATE_STATE_APPLYING = 6;
+  UPDATE_STATE_ERROR = 7;
+}

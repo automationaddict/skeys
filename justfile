@@ -224,3 +224,74 @@ install: install-daemon install-app
 # Uninstall everything
 uninstall: uninstall-daemon uninstall-app
     @echo "Full uninstallation complete"
+
+# ============================================================
+# Release Packaging
+# ============================================================
+
+# Create a release tarball for distribution
+# Usage: just release v0.1.0
+release VERSION:
+    #!/bin/bash
+    set -euo pipefail
+
+    VERSION="{{VERSION}}"
+    RELEASE_DIR="release"
+    TARBALL_NAME="skeys-${VERSION}-linux-x64"
+
+    echo "Building release ${VERSION}..."
+
+    # Clean previous release
+    rm -rf "${RELEASE_DIR}"
+    mkdir -p "${RELEASE_DIR}/${TARBALL_NAME}"
+
+    # Build daemon with version info (stripped binary)
+    echo "Building daemon..."
+    cd skeys-daemon && go build \
+        -ldflags="-s -w -X main.version=${VERSION} -X main.commit=$(git rev-parse --short HEAD)" \
+        -o "../${RELEASE_DIR}/${TARBALL_NAME}/skeys-daemon" \
+        ./cmd/skeys-daemon
+    cd ..
+
+    # Build Flutter app
+    echo "Building Flutter app..."
+    cd skeys-app && flutter build linux --release
+    cd ..
+
+    # Copy Flutter bundle
+    echo "Assembling release..."
+    cp -r skeys-app/build/linux/x64/release/bundle/* "${RELEASE_DIR}/${TARBALL_NAME}/"
+
+    # Copy icons
+    mkdir -p "${RELEASE_DIR}/${TARBALL_NAME}/icons"
+    for size in 16 32 48 64 128 256 512 1024; do
+        cp "skeys-app/linux/runner/icons/skeys_${size}.png" \
+           "${RELEASE_DIR}/${TARBALL_NAME}/icons/" 2>/dev/null || true
+    done
+
+    # Copy desktop file
+    cp skeys-app/linux/com.skeys.skeys-app.desktop "${RELEASE_DIR}/${TARBALL_NAME}/"
+
+    # Copy systemd units
+    mkdir -p "${RELEASE_DIR}/${TARBALL_NAME}/systemd"
+    cp systemd/*.service systemd/*.timer "${RELEASE_DIR}/${TARBALL_NAME}/systemd/"
+
+    # Copy install/uninstall scripts
+    cp scripts/install.sh scripts/uninstall.sh "${RELEASE_DIR}/${TARBALL_NAME}/"
+    chmod +x "${RELEASE_DIR}/${TARBALL_NAME}/install.sh"
+    chmod +x "${RELEASE_DIR}/${TARBALL_NAME}/uninstall.sh"
+
+    # Create tarball
+    echo "Creating tarball..."
+    cd "${RELEASE_DIR}"
+    tar -czf "${TARBALL_NAME}.tar.gz" "${TARBALL_NAME}"
+
+    # Generate checksum
+    sha256sum "${TARBALL_NAME}.tar.gz" > "${TARBALL_NAME}.tar.gz.sha256"
+
+    echo ""
+    echo "Release created:"
+    echo "  ${RELEASE_DIR}/${TARBALL_NAME}.tar.gz"
+    echo "  ${RELEASE_DIR}/${TARBALL_NAME}.tar.gz.sha256"
+    echo ""
+    echo "Upload these files to GitHub release ${VERSION}"

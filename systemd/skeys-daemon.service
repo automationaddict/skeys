@@ -1,0 +1,24 @@
+[Unit]
+Description=SKeys SSH Key Management Daemon
+Documentation=https://github.com/automationaddict/skeys
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/share/skeys/skeys-daemon --socket %t/skeys/skeys.sock
+Restart=on-failure
+RestartSec=5
+
+# Create runtime directory for socket
+RuntimeDirectory=skeys
+RuntimeDirectoryMode=0700
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=%h/.ssh %h/.config/skeys %h/.cache/skeys %t/skeys
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

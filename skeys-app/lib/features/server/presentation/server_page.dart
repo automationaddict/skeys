@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/backend/daemon_status_service.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/generated/skeys/v1/config.pb.dart';
 import '../../../core/generated/skeys/v1/system.pb.dart';
 import '../../../core/grpc/grpc_client.dart';
+import '../../../core/notifications/app_toast.dart';
 
 /// Server status page showing SSH client/server installation and service status.
 class ServerPage extends StatefulWidget {
@@ -179,6 +181,8 @@ class _ServerPageState extends State<ServerPage> {
   }
 
   Widget _buildSystemInfoCard(ThemeData theme, ColorScheme colorScheme, GetSSHStatusResponse status) {
+    final daemonStatusService = getIt<DaemonStatusService>();
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -195,6 +199,8 @@ class _ServerPageState extends State<ServerPage> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
+                const Spacer(),
+                _buildBackendConnectionStatus(theme, colorScheme, daemonStatusService),
               ],
             ),
             const Divider(height: 24),
@@ -204,6 +210,84 @@ class _ServerPageState extends State<ServerPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildBackendConnectionStatus(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    DaemonStatusService statusService,
+  ) {
+    return ListenableBuilder(
+      listenable: statusService,
+      builder: (context, _) {
+        final status = statusService.status;
+
+        Color color;
+        String label;
+        IconData icon;
+
+        switch (status) {
+          case DaemonStatus.connected:
+            color = Colors.green;
+            label = 'Connected';
+            icon = Icons.check_circle;
+          case DaemonStatus.disconnected:
+            color = Colors.red;
+            label = 'Disconnected';
+            icon = Icons.error;
+          case DaemonStatus.reconnecting:
+            color = Colors.orange;
+            label = 'Reconnecting...';
+            icon = Icons.sync;
+        }
+
+        return InkWell(
+          onTap: status == DaemonStatus.disconnected
+              ? () => _showBackendConnectionDialog(statusService)
+              : null,
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: color.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (status == DaemonStatus.reconnecting)
+                  SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: color,
+                    ),
+                  )
+                else
+                  Icon(icon, size: 14, color: color),
+                const SizedBox(width: 6),
+                Text(
+                  'Backend: $label',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showBackendConnectionDialog(DaemonStatusService statusService) {
+    showDialog(
+      context: context,
+      builder: (context) => _BackendConnectionDialog(statusService: statusService),
     );
   }
 
@@ -717,6 +801,173 @@ class _InstallInstructionsDialog extends StatelessWidget {
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Close'),
+        ),
+      ],
+    );
+  }
+}
+
+class _BackendConnectionDialog extends StatelessWidget {
+  final DaemonStatusService statusService;
+
+  const _BackendConnectionDialog({required this.statusService});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: statusService,
+      builder: (context, _) {
+        final needsManualIntervention = statusService.needsManualIntervention;
+
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.orange,
+              ),
+              const SizedBox(width: 12),
+              const Text('Backend Disconnected'),
+            ],
+          ),
+          content: SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'The connection to the skeys-daemon backend service has been lost.',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                if (statusService.lastError != null) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.errorContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      statusService.lastError!,
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                    ),
+                  ),
+                ],
+                if (needsManualIntervention) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    'Multiple reconnection attempts have failed. Try these commands:',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  _CommandTile(
+                    label: 'Check daemon status:',
+                    command: 'systemctl --user status skeys-daemon',
+                  ),
+                  const SizedBox(height: 8),
+                  _CommandTile(
+                    label: 'Restart daemon:',
+                    command: 'systemctl --user restart skeys-daemon',
+                  ),
+                  const SizedBox(height: 8),
+                  _CommandTile(
+                    label: 'View logs:',
+                    command: 'journalctl --user -u skeys-daemon -f',
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+            if (statusService.status != DaemonStatus.reconnecting)
+              FilledButton.icon(
+                onPressed: () async {
+                  final success = await statusService.reconnect();
+                  if (success && context.mounted) {
+                    Navigator.of(context).pop();
+                    AppToast.success(context, message: 'Reconnected to backend');
+                  }
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reconnect'),
+              )
+            else
+              const FilledButton(
+                onPressed: null,
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _CommandTile extends StatelessWidget {
+  final String label;
+  final String command;
+
+  const _CommandTile({
+    required this.label,
+    required this.command,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall,
+        ),
+        const SizedBox(height: 4),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  command,
+                  style: const TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.copy, size: 16),
+                tooltip: 'Copy to clipboard',
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: command));
+                  AppToast.info(context, message: 'Copied: $command', duration: const Duration(seconds: 1));
+                },
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(
+                  minWidth: 24,
+                  minHeight: 24,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

@@ -1,0 +1,11 @@
+[Unit]
+Description=SKeys update check
+Documentation=https://github.com/automationaddict/skeys
+Requires=skeys-daemon.service
+After=skeys-daemon.service
+
+[Service]
+Type=oneshot
+# Signal the daemon to check for updates
+# The daemon handles the actual update check via gRPC
+ExecStart=%h/.local/share/skeys/skeys-daemon --check-update

@@ -10,6 +10,7 @@ import '../generated/skeys/v1/remote.pbgrpc.dart';
 import '../generated/skeys/v1/metadata.pbgrpc.dart';
 import '../generated/skeys/v1/version.pbgrpc.dart';
 import '../generated/skeys/v1/system.pbgrpc.dart';
+import '../generated/skeys/v1/update.pbgrpc.dart';
 import '../logging/app_logger.dart';
 
 /// gRPC client for communicating with skeys-daemon.
@@ -30,6 +31,7 @@ class GrpcClient {
   MetadataServiceClient? _metadata;
   VersionServiceClient? _version;
   SystemServiceClient? _system;
+  UpdateServiceClient? _update;
 
   KeyServiceClient get keys {
     if (_keys == null) {
@@ -87,6 +89,13 @@ class GrpcClient {
     return _system!;
   }
 
+  UpdateServiceClient get update {
+    if (_update == null) {
+      throw StateError('gRPC client not connected. Call connect() first.');
+    }
+    return _update!;
+  }
+
   GrpcClient(this.socketPath) {
     _log.debug('gRPC client created', {'socket_path': socketPath});
   }
@@ -123,6 +132,7 @@ class GrpcClient {
       _metadata = MetadataServiceClient(_channel!);
       _version = VersionServiceClient(_channel!);
       _system = SystemServiceClient(_channel!);
+      _update = UpdateServiceClient(_channel!);
 
       _log.info('gRPC client connected successfully');
     } catch (e, st) {
@@ -156,6 +166,7 @@ class GrpcClient {
     _metadata = null;
     _version = null;
     _system = null;
+    _update = null;
   }
 
   /// Checks if the connection is healthy.

@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache-dependency-path: |
+            skeys-core/go.sum
+            skeys-daemon/go.sum
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            ninja-build \
+            libgtk-3-dev \
+            libblkid-dev \
+            liblzma-dev
+
+      - name: Build Go daemon
+        run: |
+          cd skeys-daemon
+          CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=${{ steps.version.outputs.VERSION }} -X main.commit=${{ github.sha }}" -o skeys-daemon ./cmd/skeys-daemon
+
+      - name: Build Flutter app
+        run: |
+          cd skeys-app
+          flutter pub get
+          flutter build linux --release
+
+      - name: Create release tarball
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          TARBALL_NAME="skeys-${VERSION}-linux-x64"
+
+          # Create staging directory
+          mkdir -p "${TARBALL_NAME}"
+
+          # Copy Flutter app bundle
+          cp -r skeys-app/build/linux/x64/release/bundle/* "${TARBALL_NAME}/"
+
+          # Copy Go daemon
+          cp skeys-daemon/skeys-daemon "${TARBALL_NAME}/"
+
+          # Copy icons
+          mkdir -p "${TARBALL_NAME}/icons"
+          for size in 16 32 48 64 128 256 512 1024; do
+            cp "skeys-app/linux/runner/icons/skeys_${size}.png" \
+               "${TARBALL_NAME}/icons/" 2>/dev/null || true
+          done
+
+          # Copy desktop file
+          cp skeys-app/linux/com.skeys.skeys-app.desktop "${TARBALL_NAME}/"
+
+          # Copy systemd files
+          mkdir -p "${TARBALL_NAME}/systemd"
+          cp systemd/*.service systemd/*.timer "${TARBALL_NAME}/systemd/"
+
+          # Copy install/uninstall scripts
+          cp scripts/install.sh scripts/uninstall.sh "${TARBALL_NAME}/"
+          chmod +x "${TARBALL_NAME}/install.sh"
+          chmod +x "${TARBALL_NAME}/uninstall.sh"
+
+          # Create tarball
+          tar -czvf "${TARBALL_NAME}.tar.gz" "${TARBALL_NAME}"
+
+          # Create checksum
+          sha256sum "${TARBALL_NAME}.tar.gz" > "${TARBALL_NAME}.tar.gz.sha256"
+
+          # Also create standalone install/uninstall scripts for direct download
+          cp scripts/install.sh install.sh
+          cp scripts/uninstall.sh uninstall.sh
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            skeys-${{ steps.version.outputs.VERSION }}-linux-x64.tar.gz
+            skeys-${{ steps.version.outputs.VERSION }}-linux-x64.tar.gz.sha256
+            install.sh
+            uninstall.sh
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.VERSION, '-') }}

@@ -12,7 +12,7 @@ import '../logging/app_logger.dart';
 import '../settings/settings_dialog.dart';
 import '../settings/settings_service.dart';
 import '../ssh_config/ssh_config_dialog.dart';
-import 'daemon_status_indicator.dart';
+import '../update/update_service.dart';
 
 /// Application shell with navigation rail.
 class AppShell extends StatefulWidget {
@@ -30,6 +30,7 @@ class _AppShellState extends State<AppShell> {
   final _settingsService = getIt<SettingsService>();
   final _grpcClient = getIt<GrpcClient>();
   final _helpNavService = getIt<HelpNavigationService>();
+  final _updateService = getIt<UpdateService>();
   bool _showHelp = false;
   bool _checkedSshConfig = false;
 
@@ -38,6 +39,8 @@ class _AppShellState extends State<AppShell> {
     super.initState();
     // Listen for help navigation requests
     _helpNavService.addListener(_onHelpNavigationChanged);
+    // Listen for update notifications
+    _updateService.addListener(_onUpdateServiceChanged);
 
     // Check SSH config on first run after frame is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -48,7 +51,15 @@ class _AppShellState extends State<AppShell> {
   @override
   void dispose() {
     _helpNavService.removeListener(_onHelpNavigationChanged);
+    _updateService.removeListener(_onUpdateServiceChanged);
     super.dispose();
+  }
+
+  void _onUpdateServiceChanged() {
+    // Rebuild when update status changes
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _onHelpNavigationChanged() {
@@ -149,8 +160,6 @@ class _AppShellState extends State<AppShell> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const DaemonStatusIndicator(),
-                          const SizedBox(height: 16),
                           IconButton(
                             icon: Icon(
                               _showHelp ? Icons.help : Icons.help_outline,
@@ -162,11 +171,7 @@ class _AppShellState extends State<AppShell> {
                             onPressed: () => setState(() => _showHelp = !_showHelp),
                           ),
                           const SizedBox(height: 8),
-                          IconButton(
-                            icon: const Icon(Icons.settings_outlined),
-                            tooltip: 'Settings',
-                            onPressed: () => SettingsDialog.show(context),
-                          ),
+                          _buildSettingsButton(context),
                         ],
                       ),
                     ),
@@ -253,5 +258,37 @@ class _AppShellState extends State<AppShell> {
         context.goNamed('remotes');
         break;
     }
+  }
+
+  Widget _buildSettingsButton(BuildContext context) {
+    final hasUpdate = _updateService.updateAvailable;
+
+    return IconButton(
+      icon: Stack(
+        children: [
+          const Icon(Icons.settings_outlined),
+          if (hasUpdate)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+        ],
+      ),
+      tooltip: hasUpdate
+          ? 'Settings (Update available)'
+          : 'Settings',
+      onPressed: () => SettingsDialog.show(
+        context,
+        initialTab: hasUpdate ? SettingsDialog.tabUpdate : 0,
+      ),
+    );
   }
 }

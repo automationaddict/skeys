@@ -1,0 +1,14 @@
+[Unit]
+Description=Daily SKeys update check
+Documentation=https://github.com/automationaddict/skeys
+
+[Timer]
+# Run once daily
+OnCalendar=daily
+# Spread load across users
+RandomizedDelaySec=3600
+# Run missed checks after boot
+Persistent=true
+
+[Install]
+WantedBy=timers.target
