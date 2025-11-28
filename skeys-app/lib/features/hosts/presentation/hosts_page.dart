@@ -30,6 +30,7 @@ import '../domain/host_entity.dart';
 
 /// Page for managing known_hosts and authorized_keys.
 class HostsPage extends StatefulWidget {
+  /// Creates a HostsPage widget.
   const HostsPage({super.key});
 
   @override

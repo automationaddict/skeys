@@ -33,6 +33,7 @@ class HostsBloc extends Bloc<HostsEvent, HostsState> {
   final HostsRepository _repository;
   final AppLogger _log = AppLogger('bloc.hosts');
 
+  /// Creates a HostsBloc with the given repository.
   HostsBloc(this._repository) : super(const HostsState()) {
     on<HostsLoadKnownHostsRequested>(_onLoadKnownHosts);
     on<HostsWatchKnownHostsRequested>(_onWatchKnownHosts);

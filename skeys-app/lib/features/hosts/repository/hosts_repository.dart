@@ -25,16 +25,26 @@ import '../../../core/generated/skeys/v1/common.pb.dart' as common;
 
 /// Abstract repository for host management.
 abstract class HostsRepository {
-  // Known hosts
+  /// Lists all known host entries from ~/.ssh/known_hosts.
   Future<List<KnownHostEntry>> listKnownHosts();
+
+  /// Watches known hosts for changes.
   Stream<List<KnownHostEntry>> watchKnownHosts();
+
+  /// Removes a known host entry by hostname and port.
   Future<void> removeKnownHost(String hostname, {int port = 22});
+
+  /// Hashes all hostnames in the known_hosts file.
   Future<void> hashKnownHosts();
+
+  /// Scans a remote host for its public keys.
   Future<List<ScannedHostKey>> scanHostKeys(
     String hostname, {
     int port = 22,
     int timeout = 10,
   });
+
+  /// Adds a known host entry to ~/.ssh/known_hosts.
   Future<KnownHostEntry> addKnownHost(
     String hostname,
     String keyType,
@@ -43,14 +53,20 @@ abstract class HostsRepository {
     bool hashHostname = false,
   });
 
-  // Authorized keys
+  /// Lists authorized keys from ~/.ssh/authorized_keys.
   Future<List<AuthorizedKeyEntry>> listAuthorizedKeys({String? user});
+
+  /// Watches authorized keys for changes.
   Stream<List<AuthorizedKeyEntry>> watchAuthorizedKeys({String? user});
+
+  /// Adds a public key to the authorized keys file.
   Future<void> addAuthorizedKey(
     String publicKey, {
     List<String>? options,
     String? user,
   });
+
+  /// Removes an authorized key by its ID.
   Future<void> removeAuthorizedKey(String keyId, {String? user});
 }
 
@@ -58,6 +74,7 @@ abstract class HostsRepository {
 class HostsRepositoryImpl implements HostsRepository {
   final GrpcClient _client;
 
+  /// Creates a HostsRepositoryImpl with the given gRPC client.
   HostsRepositoryImpl(this._client);
 
   @override

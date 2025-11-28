@@ -20,15 +20,42 @@
 
 part of 'hosts_bloc.dart';
 
-enum HostsStatus { initial, loading, scanning, success, failure }
+/// Status of the HostsBloc operations.
+enum HostsStatus {
+  /// Initial state before any operation.
+  initial,
 
+  /// A load operation is in progress.
+  loading,
+
+  /// A host scan is in progress.
+  scanning,
+
+  /// The operation completed successfully.
+  success,
+
+  /// The operation failed with an error.
+  failure,
+}
+
+/// State of the hosts BLoC.
 final class HostsState extends Equatable {
+  /// The current status of BLoC operations.
   final HostsStatus status;
+
+  /// List of known host entries.
   final List<KnownHostEntry> knownHosts;
+
+  /// List of authorized key entries.
   final List<AuthorizedKeyEntry> authorizedKeys;
+
+  /// Scanned host keys (temporary state during scan operation).
   final List<ScannedHostKey> scannedKeys;
+
+  /// Error message if the last operation failed.
   final String? errorMessage;
 
+  /// Creates a HostsState.
   const HostsState({
     this.status = HostsStatus.initial,
     this.knownHosts = const [],
@@ -37,6 +64,7 @@ final class HostsState extends Equatable {
     this.errorMessage,
   });
 
+  /// Creates a copy of this state with the given fields replaced.
   HostsState copyWith({
     HostsStatus? status,
     List<KnownHostEntry>? knownHosts,

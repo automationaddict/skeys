@@ -20,13 +20,21 @@
 
 import 'package:equatable/equatable.dart';
 
-/// Known host entry.
+/// Known host entry from ~/.ssh/known_hosts.
 class KnownHostEntry extends Equatable {
+  /// The hostname or hashed hostname.
   final String host;
+
+  /// The key type (e.g., "ssh-ed25519", "ssh-rsa").
   final String keyType;
+
+  /// The public key data.
   final String publicKey;
+
+  /// Whether the hostname is hashed for privacy.
   final bool isHashed;
 
+  /// Creates a KnownHostEntry with the given parameters.
   const KnownHostEntry({
     required this.host,
     required this.keyType,
@@ -38,14 +46,24 @@ class KnownHostEntry extends Equatable {
   List<Object?> get props => [host, keyType, publicKey, isHashed];
 }
 
-/// Scanned host key entry (from ssh-keyscan).
+/// Scanned host key entry (from ssh-keyscan operation).
 class ScannedHostKey extends Equatable {
+  /// The hostname that was scanned.
   final String hostname;
+
+  /// The SSH port that was scanned.
   final int port;
+
+  /// The key type (e.g., "ssh-ed25519", "ssh-rsa").
   final String keyType;
+
+  /// The public key data.
   final String publicKey;
+
+  /// The key fingerprint (SHA256 hash).
   final String fingerprint;
 
+  /// Creates a ScannedHostKey with the given parameters.
   const ScannedHostKey({
     required this.hostname,
     required this.port,
@@ -58,13 +76,21 @@ class ScannedHostKey extends Equatable {
   List<Object?> get props => [hostname, port, keyType, publicKey, fingerprint];
 }
 
-/// Authorized key entry.
+/// Authorized key entry from ~/.ssh/authorized_keys.
 class AuthorizedKeyEntry extends Equatable {
+  /// The key type (e.g., "ssh-ed25519", "ssh-rsa").
   final String keyType;
+
+  /// The public key data.
   final String publicKey;
+
+  /// Comment associated with the key (usually user@host).
   final String comment;
+
+  /// Any options preceding the key (e.g., "command=...", "no-port-forwarding").
   final List<String> options;
 
+  /// Creates an AuthorizedKeyEntry with the given parameters.
   const AuthorizedKeyEntry({
     required this.keyType,
     required this.publicKey,
