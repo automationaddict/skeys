@@ -31,8 +31,8 @@ class _ConfigPageState extends State<ConfigPage> with SingleTickerProviderStateM
     _tabController.addListener(_onTabChanged);
     // Set initial context
     _helpContextService.setContextSuffix(_tabContexts[0]);
-    // Load both SSH entries and global directives
-    context.read<ConfigBloc>().add(const ConfigLoadSSHEntriesRequested());
+    // Start streaming SSH config entries and load global directives
+    context.read<ConfigBloc>().add(const ConfigWatchSSHEntriesRequested());
     context.read<ConfigBloc>().add(const ConfigLoadGlobalDirectivesRequested());
   }
 
@@ -62,20 +62,6 @@ class _ConfigPageState extends State<ConfigPage> with SingleTickerProviderStateM
             Tab(text: 'Server Config'),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              if (_tabController.index == 0) {
-                context.read<ConfigBloc>().add(const ConfigLoadSSHEntriesRequested());
-                context.read<ConfigBloc>().add(const ConfigLoadGlobalDirectivesRequested());
-              } else {
-                context.read<ConfigBloc>().add(const ConfigLoadServerConfigRequested());
-              }
-            },
-            tooltip: 'Refresh',
-          ),
-        ],
       ),
       body: BlocBuilder<ConfigBloc, ConfigState>(
         builder: (context, state) {

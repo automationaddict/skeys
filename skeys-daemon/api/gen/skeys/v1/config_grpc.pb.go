@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	ConfigService_ListSSHConfigEntries_FullMethodName    = "/skeys.v1.ConfigService/ListSSHConfigEntries"
+	ConfigService_WatchSSHConfigEntries_FullMethodName   = "/skeys.v1.ConfigService/WatchSSHConfigEntries"
 	ConfigService_GetSSHConfigEntry_FullMethodName       = "/skeys.v1.ConfigService/GetSSHConfigEntry"
 	ConfigService_CreateSSHConfigEntry_FullMethodName    = "/skeys.v1.ConfigService/CreateSSHConfigEntry"
 	ConfigService_UpdateSSHConfigEntry_FullMethodName    = "/skeys.v1.ConfigService/UpdateSSHConfigEntry"
@@ -51,6 +52,7 @@ const (
 type ConfigServiceClient interface {
 	// SSH Client Config - New unified API (~/.ssh/config)
 	ListSSHConfigEntries(ctx context.Context, in *ListSSHConfigEntriesRequest, opts ...grpc.CallOption) (*ListSSHConfigEntriesResponse, error)
+	WatchSSHConfigEntries(ctx context.Context, in *WatchSSHConfigEntriesRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ListSSHConfigEntriesResponse], error)
 	GetSSHConfigEntry(ctx context.Context, in *GetSSHConfigEntryRequest, opts ...grpc.CallOption) (*SSHConfigEntry, error)
 	CreateSSHConfigEntry(ctx context.Context, in *CreateSSHConfigEntryRequest, opts ...grpc.CallOption) (*SSHConfigEntry, error)
 	UpdateSSHConfigEntry(ctx context.Context, in *UpdateSSHConfigEntryRequest, opts ...grpc.CallOption) (*SSHConfigEntry, error)
@@ -99,6 +101,25 @@ func (c *configServiceClient) ListSSHConfigEntries(ctx context.Context, in *List
 	}
 	return out, nil
 }
+
+func (c *configServiceClient) WatchSSHConfigEntries(ctx context.Context, in *WatchSSHConfigEntriesRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ListSSHConfigEntriesResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &ConfigService_ServiceDesc.Streams[0], ConfigService_WatchSSHConfigEntries_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[WatchSSHConfigEntriesRequest, ListSSHConfigEntriesResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type ConfigService_WatchSSHConfigEntriesClient = grpc.ServerStreamingClient[ListSSHConfigEntriesResponse]
 
 func (c *configServiceClient) GetSSHConfigEntry(ctx context.Context, in *GetSSHConfigEntryRequest, opts ...grpc.CallOption) (*SSHConfigEntry, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -326,6 +347,7 @@ func (c *configServiceClient) DiscoverConfigPaths(ctx context.Context, in *Disco
 type ConfigServiceServer interface {
 	// SSH Client Config - New unified API (~/.ssh/config)
 	ListSSHConfigEntries(context.Context, *ListSSHConfigEntriesRequest) (*ListSSHConfigEntriesResponse, error)
+	WatchSSHConfigEntries(*WatchSSHConfigEntriesRequest, grpc.ServerStreamingServer[ListSSHConfigEntriesResponse]) error
 	GetSSHConfigEntry(context.Context, *GetSSHConfigEntryRequest) (*SSHConfigEntry, error)
 	CreateSSHConfigEntry(context.Context, *CreateSSHConfigEntryRequest) (*SSHConfigEntry, error)
 	UpdateSSHConfigEntry(context.Context, *UpdateSSHConfigEntryRequest) (*SSHConfigEntry, error)
@@ -367,6 +389,9 @@ type UnimplementedConfigServiceServer struct{}
 
 func (UnimplementedConfigServiceServer) ListSSHConfigEntries(context.Context, *ListSSHConfigEntriesRequest) (*ListSSHConfigEntriesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSSHConfigEntries not implemented")
+}
+func (UnimplementedConfigServiceServer) WatchSSHConfigEntries(*WatchSSHConfigEntriesRequest, grpc.ServerStreamingServer[ListSSHConfigEntriesResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method WatchSSHConfigEntries not implemented")
 }
 func (UnimplementedConfigServiceServer) GetSSHConfigEntry(context.Context, *GetSSHConfigEntryRequest) (*SSHConfigEntry, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSSHConfigEntry not implemented")
@@ -472,6 +497,17 @@ func _ConfigService_ListSSHConfigEntries_Handler(srv interface{}, ctx context.Co
 	}
 	return interceptor(ctx, in, info, handler)
 }
+
+func _ConfigService_WatchSSHConfigEntries_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WatchSSHConfigEntriesRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigServiceServer).WatchSSHConfigEntries(m, &grpc.GenericServerStream[WatchSSHConfigEntriesRequest, ListSSHConfigEntriesResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type ConfigService_WatchSSHConfigEntriesServer = grpc.ServerStreamingServer[ListSSHConfigEntriesResponse]
 
 func _ConfigService_GetSSHConfigEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetSSHConfigEntryRequest)
@@ -969,6 +1005,12 @@ var ConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ConfigService_DiscoverConfigPaths_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "WatchSSHConfigEntries",
+			Handler:       _ConfigService_WatchSSHConfigEntries_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "skeys/v1/config.proto",
 }

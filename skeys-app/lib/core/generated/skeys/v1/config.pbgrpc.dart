@@ -41,6 +41,15 @@ class ConfigServiceClient extends $grpc.Client {
     return $createUnaryCall(_$listSSHConfigEntries, request, options: options);
   }
 
+  $grpc.ResponseStream<$0.ListSSHConfigEntriesResponse> watchSSHConfigEntries(
+    $0.WatchSSHConfigEntriesRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createStreamingCall(
+        _$watchSSHConfigEntries, $async.Stream.fromIterable([request]),
+        options: options);
+  }
+
   $grpc.ResponseFuture<$0.SSHConfigEntry> getSSHConfigEntry(
     $0.GetSSHConfigEntryRequest request, {
     $grpc.CallOptions? options,
@@ -210,6 +219,11 @@ class ConfigServiceClient extends $grpc.Client {
       '/skeys.v1.ConfigService/ListSSHConfigEntries',
       ($0.ListSSHConfigEntriesRequest value) => value.writeToBuffer(),
       $0.ListSSHConfigEntriesResponse.fromBuffer);
+  static final _$watchSSHConfigEntries = $grpc.ClientMethod<
+          $0.WatchSSHConfigEntriesRequest, $0.ListSSHConfigEntriesResponse>(
+      '/skeys.v1.ConfigService/WatchSSHConfigEntries',
+      ($0.WatchSSHConfigEntriesRequest value) => value.writeToBuffer(),
+      $0.ListSSHConfigEntriesResponse.fromBuffer);
   static final _$getSSHConfigEntry =
       $grpc.ClientMethod<$0.GetSSHConfigEntryRequest, $0.SSHConfigEntry>(
           '/skeys.v1.ConfigService/GetSSHConfigEntry',
@@ -335,6 +349,15 @@ abstract class ConfigServiceBase extends $grpc.Service {
         false,
         ($core.List<$core.int> value) =>
             $0.ListSSHConfigEntriesRequest.fromBuffer(value),
+        ($0.ListSSHConfigEntriesResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.WatchSSHConfigEntriesRequest,
+            $0.ListSSHConfigEntriesResponse>(
+        'WatchSSHConfigEntries',
+        watchSSHConfigEntries_Pre,
+        false,
+        true,
+        ($core.List<$core.int> value) =>
+            $0.WatchSSHConfigEntriesRequest.fromBuffer(value),
         ($0.ListSSHConfigEntriesResponse value) => value.writeToBuffer()));
     $addMethod(
         $grpc.ServiceMethod<$0.GetSSHConfigEntryRequest, $0.SSHConfigEntry>(
@@ -537,6 +560,15 @@ abstract class ConfigServiceBase extends $grpc.Service {
 
   $async.Future<$0.ListSSHConfigEntriesResponse> listSSHConfigEntries(
       $grpc.ServiceCall call, $0.ListSSHConfigEntriesRequest request);
+
+  $async.Stream<$0.ListSSHConfigEntriesResponse> watchSSHConfigEntries_Pre(
+      $grpc.ServiceCall $call,
+      $async.Future<$0.WatchSSHConfigEntriesRequest> $request) async* {
+    yield* watchSSHConfigEntries($call, await $request);
+  }
+
+  $async.Stream<$0.ListSSHConfigEntriesResponse> watchSSHConfigEntries(
+      $grpc.ServiceCall call, $0.WatchSSHConfigEntriesRequest request);
 
   $async.Future<$0.SSHConfigEntry> getSSHConfigEntry_Pre(
       $grpc.ServiceCall $call,

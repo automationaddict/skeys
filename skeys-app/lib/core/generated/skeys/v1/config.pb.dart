@@ -374,6 +374,66 @@ class ListSSHConfigEntriesRequest extends $pb.GeneratedMessage {
   $2.Target ensureTarget() => $_ensure(0);
 }
 
+class WatchSSHConfigEntriesRequest extends $pb.GeneratedMessage {
+  factory WatchSSHConfigEntriesRequest({
+    $2.Target? target,
+  }) {
+    final result = create();
+    if (target != null) result.target = target;
+    return result;
+  }
+
+  WatchSSHConfigEntriesRequest._();
+
+  factory WatchSSHConfigEntriesRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory WatchSSHConfigEntriesRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'WatchSSHConfigEntriesRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'),
+      createEmptyInstance: create)
+    ..aOM<$2.Target>(1, _omitFieldNames ? '' : 'target',
+        subBuilder: $2.Target.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  WatchSSHConfigEntriesRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  WatchSSHConfigEntriesRequest copyWith(
+          void Function(WatchSSHConfigEntriesRequest) updates) =>
+      super.copyWith(
+              (message) => updates(message as WatchSSHConfigEntriesRequest))
+          as WatchSSHConfigEntriesRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static WatchSSHConfigEntriesRequest create() =>
+      WatchSSHConfigEntriesRequest._();
+  @$core.override
+  WatchSSHConfigEntriesRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static WatchSSHConfigEntriesRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<WatchSSHConfigEntriesRequest>(create);
+  static WatchSSHConfigEntriesRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $2.Target get target => $_getN(0);
+  @$pb.TagNumber(1)
+  set target($2.Target value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTarget() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTarget() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $2.Target ensureTarget() => $_ensure(0);
+}
+
 class ListSSHConfigEntriesResponse extends $pb.GeneratedMessage {
   factory ListSSHConfigEntriesResponse({
     $core.Iterable<SSHConfigEntry>? entries,

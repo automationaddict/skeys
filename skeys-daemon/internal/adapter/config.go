@@ -125,6 +125,32 @@ func (a *ConfigServiceAdapter) ListSSHConfigEntries(ctx context.Context, req *pb
 	return &pb.ListSSHConfigEntriesResponse{Entries: pbEntries}, nil
 }
 
+// WatchSSHConfigEntries streams SSH config entry updates when changes are detected.
+func (a *ConfigServiceAdapter) WatchSSHConfigEntries(req *pb.WatchSSHConfigEntriesRequest, stream pb.ConfigService_WatchSSHConfigEntriesServer) error {
+	ctx := stream.Context()
+
+	// Use the core service's Watch method which polls for changes
+	updates := a.clientConfig.Watch(ctx)
+
+	for update := range updates {
+		if update.Err != nil {
+			return status.Errorf(codes.Internal, "watch error: %v", update.Err)
+		}
+
+		var pbEntries []*pb.SSHConfigEntry
+		for _, e := range update.Entries {
+			pbEntries = append(pbEntries, toProtoSSHConfigEntry(e))
+		}
+
+		resp := &pb.ListSSHConfigEntriesResponse{Entries: pbEntries}
+		if err := stream.Send(resp); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // GetSSHConfigEntry returns a specific SSH config entry by ID
 func (a *ConfigServiceAdapter) GetSSHConfigEntry(ctx context.Context, req *pb.GetSSHConfigEntryRequest) (*pb.SSHConfigEntry, error) {
 	entry, err := a.clientConfig.GetEntry(req.GetId())

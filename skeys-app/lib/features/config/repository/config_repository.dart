@@ -8,6 +8,7 @@ import '../../../core/generated/skeys/v1/common.pb.dart' as common;
 abstract class ConfigRepository {
   // New unified SSH config API
   Future<List<SSHConfigEntry>> listSSHConfigEntries();
+  Stream<List<SSHConfigEntry>> watchSSHConfigEntries();
   Future<SSHConfigEntry> getSSHConfigEntry(String id);
   Future<SSHConfigEntry> createSSHConfigEntry(SSHConfigEntry entry, {int? insertPosition});
   Future<SSHConfigEntry> updateSSHConfigEntry(String id, SSHConfigEntry entry);
@@ -61,6 +62,16 @@ class ConfigRepositoryImpl implements ConfigRepository {
 
     final response = await _client.config.listSSHConfigEntries(request);
     return response.entries.map(_mapSSHConfigEntry).toList();
+  }
+
+  @override
+  Stream<List<SSHConfigEntry>> watchSSHConfigEntries() {
+    final request = pb.WatchSSHConfigEntriesRequest()
+      ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL);
+
+    return _client.config.watchSSHConfigEntries(request).map(
+      (response) => response.entries.map(_mapSSHConfigEntry).toList()
+    );
   }
 
   @override

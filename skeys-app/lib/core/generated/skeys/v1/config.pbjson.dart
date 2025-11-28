@@ -174,6 +174,27 @@ final $typed_data.Uint8List listSSHConfigEntriesRequestDescriptor =
         'ChtMaXN0U1NIQ29uZmlnRW50cmllc1JlcXVlc3QSKAoGdGFyZ2V0GAEgASgLMhAuc2tleXMudj'
         'EuVGFyZ2V0UgZ0YXJnZXQ=');
 
+@$core.Deprecated('Use watchSSHConfigEntriesRequestDescriptor instead')
+const WatchSSHConfigEntriesRequest$json = {
+  '1': 'WatchSSHConfigEntriesRequest',
+  '2': [
+    {
+      '1': 'target',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.Target',
+      '10': 'target'
+    },
+  ],
+};
+
+/// Descriptor for `WatchSSHConfigEntriesRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List watchSSHConfigEntriesRequestDescriptor =
+    $convert.base64Decode(
+        'ChxXYXRjaFNTSENvbmZpZ0VudHJpZXNSZXF1ZXN0EigKBnRhcmdldBgBIAEoCzIQLnNrZXlzLn'
+        'YxLlRhcmdldFIGdGFyZ2V0');
+
 @$core.Deprecated('Use listSSHConfigEntriesResponseDescriptor instead')
 const ListSSHConfigEntriesResponse$json = {
   '1': 'ListSSHConfigEntriesResponse',

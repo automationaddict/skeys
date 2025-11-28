@@ -10,6 +10,7 @@ import "skeys/v1/common.proto";
 service ConfigService {
   // SSH Client Config - New unified API (~/.ssh/config)
   rpc ListSSHConfigEntries(ListSSHConfigEntriesRequest) returns (ListSSHConfigEntriesResponse);
+  rpc WatchSSHConfigEntries(WatchSSHConfigEntriesRequest) returns (stream ListSSHConfigEntriesResponse);
   rpc GetSSHConfigEntry(GetSSHConfigEntryRequest) returns (SSHConfigEntry);
   rpc CreateSSHConfigEntry(CreateSSHConfigEntryRequest) returns (SSHConfigEntry);
   rpc UpdateSSHConfigEntry(UpdateSSHConfigEntryRequest) returns (SSHConfigEntry);
@@ -79,6 +80,10 @@ message SSHOptions {
 
 // New API request/response messages
 message ListSSHConfigEntriesRequest {
+  Target target = 1;
+}
+
+message WatchSSHConfigEntriesRequest {
   Target target = 1;
 }
 

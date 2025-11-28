@@ -16,6 +16,11 @@ final class ConfigLoadSSHEntriesRequested extends ConfigEvent {
   const ConfigLoadSSHEntriesRequested();
 }
 
+/// Watch SSH config entries for changes (streaming)
+final class ConfigWatchSSHEntriesRequested extends ConfigEvent {
+  const ConfigWatchSSHEntriesRequested();
+}
+
 /// Create a new SSH config entry
 final class ConfigCreateSSHEntryRequested extends ConfigEvent {
   final SSHConfigEntry entry;

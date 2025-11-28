@@ -17,6 +17,7 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
   ConfigBloc(this._repository) : super(const ConfigState()) {
     // New unified SSH config API handlers
     on<ConfigLoadSSHEntriesRequested>(_onLoadSSHEntries);
+    on<ConfigWatchSSHEntriesRequested>(_onWatchSSHEntries);
     on<ConfigCreateSSHEntryRequested>(_onCreateSSHEntry);
     on<ConfigUpdateSSHEntryRequested>(_onUpdateSSHEntry);
     on<ConfigDeleteSSHEntryRequested>(_onDeleteSSHEntry);
@@ -65,6 +66,32 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
         errorMessage: e.toString(),
       ));
     }
+  }
+
+  Future<void> _onWatchSSHEntries(
+    ConfigWatchSSHEntriesRequested event,
+    Emitter<ConfigState> emit,
+  ) async {
+    _log.debug('subscribing to SSH config entries stream');
+    emit(state.copyWith(status: ConfigStatus.loading));
+
+    await emit.forEach<List<SSHConfigEntry>>(
+      _repository.watchSSHConfigEntries(),
+      onData: (entries) {
+        _log.debug('SSH config entries stream update', {'count': entries.length});
+        return state.copyWith(
+          status: ConfigStatus.success,
+          sshEntries: entries,
+        );
+      },
+      onError: (error, stackTrace) {
+        _log.error('SSH config entries stream error', error, stackTrace);
+        return state.copyWith(
+          status: ConfigStatus.failure,
+          errorMessage: error.toString(),
+        );
+      },
+    );
   }
 
   Future<void> _onCreateSSHEntry(
