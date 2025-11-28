@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file.
 
 - Show first-start dialog after reinstall and use XDG runtime dir
 - Make help tooltips scrollable on smaller screens
+- Add missing @override annotation in test mocks
+- Add missing @override annotation in test mock
 
 ### Miscellaneous
 

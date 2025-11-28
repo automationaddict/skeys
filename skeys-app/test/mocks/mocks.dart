@@ -65,6 +65,7 @@ class MockDaemonStatusService extends Mock implements DaemonStatusService {
   @override
   bool get isConnected => true;
 
+  /// Disposes the stream controller used for reconnection events.
   @override
   void dispose() {
     _reconnectionController.close();
