@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Documentation
+
+- Add component READMEs and improve network error feedback
+
 ### Fixed
 
 - Show first-start dialog after reinstall and use XDG runtime dir

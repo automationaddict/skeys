@@ -18,6 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -112,9 +114,12 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
   bool _obscurePassphrase = true;
   bool _verifyingConnection = false;
   bool _addingToAgent = false;
+  bool _connectionTakingLong = false;
+  Timer? _longConnectionTimer;
 
   @override
   void dispose() {
+    _longConnectionTimer?.cancel();
     _hostController.dispose();
     _portController.dispose();
     _userController.dispose();
@@ -153,6 +158,7 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
 
             if (state.testConnectionResult != null) {
               final result = state.testConnectionResult!;
+              _longConnectionTimer?.cancel();
 
               // Handle host key verification states
               if (result.needsHostKeyApproval && result.hostKeyInfo != null) {
@@ -171,11 +177,11 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
                 // Connection verified! Now add to agent
                 _addKeyToAgent();
               } else {
-                // Connection failed
-                AppToast.error(
-                  context,
-                  message: 'Connection failed: ${result.message}',
+                // Connection failed - show user-friendly message
+                final friendlyMessage = _getConnectionErrorMessage(
+                  result.message,
                 );
+                AppToast.error(context, message: friendlyMessage);
                 setState(() => _verifyingConnection = false);
               }
             }
@@ -397,16 +403,54 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           ),
                           const SizedBox(width: 12),
-                          Text(
-                            _addingToAgent
-                                ? 'Adding key to agent...'
-                                : _selectedPreset != null
-                                ? 'Verifying connection to ${_selectedPreset!.name}...'
-                                : 'Verifying connection to ${_hostController.text}...',
-                            style: Theme.of(context).textTheme.bodyMedium,
+                          Expanded(
+                            child: Text(
+                              _addingToAgent
+                                  ? 'Adding key to agent...'
+                                  : _selectedPreset != null
+                                  ? 'Verifying connection to ${_selectedPreset!.name}...'
+                                  : 'Verifying connection to ${_hostController.text}...',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
                           ),
                         ],
                       ),
+                      if (_connectionTakingLong && !_addingToAgent) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: 20,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Taking longer than expected. This may indicate '
+                                  'a network issue or the host may be unreachable.',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ],
                 ),
@@ -416,9 +460,11 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
               TextButton(
                 onPressed: () {
                   // Always allow cancel - abort pending operations
+                  _longConnectionTimer?.cancel();
                   setState(() {
                     _verifyingConnection = false;
                     _addingToAgent = false;
+                    _connectionTakingLong = false;
                   });
                   context.read<KeysBloc>().add(
                     const KeysTestConnectionCleared(),
@@ -476,7 +522,18 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
       user = _userController.text;
     }
 
-    setState(() => _verifyingConnection = true);
+    setState(() {
+      _verifyingConnection = true;
+      _connectionTakingLong = false;
+    });
+
+    // Start a timer to show "taking longer than expected" message
+    _longConnectionTimer?.cancel();
+    _longConnectionTimer = Timer(const Duration(seconds: 10), () {
+      if (mounted && _verifyingConnection) {
+        setState(() => _connectionTakingLong = true);
+      }
+    });
 
     context.read<KeysBloc>().add(
       KeysTestConnectionRequested(
@@ -826,6 +883,57 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
         ],
       ),
     );
+  }
+
+  /// Converts raw error messages to user-friendly descriptions.
+  String _getConnectionErrorMessage(String rawMessage) {
+    final lowerMessage = rawMessage.toLowerCase();
+
+    // Network timeout errors
+    if (lowerMessage.contains('connection timed out') ||
+        lowerMessage.contains('i/o timeout')) {
+      return 'Connection timed out. Check your network connection and that the '
+          'host is reachable.';
+    }
+
+    // DNS resolution errors
+    if (lowerMessage.contains('no such host') ||
+        lowerMessage.contains('name or service not known') ||
+        lowerMessage.contains('temporary failure in name resolution')) {
+      return 'Could not resolve hostname. Check the host address and your DNS '
+          'settings.';
+    }
+
+    // Connection refused
+    if (lowerMessage.contains('connection refused')) {
+      return 'Connection refused. The SSH service may not be running on the '
+          'target host.';
+    }
+
+    // Network unreachable
+    if (lowerMessage.contains('network is unreachable') ||
+        lowerMessage.contains('no route to host')) {
+      return 'Network unreachable. Check your internet connection.';
+    }
+
+    // Authentication errors
+    if (lowerMessage.contains('authentication failed') ||
+        lowerMessage.contains('permission denied')) {
+      return 'Authentication failed. Verify your key is authorized on the '
+          'remote server.';
+    }
+
+    // Wrong passphrase
+    if (lowerMessage.contains('incorrect passphrase') ||
+        lowerMessage.contains('bad passphrase')) {
+      return 'Incorrect passphrase. Please check your key passphrase.';
+    }
+
+    // Default: show the raw message but truncated if too long
+    if (rawMessage.length > 100) {
+      return '${rawMessage.substring(0, 100)}...';
+    }
+    return rawMessage;
   }
 
   /// Retry the verification with trustHostKey set to true.
