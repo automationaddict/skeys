@@ -75,7 +75,16 @@ When the server is installed, you can:
 - **Stop**: Shut down the SSH server
 - **Restart**: Stop and start the service (useful after config changes)
 
-These operations require appropriate permissions and use systemd to manage the service.
+These operations require appropriate permissions and use systemd to manage the service. You'll be prompted for your password via a system dialog.
+
+### Auto-start Toggle
+
+The **Auto-start** switch controls whether the SSH server starts automatically when your computer boots:
+
+- **On (Starts on boot)**: The SSH server will start automatically at system startup
+- **Off (Manual start only)**: You must manually start the service when needed
+
+Toggle this switch to enable or disable auto-start. This is equivalent to running `systemctl enable ssh` or `systemctl disable ssh`.
 
 ### Information Displayed
 
@@ -84,7 +93,6 @@ When installed, you'll see:
 - **Version**: The installed OpenSSH server version
 - **Binary**: Path to the sshd executable
 - **Service**: The systemd service name (usually `sshd` or `ssh`)
-- **Auto-start**: Whether the service starts on boot
 - **PID**: Process ID when running
 - **Started**: When the service was last started
 - **Config**: Path to `/etc/ssh/sshd_config`
@@ -139,6 +147,20 @@ After modifying `/etc/ssh/sshd_config`:
 1. Return to this page
 2. Click "Restart" to apply changes
 3. Verify the server returns to "Running" status
+
+### Troubleshooting Service Failures
+
+If the SSH server fails to start, SKeys will show an error message with details. Common issues:
+
+- **sshd_config file is missing**: The configuration file was deleted or never created. Reinstall openssh-server: `sudo apt reinstall openssh-server`
+- **Configuration error**: There's a syntax error in sshd_config. Run `sudo sshd -t` to check the config
+- **Port already in use**: Another process is using port 22. Check with `sudo lsof -i :22`
+- **Permission denied**: File permission issues. Check ownership of `/etc/ssh/` files
+
+For detailed logs, run:
+```bash
+journalctl -u ssh.service -n 20
+```
 
 ---
 
