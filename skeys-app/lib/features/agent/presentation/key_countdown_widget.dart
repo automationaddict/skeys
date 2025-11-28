@@ -32,6 +32,7 @@ class KeyCountdownWidget extends StatelessWidget {
   /// Remaining seconds until the key expires. Only meaningful if [hasLifetime] is true.
   final int lifetimeSeconds;
 
+  /// Creates a KeyCountdownWidget with the given lifetime info.
   const KeyCountdownWidget({
     super.key,
     required this.hasLifetime,

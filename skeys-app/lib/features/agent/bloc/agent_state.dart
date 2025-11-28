@@ -20,14 +20,36 @@
 
 part of 'agent_bloc.dart';
 
-enum AgentBlocStatus { initial, loading, success, failure }
+/// Status of the AgentBloc operations.
+enum AgentBlocStatus {
+  /// Initial state before any operation.
+  initial,
 
+  /// An operation is in progress.
+  loading,
+
+  /// The operation completed successfully.
+  success,
+
+  /// The operation failed with an error.
+  failure,
+}
+
+/// State of the SSH agent BLoC.
 final class AgentState extends Equatable {
+  /// The current status of BLoC operations.
   final AgentBlocStatus status;
+
+  /// The current agent status information.
   final AgentStatus? agentStatus;
+
+  /// The list of keys currently loaded in the agent.
   final List<AgentKeyEntry> loadedKeys;
+
+  /// Error message if the last operation failed.
   final String? errorMessage;
 
+  /// Creates an AgentState.
   const AgentState({
     this.status = AgentBlocStatus.initial,
     this.agentStatus,
@@ -35,6 +57,7 @@ final class AgentState extends Equatable {
     this.errorMessage,
   });
 
+  /// Creates a copy of this state with the given fields replaced.
   AgentState copyWith({
     AgentBlocStatus? status,
     AgentStatus? agentStatus,

@@ -27,28 +27,46 @@ import '../../../core/generated/google/protobuf/duration.pb.dart'
 
 /// Combined status and keys from agent watch stream.
 class AgentWatchState {
+  /// The current agent status.
   final AgentStatus status;
+
+  /// The list of keys currently loaded in the agent.
   final List<AgentKeyEntry> keys;
 
+  /// Creates an AgentWatchState with the given status and keys.
   AgentWatchState({required this.status, required this.keys});
 }
 
 /// Abstract repository for SSH agent operations.
 abstract class AgentRepository {
+  /// Gets the current agent status.
   Future<AgentStatus> getStatus();
+
+  /// Lists all keys currently loaded in the agent.
   Future<List<AgentKeyEntry>> listKeys();
+
+  /// Adds a key to the agent.
   Future<void> addKey(
     String keyPath, {
     String? passphrase,
     Duration? lifetime,
     bool confirm = false,
   });
+
+  /// Removes a specific key from the agent by fingerprint.
   Future<void> removeKey(String fingerprint);
+
+  /// Removes all keys from the agent.
   Future<void> removeAllKeys();
+
+  /// Locks the agent with a passphrase.
   Future<void> lock(String passphrase);
+
+  /// Unlocks a locked agent with the passphrase.
   Future<void> unlock(String passphrase);
 
   /// Returns a stream of agent status and key updates.
+  ///
   /// The stream emits whenever status or keys change on the server.
   Stream<AgentWatchState> watchAgent();
 }
@@ -57,6 +75,7 @@ abstract class AgentRepository {
 class AgentRepositoryImpl implements AgentRepository {
   final GrpcClient _client;
 
+  /// Creates an AgentRepositoryImpl with the given gRPC client.
   AgentRepositoryImpl(this._client);
 
   @override

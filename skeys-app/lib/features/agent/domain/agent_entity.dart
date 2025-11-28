@@ -22,11 +22,19 @@ import 'package:equatable/equatable.dart';
 
 /// Agent status information.
 class AgentStatus extends Equatable {
+  /// Whether the SSH agent is currently running.
   final bool isRunning;
+
+  /// The path to the agent's Unix socket.
   final String socketPath;
+
+  /// Whether the agent is currently locked.
   final bool isLocked;
+
+  /// The number of keys currently loaded in the agent.
   final int keyCount;
 
+  /// Creates an AgentStatus with the given parameters.
   const AgentStatus({
     required this.isRunning,
     required this.socketPath,
@@ -40,14 +48,28 @@ class AgentStatus extends Equatable {
 
 /// Key loaded in the SSH agent.
 class AgentKeyEntry extends Equatable {
+  /// The key's fingerprint (SHA256 hash).
   final String fingerprint;
+
+  /// The comment associated with the key.
   final String comment;
+
+  /// The key type (e.g., "ssh-ed25519", "ssh-rsa").
   final String type;
+
+  /// The key size in bits.
   final int bits;
+
+  /// Whether the key has a configured lifetime.
   final bool hasLifetime;
+
+  /// Remaining seconds until the key is removed from the agent.
   final int lifetimeSeconds;
+
+  /// Whether the key requires user confirmation before use.
   final bool requiresConfirmation;
 
+  /// Creates an AgentKeyEntry with the given parameters.
   const AgentKeyEntry({
     required this.fingerprint,
     required this.comment,

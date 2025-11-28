@@ -27,7 +27,11 @@ import '../bloc/agent_bloc.dart';
 import 'key_countdown_widget.dart';
 
 /// Page for SSH agent management.
+///
+/// Displays the agent status, loaded keys, and provides actions
+/// for managing keys (add, remove, lock, unlock).
 class AgentPage extends StatefulWidget {
+  /// Creates an AgentPage widget.
   const AgentPage({super.key});
 
   @override
