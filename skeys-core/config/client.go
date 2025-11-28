@@ -738,27 +738,57 @@ type GlobalDirective struct {
 }
 
 // GetGlobalDirectives returns all global directives (top-level options not inside Host/Match blocks)
+// Note: The sshconf library incorrectly groups non-indented lines after Host/Match blocks as children.
+// We read the raw file to correctly identify global directives based on indentation.
 func (c *ClientConfig) GetGlobalDirectives() ([]*GlobalDirective, error) {
 	c.log.Debug("getting global directives")
 
+	// Read raw file content to detect indentation correctly
+	content, err := os.ReadFile(c.path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read config file: %w", err)
+	}
+
 	var directives []*GlobalDirective
+	lines := strings.Split(string(content), "\n")
 
-	for _, line := range c.config.Lines() {
-		key := strings.ToLower(line.Key)
-
-		// Skip Host/Match blocks (they have their own Children)
-		if key == "host" || key == "match" {
+	for _, line := range lines {
+		// Skip empty lines
+		if strings.TrimSpace(line) == "" {
 			continue
 		}
 
-		// Skip empty lines and comments
-		if line.Key == "" {
+		// Skip comments
+		if strings.HasPrefix(strings.TrimSpace(line), "#") {
+			continue
+		}
+
+		// Skip indented lines (they belong to Host/Match blocks)
+		if strings.HasPrefix(line, " ") || strings.HasPrefix(line, "\t") {
+			continue
+		}
+
+		// Parse the line to get key and value
+		parts := strings.SplitN(strings.TrimSpace(line), " ", 2)
+		if len(parts) == 0 {
+			continue
+		}
+
+		key := parts[0]
+		value := ""
+		if len(parts) > 1 {
+			value = strings.TrimSpace(parts[1])
+		}
+
+		// Skip Host/Match blocks
+		keyLower := strings.ToLower(key)
+		if keyLower == "host" || keyLower == "match" {
 			continue
 		}
 
 		directives = append(directives, &GlobalDirective{
-			Key:   line.Key,
-			Value: line.Value,
+			Key:   key,
+			Value: value,
 		})
 	}
 

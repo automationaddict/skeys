@@ -70,6 +70,9 @@ class SshdDirectiveDefinition {
   /// Additional hint text for users.
   final String? hint;
 
+  /// Detailed help text explaining the directive (10-20 lines).
+  final String? helpText;
+
   /// Whether this is an advanced directive (hidden by default).
   final bool isAdvanced;
 
@@ -81,6 +84,7 @@ class SshdDirectiveDefinition {
     required this.valueType,
     this.allowedValues,
     this.hint,
+    this.helpText,
     this.isAdvanced = false,
   });
 }
@@ -132,6 +136,14 @@ const sshdDirectiveCategories = <SshdDirectiveCategory>[
         defaultValue: '22',
         valueType: SshdValueType.port,
         hint: 'Can specify multiple ports',
+        helpText:
+            '''Specifies the port number that sshd listens for connections on. The default is 22.
+
+Multiple port directives are permitted. Changing this from the default port 22 can reduce automated scanning attacks, but security through obscurity is not a substitute for proper security measures.
+
+Common alternative ports include 2222, 8022, or high ports above 1024. If using a non-standard port, clients must specify it with ssh -p <port> or in their SSH config.
+
+Note: Ports below 1024 require root privileges to bind.''',
       ),
       SshdDirectiveDefinition(
         key: 'ListenAddress',
@@ -139,6 +151,18 @@ const sshdDirectiveCategories = <SshdDirectiveCategory>[
         defaultValue: '0.0.0.0',
         valueType: SshdValueType.address,
         hint: '0.0.0.0 listens on all interfaces',
+        helpText: '''Specifies the local addresses sshd should listen on.
+
+The default value 0.0.0.0 means sshd will listen on all available IPv4 interfaces. Use :: for all IPv6 interfaces.
+
+You can restrict SSH access to specific network interfaces by specifying their IP addresses. This is useful for:
+- Limiting SSH to internal networks only
+- Binding to VPN interfaces
+- Multi-homed servers with public/private networks
+
+Multiple ListenAddress directives are permitted. If port is not specified, sshd will listen on the address for all Port options.
+
+Example: ListenAddress 192.168.1.1 (internal network only)''',
       ),
       SshdDirectiveDefinition(
         key: 'AddressFamily',
@@ -146,12 +170,30 @@ const sshdDirectiveCategories = <SshdDirectiveCategory>[
         defaultValue: 'any',
         valueType: SshdValueType.selection,
         allowedValues: ['any', 'inet', 'inet6'],
+        helpText: '''Specifies which address family should be used by sshd.
+
+Valid values:
+- any: Listen on both IPv4 and IPv6 (default)
+- inet: IPv4 only
+- inet6: IPv6 only
+
+Use "inet" if your network doesn't support IPv6, or "inet6" in IPv6-only environments. The default "any" works for most configurations.
+
+This setting is applied before ListenAddress, so ensure compatibility between these options.''',
       ),
       SshdDirectiveDefinition(
         key: 'TCPKeepAlive',
         description: 'Send TCP keepalive messages',
         defaultValue: 'yes',
         valueType: SshdValueType.boolean,
+        helpText:
+            '''Specifies whether the system should send TCP keepalive messages to the other side.
+
+When enabled (yes), connections will be terminated if the network goes down or the client host crashes. This properly cleans up dead connections.
+
+Disabling TCP keepalives means connections won't die if the route is temporarily down, but it also means ghost connections can accumulate.
+
+Note: TCP keepalives are spoofable. For cryptographically secure connection liveness checking, use ClientAliveInterval instead or in addition.''',
       ),
       SshdDirectiveDefinition(
         key: 'ClientAliveInterval',
@@ -159,12 +201,31 @@ const sshdDirectiveCategories = <SshdDirectiveCategory>[
         defaultValue: '0',
         valueType: SshdValueType.integer,
         hint: '0 disables, recommended 300 for 5 minutes',
+        helpText:
+            '''Sets a timeout interval in seconds after which if no data has been received from the client, sshd will send a message through the encrypted channel to request a response.
+
+The default is 0, meaning these messages won't be sent. Unlike TCP keepalive, these messages are sent through the encrypted channel and cannot be spoofed.
+
+Common values:
+- 0: Disabled (default)
+- 300: 5 minutes (good for most scenarios)
+- 60: 1 minute (aggressive, detects dead clients faster)
+
+Combined with ClientAliveCountMax, this determines when idle connections are closed. For example, interval=300 with count=3 means disconnect after 15 minutes of no response.''',
       ),
       SshdDirectiveDefinition(
         key: 'ClientAliveCountMax',
         description: 'Max client alive messages before disconnect',
         defaultValue: '3',
         valueType: SshdValueType.integer,
+        helpText:
+            '''Sets the number of client alive messages which may be sent without sshd receiving any response from the client.
+
+If this threshold is reached while client alive messages are being sent, sshd will disconnect the client, terminating the session. The default value is 3.
+
+With ClientAliveInterval=300 and ClientAliveCountMax=3, unresponsive clients will be disconnected after approximately 15 minutes of inactivity.
+
+Setting this to 0 disables the client alive check entirely (not recommended as it can lead to orphaned connections consuming resources).''',
       ),
       SshdDirectiveDefinition(
         key: 'MaxStartups',
@@ -218,24 +279,67 @@ const sshdDirectiveCategories = <SshdDirectiveCategory>[
           'prohibit-password',
           'forced-commands-only',
         ],
+        helpText: '''Specifies whether root can log in using SSH.
+
+Valid values:
+- yes: Root login is permitted
+- no: Root login is completely disabled
+- prohibit-password: Root login allowed only with public key authentication (recommended)
+- forced-commands-only: Root login only with public key when a command is specified in authorized_keys
+
+Security recommendation: Use "prohibit-password" or "no". Direct root login with passwords is vulnerable to brute-force attacks.
+
+Best practice is to log in as a regular user and use sudo for administrative tasks. This provides better audit trails and limits exposure.''',
       ),
       SshdDirectiveDefinition(
         key: 'PubkeyAuthentication',
         description: 'Allow public key authentication',
         defaultValue: 'yes',
         valueType: SshdValueType.boolean,
+        helpText: '''Specifies whether public key authentication is allowed.
+
+Public key authentication is more secure than password authentication because:
+- Keys are cryptographically strong and not vulnerable to brute-force
+- Private keys never leave the client machine
+- Can be protected with passphrases for additional security
+- Supports hardware security keys (FIDO2/U2F)
+
+When enabled, users authenticate by proving they possess the private key corresponding to a public key in their ~/.ssh/authorized_keys file.
+
+Strongly recommended to keep this enabled (yes) and is the preferred authentication method for SSH.''',
       ),
       SshdDirectiveDefinition(
         key: 'PasswordAuthentication',
         description: 'Allow password authentication',
         defaultValue: 'yes',
         valueType: SshdValueType.boolean,
+        helpText: '''Specifies whether password authentication is allowed.
+
+Security considerations:
+- Passwords are vulnerable to brute-force attacks
+- Can be intercepted if typed on compromised machines
+- Often reused across services, increasing risk
+
+For maximum security, disable password authentication (set to "no") and use only public key authentication. Before disabling:
+1. Ensure you have working SSH key authentication
+2. Test key login in a separate session before disconnecting
+3. Have console access as backup
+
+Note: If UsePAM is enabled, this setting might be overridden by PAM configuration.''',
       ),
       SshdDirectiveDefinition(
         key: 'PermitEmptyPasswords',
         description: 'Allow empty passwords',
         defaultValue: 'no',
         valueType: SshdValueType.boolean,
+        helpText:
+            '''Specifies whether to allow login to accounts with empty password strings when password authentication is allowed.
+
+This should ALWAYS be set to "no" (the default). Allowing empty passwords is an extreme security risk, as anyone can access accounts without any credentials.
+
+The only scenario where this might be considered is in isolated test environments, but even then it's not recommended.
+
+This setting has no effect if PasswordAuthentication is disabled.''',
       ),
       SshdDirectiveDefinition(
         key: 'ChallengeResponseAuthentication',
@@ -262,6 +366,16 @@ const sshdDirectiveCategories = <SshdDirectiveCategory>[
         description: 'Max authentication attempts per connection',
         defaultValue: '6',
         valueType: SshdValueType.integer,
+        helpText:
+            '''Specifies the maximum number of authentication attempts permitted per connection.
+
+Once the number of failures reaches half this value, additional failures are logged. The default is 6.
+
+Lower values (3-4) can help mitigate brute-force attacks by disconnecting attackers faster. However, setting this too low may inconvenience legitimate users who mistype passwords.
+
+This works in conjunction with tools like fail2ban, which can ban IPs after repeated failed attempts across multiple connections.
+
+For servers exposed to the internet, consider a value of 3-4 combined with rate limiting (MaxStartups) and fail2ban.''',
       ),
       SshdDirectiveDefinition(
         key: 'LoginGraceTime',
@@ -269,6 +383,14 @@ const sshdDirectiveCategories = <SshdDirectiveCategory>[
         defaultValue: '120',
         valueType: SshdValueType.integer,
         hint: '0 disables timeout',
+        helpText:
+            '''Specifies the time in seconds the server waits for a user to successfully log in before disconnecting.
+
+If the user does not authenticate within this time, the connection is dropped. The default is 120 seconds (2 minutes).
+
+Setting this to 0 disables the limit (not recommended as it allows connections to hang indefinitely).
+
+A shorter value (30-60 seconds) can help free up resources from abandoned connections and slow down automated attacks, but may frustrate users with slow network connections or those who need time to enter passwords.''',
       ),
       SshdDirectiveDefinition(
         key: 'StrictModes',
@@ -444,6 +566,19 @@ const sshdDirectiveCategories = <SshdDirectiveCategory>[
         defaultValue: '',
         valueType: SshdValueType.list,
         hint: 'Space-separated, supports user@host patterns',
+        helpText:
+            '''Specifies a whitelist of user names that are allowed to log in.
+
+If specified, login is allowed only for users whose names match one of the patterns. Patterns support wildcards (* and ?) and can include HOST patterns: USER@HOST.
+
+Examples:
+- "john alice" - Only john and alice can login
+- "admin@192.168.1.*" - admin only from 192.168.1.x network
+- "*@10.0.0.*" - Any user from 10.0.0.x network
+
+This directive is processed after DenyUsers. If both AllowUsers and AllowGroups are specified, the user must match at least one pattern from both.
+
+Leave empty (default) to allow all users not in DenyUsers.''',
       ),
       SshdDirectiveDefinition(
         key: 'DenyUsers',
@@ -554,6 +689,17 @@ const sshdDirectiveCategories = <SshdDirectiveCategory>[
         defaultValue: 'yes',
         valueType: SshdValueType.selection,
         allowedValues: ['yes', 'no', 'local', 'remote', 'all'],
+        helpText: '''Specifies whether TCP forwarding is permitted.
+
+Values:
+- yes/all: Both local and remote forwarding allowed
+- no: No TCP forwarding allowed
+- local: Only local (client to server) forwarding allowed
+- remote: Only remote (server to client) forwarding allowed
+
+TCP forwarding allows tunneling arbitrary TCP connections through SSH. While useful for secure access to internal services, it can be a security risk if users can forward to sensitive internal resources.
+
+Consider "no" for restricted shell accounts or jump hosts where you want to limit what users can access. Note: Disabling this does not improve security unless users are also denied shell access.''',
       ),
       SshdDirectiveDefinition(
         key: 'AllowStreamLocalForwarding',
@@ -567,6 +713,18 @@ const sshdDirectiveCategories = <SshdDirectiveCategory>[
         description: 'Allow SSH agent forwarding',
         defaultValue: 'yes',
         valueType: SshdValueType.boolean,
+        helpText: '''Specifies whether SSH agent forwarding is permitted.
+
+Agent forwarding allows you to use your local SSH keys on a remote server without copying them there. When enabled, the remote server can request your local ssh-agent to authenticate on your behalf.
+
+Security warning: If a remote server is compromised, an attacker with root access could hijack your forwarded agent socket to authenticate as you to other servers.
+
+Best practices:
+- Only forward to trusted servers
+- Use ssh -J (ProxyJump) instead when possible
+- Consider "no" for shared or less-trusted servers
+
+Alternative: Use ProxyJump (-J) to bounce through servers without exposing your agent.''',
       ),
       SshdDirectiveDefinition(
         key: 'GatewayPorts',
@@ -621,6 +779,17 @@ const sshdDirectiveCategories = <SshdDirectiveCategory>[
         description: 'Allow X11 forwarding',
         defaultValue: 'no',
         valueType: SshdValueType.boolean,
+        helpText:
+            '''Specifies whether X11 forwarding is permitted, allowing remote GUI applications to display on your local screen.
+
+When enabled, users can run graphical applications on the server and have them display locally by using "ssh -X" or "ssh -Y".
+
+Security note: X11 forwarding can be a security risk because it allows the remote server to interact with your local X server. A compromised server could potentially:
+- Capture keystrokes from other applications
+- Take screenshots
+- Inject input into other windows
+
+Use "ssh -X" (untrusted) rather than "ssh -Y" (trusted) when possible, and only enable X11Forwarding if you need to run GUI applications remotely.''',
       ),
       SshdDirectiveDefinition(
         key: 'X11DisplayOffset',

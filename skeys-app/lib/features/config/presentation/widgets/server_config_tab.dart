@@ -41,6 +41,62 @@ class ServerConfigTab extends StatefulWidget {
 class _ServerConfigTabState extends State<ServerConfigTab> {
   final Set<String> _expandedSections = {'authentication', 'network'};
   bool _showAdvanced = false;
+  String _searchQuery = '';
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  /// Filter categories and directives based on search query.
+  List<SshdDirectiveCategory> _getFilteredCategories() {
+    if (_searchQuery.isEmpty) {
+      return sshdDirectiveCategories;
+    }
+
+    final query = _searchQuery.toLowerCase();
+    final filtered = <SshdDirectiveCategory>[];
+
+    for (final category in sshdDirectiveCategories) {
+      // Filter directives within the category
+      final matchingDirectives = category.directives.where((directive) {
+        return directive.key.toLowerCase().contains(query) ||
+            directive.description.toLowerCase().contains(query) ||
+            (directive.hint?.toLowerCase().contains(query) ?? false) ||
+            (directive.helpText?.toLowerCase().contains(query) ?? false);
+      }).toList();
+
+      // Include category if it has matching directives or its name matches
+      if (matchingDirectives.isNotEmpty ||
+          category.name.toLowerCase().contains(query) ||
+          category.description.toLowerCase().contains(query)) {
+        filtered.add(
+          SshdDirectiveCategory(
+            id: category.id,
+            name: category.name,
+            description: category.description,
+            icon: category.icon,
+            directives: matchingDirectives.isNotEmpty
+                ? matchingDirectives
+                : category.directives,
+          ),
+        );
+      }
+    }
+
+    return filtered;
+  }
+
+  /// Get the set of expanded sections, auto-expanding when searching.
+  Set<String> get _effectiveExpandedSections {
+    // When searching, auto-expand all filtered categories
+    if (_searchQuery.isNotEmpty) {
+      return _getFilteredCategories().map((c) => c.id).toSet();
+    }
+    return _expandedSections;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,27 +104,68 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
       return _buildEmptyState(context);
     }
 
+    final filteredCategories = _getFilteredCategories();
+
     return Column(
       children: [
         // Fixed header with info and controls
         _buildHeader(context),
         // Scrollable category sections
         Expanded(
-          child: CustomScrollView(
-            slivers: [
-              // Expandable category sections
-              SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final category = sshdDirectiveCategories[index];
-                  return _buildCategorySection(context, category);
-                }, childCount: sshdDirectiveCategories.length),
-              ),
-              // Bottom padding
-              const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
-            ],
-          ),
+          child: filteredCategories.isEmpty
+              ? _buildNoResultsState(context)
+              : CustomScrollView(
+                  slivers: [
+                    // Expandable category sections
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final category = filteredCategories[index];
+                        return _buildCategorySection(context, category);
+                      }, childCount: filteredCategories.length),
+                    ),
+                    // Bottom padding
+                    const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
+                  ],
+                ),
         ),
       ],
+    );
+  }
+
+  Widget _buildNoResultsState(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.search_off, size: 64, color: colorScheme.outline),
+          const SizedBox(height: 16),
+          Text(
+            'No directives found',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Try a different search term',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.outline,
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextButton.icon(
+            onPressed: () {
+              _searchController.clear();
+              setState(() => _searchQuery = '');
+            },
+            icon: const Icon(Icons.clear),
+            label: const Text('Clear search'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -225,6 +322,33 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
                 ],
               ),
             ),
+            const SizedBox(height: 12),
+            // Search field
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search directives...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+                isDense: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+              ),
+              onChanged: (value) => setState(() => _searchQuery = value),
+            ),
           ],
         ),
       ),
@@ -266,7 +390,7 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isExpanded = _expandedSections.contains(category.id);
+    final isExpanded = _effectiveExpandedSections.contains(category.id);
 
     // Filter directives based on advanced toggle
     final visibleDirectives = _showAdvanced
@@ -558,6 +682,14 @@ class _ServerDirectiveListTile extends StatelessWidget {
                           ),
                         ),
                       ],
+                      // Help icon with tooltip
+                      if (directive.helpText != null) ...[
+                        const SizedBox(width: 8),
+                        _DirectiveHelpTooltip(
+                          directiveKey: directive.key,
+                          helpText: directive.helpText!,
+                        ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 2),
@@ -614,5 +746,69 @@ class _ServerDirectiveListTile extends StatelessWidget {
       return '${value.substring(0, 17)}...';
     }
     return value;
+  }
+}
+
+/// Help tooltip widget for directive documentation.
+class _DirectiveHelpTooltip extends StatelessWidget {
+  final String directiveKey;
+  final String helpText;
+
+  const _DirectiveHelpTooltip({
+    required this.directiveKey,
+    required this.helpText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Tooltip(
+      richMessage: WidgetSpan(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 400),
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                directiveKey,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onInverseSurface,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                helpText,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onInverseSurface,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      decoration: BoxDecoration(
+        color: colorScheme.inverseSurface,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      waitDuration: const Duration(milliseconds: 300),
+      showDuration: const Duration(seconds: 15),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.help,
+        child: Icon(Icons.help_outline, size: 16, color: colorScheme.outline),
+      ),
+    );
   }
 }

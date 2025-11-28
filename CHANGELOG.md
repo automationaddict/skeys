@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Add help tooltips and search to SSH config UI
+
 ### Documentation
 
 - Add component READMEs and improve network error feedback

@@ -46,6 +46,7 @@ class _ConfigPageState extends State<ConfigPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _helpContextService = getIt<HelpContextService>();
+  int _currentTabIndex = 0;
 
   static const _tabContexts = ['client', 'server'];
 
@@ -63,6 +64,9 @@ class _ConfigPageState extends State<ConfigPage>
   void _onTabChanged() {
     if (!_tabController.indexIsChanging) {
       _helpContextService.setContextSuffix(_tabContexts[_tabController.index]);
+      setState(() {
+        _currentTabIndex = _tabController.index;
+      });
     }
   }
 
@@ -98,11 +102,14 @@ class _ConfigPageState extends State<ConfigPage>
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddEntryDialog(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Add Host'),
-      ),
+      // Only show FAB on Client Config tab (index 0)
+      floatingActionButton: _currentTabIndex == 0
+          ? FloatingActionButton.extended(
+              onPressed: () => _showAddEntryDialog(context),
+              icon: const Icon(Icons.add),
+              label: const Text('Add Host'),
+            )
+          : null,
     );
   }
 
