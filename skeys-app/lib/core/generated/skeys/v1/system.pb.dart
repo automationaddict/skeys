@@ -890,6 +890,122 @@ class ReloadSSHServiceRequest extends $pb.GeneratedMessage {
   $1.Target ensureTarget() => $_ensure(0);
 }
 
+class EnableSSHServiceRequest extends $pb.GeneratedMessage {
+  factory EnableSSHServiceRequest({
+    $1.Target? target,
+  }) {
+    final result = create();
+    if (target != null) result.target = target;
+    return result;
+  }
+
+  EnableSSHServiceRequest._();
+
+  factory EnableSSHServiceRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory EnableSSHServiceRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'EnableSSHServiceRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'),
+      createEmptyInstance: create)
+    ..aOM<$1.Target>(1, _omitFieldNames ? '' : 'target',
+        subBuilder: $1.Target.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  EnableSSHServiceRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  EnableSSHServiceRequest copyWith(
+          void Function(EnableSSHServiceRequest) updates) =>
+      super.copyWith((message) => updates(message as EnableSSHServiceRequest))
+          as EnableSSHServiceRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static EnableSSHServiceRequest create() => EnableSSHServiceRequest._();
+  @$core.override
+  EnableSSHServiceRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static EnableSSHServiceRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<EnableSSHServiceRequest>(create);
+  static EnableSSHServiceRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $1.Target get target => $_getN(0);
+  @$pb.TagNumber(1)
+  set target($1.Target value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTarget() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTarget() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $1.Target ensureTarget() => $_ensure(0);
+}
+
+class DisableSSHServiceRequest extends $pb.GeneratedMessage {
+  factory DisableSSHServiceRequest({
+    $1.Target? target,
+  }) {
+    final result = create();
+    if (target != null) result.target = target;
+    return result;
+  }
+
+  DisableSSHServiceRequest._();
+
+  factory DisableSSHServiceRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory DisableSSHServiceRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'DisableSSHServiceRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'),
+      createEmptyInstance: create)
+    ..aOM<$1.Target>(1, _omitFieldNames ? '' : 'target',
+        subBuilder: $1.Target.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DisableSSHServiceRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DisableSSHServiceRequest copyWith(
+          void Function(DisableSSHServiceRequest) updates) =>
+      super.copyWith((message) => updates(message as DisableSSHServiceRequest))
+          as DisableSSHServiceRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static DisableSSHServiceRequest create() => DisableSSHServiceRequest._();
+  @$core.override
+  DisableSSHServiceRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static DisableSSHServiceRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DisableSSHServiceRequest>(create);
+  static DisableSSHServiceRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $1.Target get target => $_getN(0);
+  @$pb.TagNumber(1)
+  set target($1.Target value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTarget() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTarget() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $1.Target ensureTarget() => $_ensure(0);
+}
+
 class SSHServiceControlResponse extends $pb.GeneratedMessage {
   factory SSHServiceControlResponse({
     $core.bool? success,

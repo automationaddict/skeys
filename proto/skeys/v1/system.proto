@@ -18,6 +18,8 @@ service SystemService {
   rpc StopSSHService(StopSSHServiceRequest) returns (SSHServiceControlResponse);
   rpc RestartSSHServiceWithStatus(RestartSSHServiceWithStatusRequest) returns (SSHServiceControlResponse);
   rpc ReloadSSHService(ReloadSSHServiceRequest) returns (SSHServiceControlResponse);
+  rpc EnableSSHService(EnableSSHServiceRequest) returns (SSHServiceControlResponse);
+  rpc DisableSSHService(DisableSSHServiceRequest) returns (SSHServiceControlResponse);
 
   // Get installation instructions for the detected distribution
   rpc GetInstallInstructions(GetInstallInstructionsRequest) returns (GetInstallInstructionsResponse);
@@ -104,6 +106,14 @@ message RestartSSHServiceWithStatusRequest {
 }
 
 message ReloadSSHServiceRequest {
+  Target target = 1;
+}
+
+message EnableSSHServiceRequest {
+  Target target = 1;
+}
+
+message DisableSSHServiceRequest {
   Target target = 1;
 }
 

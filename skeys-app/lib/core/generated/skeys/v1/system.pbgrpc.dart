@@ -79,6 +79,20 @@ class SystemServiceClient extends $grpc.Client {
     return $createUnaryCall(_$reloadSSHService, request, options: options);
   }
 
+  $grpc.ResponseFuture<$0.SSHServiceControlResponse> enableSSHService(
+    $0.EnableSSHServiceRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createUnaryCall(_$enableSSHService, request, options: options);
+  }
+
+  $grpc.ResponseFuture<$0.SSHServiceControlResponse> disableSSHService(
+    $0.DisableSSHServiceRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createUnaryCall(_$disableSSHService, request, options: options);
+  }
+
   /// Get installation instructions for the detected distribution
   $grpc.ResponseFuture<$0.GetInstallInstructionsResponse>
       getInstallInstructions(
@@ -120,6 +134,16 @@ class SystemServiceClient extends $grpc.Client {
           $0.ReloadSSHServiceRequest, $0.SSHServiceControlResponse>(
       '/skeys.v1.SystemService/ReloadSSHService',
       ($0.ReloadSSHServiceRequest value) => value.writeToBuffer(),
+      $0.SSHServiceControlResponse.fromBuffer);
+  static final _$enableSSHService = $grpc.ClientMethod<
+          $0.EnableSSHServiceRequest, $0.SSHServiceControlResponse>(
+      '/skeys.v1.SystemService/EnableSSHService',
+      ($0.EnableSSHServiceRequest value) => value.writeToBuffer(),
+      $0.SSHServiceControlResponse.fromBuffer);
+  static final _$disableSSHService = $grpc.ClientMethod<
+          $0.DisableSSHServiceRequest, $0.SSHServiceControlResponse>(
+      '/skeys.v1.SystemService/DisableSSHService',
+      ($0.DisableSSHServiceRequest value) => value.writeToBuffer(),
       $0.SSHServiceControlResponse.fromBuffer);
   static final _$getInstallInstructions = $grpc.ClientMethod<
           $0.GetInstallInstructionsRequest, $0.GetInstallInstructionsResponse>(
@@ -187,6 +211,24 @@ abstract class SystemServiceBase extends $grpc.Service {
         ($core.List<$core.int> value) =>
             $0.ReloadSSHServiceRequest.fromBuffer(value),
         ($0.SSHServiceControlResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.EnableSSHServiceRequest,
+            $0.SSHServiceControlResponse>(
+        'EnableSSHService',
+        enableSSHService_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) =>
+            $0.EnableSSHServiceRequest.fromBuffer(value),
+        ($0.SSHServiceControlResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.DisableSSHServiceRequest,
+            $0.SSHServiceControlResponse>(
+        'DisableSSHService',
+        disableSSHService_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) =>
+            $0.DisableSSHServiceRequest.fromBuffer(value),
+        ($0.SSHServiceControlResponse value) => value.writeToBuffer()));
     $addMethod($grpc.ServiceMethod<$0.GetInstallInstructionsRequest,
             $0.GetInstallInstructionsResponse>(
         'GetInstallInstructions',
@@ -251,6 +293,24 @@ abstract class SystemServiceBase extends $grpc.Service {
 
   $async.Future<$0.SSHServiceControlResponse> reloadSSHService(
       $grpc.ServiceCall call, $0.ReloadSSHServiceRequest request);
+
+  $async.Future<$0.SSHServiceControlResponse> enableSSHService_Pre(
+      $grpc.ServiceCall $call,
+      $async.Future<$0.EnableSSHServiceRequest> $request) async {
+    return enableSSHService($call, await $request);
+  }
+
+  $async.Future<$0.SSHServiceControlResponse> enableSSHService(
+      $grpc.ServiceCall call, $0.EnableSSHServiceRequest request);
+
+  $async.Future<$0.SSHServiceControlResponse> disableSSHService_Pre(
+      $grpc.ServiceCall $call,
+      $async.Future<$0.DisableSSHServiceRequest> $request) async {
+    return disableSSHService($call, await $request);
+  }
+
+  $async.Future<$0.SSHServiceControlResponse> disableSSHService(
+      $grpc.ServiceCall call, $0.DisableSSHServiceRequest request);
 
   $async.Future<$0.GetInstallInstructionsResponse> getInstallInstructions_Pre(
       $grpc.ServiceCall $call,

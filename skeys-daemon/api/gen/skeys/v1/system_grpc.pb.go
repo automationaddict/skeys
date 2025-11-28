@@ -25,6 +25,8 @@ const (
 	SystemService_StopSSHService_FullMethodName              = "/skeys.v1.SystemService/StopSSHService"
 	SystemService_RestartSSHServiceWithStatus_FullMethodName = "/skeys.v1.SystemService/RestartSSHServiceWithStatus"
 	SystemService_ReloadSSHService_FullMethodName            = "/skeys.v1.SystemService/ReloadSSHService"
+	SystemService_EnableSSHService_FullMethodName            = "/skeys.v1.SystemService/EnableSSHService"
+	SystemService_DisableSSHService_FullMethodName           = "/skeys.v1.SystemService/DisableSSHService"
 	SystemService_GetInstallInstructions_FullMethodName      = "/skeys.v1.SystemService/GetInstallInstructions"
 )
 
@@ -42,6 +44,8 @@ type SystemServiceClient interface {
 	StopSSHService(ctx context.Context, in *StopSSHServiceRequest, opts ...grpc.CallOption) (*SSHServiceControlResponse, error)
 	RestartSSHServiceWithStatus(ctx context.Context, in *RestartSSHServiceWithStatusRequest, opts ...grpc.CallOption) (*SSHServiceControlResponse, error)
 	ReloadSSHService(ctx context.Context, in *ReloadSSHServiceRequest, opts ...grpc.CallOption) (*SSHServiceControlResponse, error)
+	EnableSSHService(ctx context.Context, in *EnableSSHServiceRequest, opts ...grpc.CallOption) (*SSHServiceControlResponse, error)
+	DisableSSHService(ctx context.Context, in *DisableSSHServiceRequest, opts ...grpc.CallOption) (*SSHServiceControlResponse, error)
 	// Get installation instructions for the detected distribution
 	GetInstallInstructions(ctx context.Context, in *GetInstallInstructionsRequest, opts ...grpc.CallOption) (*GetInstallInstructionsResponse, error)
 }
@@ -114,6 +118,26 @@ func (c *systemServiceClient) ReloadSSHService(ctx context.Context, in *ReloadSS
 	return out, nil
 }
 
+func (c *systemServiceClient) EnableSSHService(ctx context.Context, in *EnableSSHServiceRequest, opts ...grpc.CallOption) (*SSHServiceControlResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SSHServiceControlResponse)
+	err := c.cc.Invoke(ctx, SystemService_EnableSSHService_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemServiceClient) DisableSSHService(ctx context.Context, in *DisableSSHServiceRequest, opts ...grpc.CallOption) (*SSHServiceControlResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SSHServiceControlResponse)
+	err := c.cc.Invoke(ctx, SystemService_DisableSSHService_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *systemServiceClient) GetInstallInstructions(ctx context.Context, in *GetInstallInstructionsRequest, opts ...grpc.CallOption) (*GetInstallInstructionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetInstallInstructionsResponse)
@@ -138,6 +162,8 @@ type SystemServiceServer interface {
 	StopSSHService(context.Context, *StopSSHServiceRequest) (*SSHServiceControlResponse, error)
 	RestartSSHServiceWithStatus(context.Context, *RestartSSHServiceWithStatusRequest) (*SSHServiceControlResponse, error)
 	ReloadSSHService(context.Context, *ReloadSSHServiceRequest) (*SSHServiceControlResponse, error)
+	EnableSSHService(context.Context, *EnableSSHServiceRequest) (*SSHServiceControlResponse, error)
+	DisableSSHService(context.Context, *DisableSSHServiceRequest) (*SSHServiceControlResponse, error)
 	// Get installation instructions for the detected distribution
 	GetInstallInstructions(context.Context, *GetInstallInstructionsRequest) (*GetInstallInstructionsResponse, error)
 	mustEmbedUnimplementedSystemServiceServer()
@@ -167,6 +193,12 @@ func (UnimplementedSystemServiceServer) RestartSSHServiceWithStatus(context.Cont
 }
 func (UnimplementedSystemServiceServer) ReloadSSHService(context.Context, *ReloadSSHServiceRequest) (*SSHServiceControlResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReloadSSHService not implemented")
+}
+func (UnimplementedSystemServiceServer) EnableSSHService(context.Context, *EnableSSHServiceRequest) (*SSHServiceControlResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnableSSHService not implemented")
+}
+func (UnimplementedSystemServiceServer) DisableSSHService(context.Context, *DisableSSHServiceRequest) (*SSHServiceControlResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DisableSSHService not implemented")
 }
 func (UnimplementedSystemServiceServer) GetInstallInstructions(context.Context, *GetInstallInstructionsRequest) (*GetInstallInstructionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetInstallInstructions not implemented")
@@ -300,6 +332,42 @@ func _SystemService_ReloadSSHService_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SystemService_EnableSSHService_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnableSSHServiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServiceServer).EnableSSHService(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SystemService_EnableSSHService_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServiceServer).EnableSSHService(ctx, req.(*EnableSSHServiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SystemService_DisableSSHService_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DisableSSHServiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServiceServer).DisableSSHService(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SystemService_DisableSSHService_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServiceServer).DisableSSHService(ctx, req.(*DisableSSHServiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SystemService_GetInstallInstructions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetInstallInstructionsRequest)
 	if err := dec(in); err != nil {
@@ -348,6 +416,14 @@ var SystemService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReloadSSHService",
 			Handler:    _SystemService_ReloadSSHService_Handler,
+		},
+		{
+			MethodName: "EnableSSHService",
+			Handler:    _SystemService_EnableSSHService_Handler,
+		},
+		{
+			MethodName: "DisableSSHService",
+			Handler:    _SystemService_DisableSSHService_Handler,
 		},
 		{
 			MethodName: "GetInstallInstructions",

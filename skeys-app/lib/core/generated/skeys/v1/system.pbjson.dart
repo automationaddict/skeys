@@ -330,6 +330,48 @@ final $typed_data.Uint8List reloadSSHServiceRequestDescriptor =
         'ChdSZWxvYWRTU0hTZXJ2aWNlUmVxdWVzdBIoCgZ0YXJnZXQYASABKAsyEC5za2V5cy52MS5UYX'
         'JnZXRSBnRhcmdldA==');
 
+@$core.Deprecated('Use enableSSHServiceRequestDescriptor instead')
+const EnableSSHServiceRequest$json = {
+  '1': 'EnableSSHServiceRequest',
+  '2': [
+    {
+      '1': 'target',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.Target',
+      '10': 'target'
+    },
+  ],
+};
+
+/// Descriptor for `EnableSSHServiceRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List enableSSHServiceRequestDescriptor =
+    $convert.base64Decode(
+        'ChdFbmFibGVTU0hTZXJ2aWNlUmVxdWVzdBIoCgZ0YXJnZXQYASABKAsyEC5za2V5cy52MS5UYX'
+        'JnZXRSBnRhcmdldA==');
+
+@$core.Deprecated('Use disableSSHServiceRequestDescriptor instead')
+const DisableSSHServiceRequest$json = {
+  '1': 'DisableSSHServiceRequest',
+  '2': [
+    {
+      '1': 'target',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.Target',
+      '10': 'target'
+    },
+  ],
+};
+
+/// Descriptor for `DisableSSHServiceRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List disableSSHServiceRequestDescriptor =
+    $convert.base64Decode(
+        'ChhEaXNhYmxlU1NIU2VydmljZVJlcXVlc3QSKAoGdGFyZ2V0GAEgASgLMhAuc2tleXMudjEuVG'
+        'FyZ2V0UgZ0YXJnZXQ=');
+
 @$core.Deprecated('Use sSHServiceControlResponseDescriptor instead')
 const SSHServiceControlResponse$json = {
   '1': 'SSHServiceControlResponse',

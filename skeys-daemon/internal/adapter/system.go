@@ -119,6 +119,40 @@ func (a *SystemServiceAdapter) ReloadSSHService(ctx context.Context, req *pb.Rel
 	}, nil
 }
 
+// EnableSSHService enables the SSH server service to start on boot.
+func (a *SystemServiceAdapter) EnableSSHService(ctx context.Context, req *pb.EnableSSHServiceRequest) (*pb.SSHServiceControlResponse, error) {
+	serviceStatus, err := a.systemMgr.EnableSSHService(ctx)
+	if err != nil {
+		return &pb.SSHServiceControlResponse{
+			Success: false,
+			Message: err.Error(),
+		}, nil
+	}
+
+	return &pb.SSHServiceControlResponse{
+		Success: true,
+		Message: "SSH service enabled for auto-start",
+		Status:  toProtoServiceStatus(serviceStatus),
+	}, nil
+}
+
+// DisableSSHService disables the SSH server service from starting on boot.
+func (a *SystemServiceAdapter) DisableSSHService(ctx context.Context, req *pb.DisableSSHServiceRequest) (*pb.SSHServiceControlResponse, error) {
+	serviceStatus, err := a.systemMgr.DisableSSHService(ctx)
+	if err != nil {
+		return &pb.SSHServiceControlResponse{
+			Success: false,
+			Message: err.Error(),
+		}, nil
+	}
+
+	return &pb.SSHServiceControlResponse{
+		Success: true,
+		Message: "SSH service disabled from auto-start",
+		Status:  toProtoServiceStatus(serviceStatus),
+	}, nil
+}
+
 // GetInstallInstructions returns installation instructions for a component.
 func (a *SystemServiceAdapter) GetInstallInstructions(ctx context.Context, req *pb.GetInstallInstructionsRequest) (*pb.GetInstallInstructionsResponse, error) {
 	component := "client"

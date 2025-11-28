@@ -208,6 +208,34 @@ func (m *SystemManager) ReloadSSHService(ctx context.Context) (*ServiceStatus, e
 	return m.getServiceStatus(ctx, serviceName)
 }
 
+// EnableSSHService enables the SSH server service to start on boot.
+func (m *SystemManager) EnableSSHService(ctx context.Context) (*ServiceStatus, error) {
+	serviceName := m.findSSHServiceName()
+	if serviceName == "" {
+		return nil, fmt.Errorf("SSH service not found")
+	}
+
+	if err := m.runPrivilegedCommand(ctx, "systemctl", "enable", serviceName); err != nil {
+		return nil, fmt.Errorf("failed to enable SSH service: %w", err)
+	}
+
+	return m.getServiceStatus(ctx, serviceName)
+}
+
+// DisableSSHService disables the SSH server service from starting on boot.
+func (m *SystemManager) DisableSSHService(ctx context.Context) (*ServiceStatus, error) {
+	serviceName := m.findSSHServiceName()
+	if serviceName == "" {
+		return nil, fmt.Errorf("SSH service not found")
+	}
+
+	if err := m.runPrivilegedCommand(ctx, "systemctl", "disable", serviceName); err != nil {
+		return nil, fmt.Errorf("failed to disable SSH service: %w", err)
+	}
+
+	return m.getServiceStatus(ctx, serviceName)
+}
+
 // GetInstallInstructions returns installation instructions for a component.
 func (m *SystemManager) GetInstallInstructions(component string) *InstallInstructions {
 	distro, _ := m.getDistributionInfo()

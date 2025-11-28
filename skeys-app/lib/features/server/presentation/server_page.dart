@@ -110,6 +110,40 @@ class _ServerPageState extends State<ServerPage> {
     }
   }
 
+  Future<void> _enableService() async {
+    setState(() => _actionInProgress = true);
+    try {
+      final response = await _grpcClient.system.enableSSHService(EnableSSHServiceRequest());
+      if (response.success) {
+        _showMessage('SSH service will start automatically on boot');
+        await _loadStatus();
+      } else {
+        _showMessage('Failed to enable SSH service: ${response.message}', isError: true);
+      }
+    } catch (e) {
+      _showMessage('Error: $e', isError: true);
+    } finally {
+      setState(() => _actionInProgress = false);
+    }
+  }
+
+  Future<void> _disableService() async {
+    setState(() => _actionInProgress = true);
+    try {
+      final response = await _grpcClient.system.disableSSHService(DisableSSHServiceRequest());
+      if (response.success) {
+        _showMessage('SSH service will not start automatically on boot');
+        await _loadStatus();
+      } else {
+        _showMessage('Failed to disable SSH service: ${response.message}', isError: true);
+      }
+    } catch (e) {
+      _showMessage('Error: $e', isError: true);
+    } finally {
+      setState(() => _actionInProgress = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -439,8 +473,7 @@ class _ServerPageState extends State<ServerPage> {
                 _buildInfoRow('Binary', server.binaryPath, theme, copyable: true),
               if (service.serviceName.isNotEmpty)
                 _buildInfoRow('Service', service.serviceName, theme),
-              if (service.enabled)
-                _buildInfoRow('Auto-start', 'Enabled', theme),
+              _buildAutoStartRow(theme, colorScheme, service),
               if (isRunning && service.pid > 0)
                 _buildInfoRow('PID', service.pid.toString(), theme),
               if (service.startedAt.isNotEmpty)
@@ -526,6 +559,50 @@ class _ServerPageState extends State<ServerPage> {
                     value,
                     style: theme.textTheme.bodyMedium,
                   ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAutoStartRow(ThemeData theme, ColorScheme colorScheme, ServiceStatus service) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              'Auto-start',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                Switch(
+                  value: service.enabled,
+                  onChanged: _actionInProgress
+                      ? null
+                      : (value) {
+                          if (value) {
+                            _enableService();
+                          } else {
+                            _disableService();
+                          }
+                        },
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  service.enabled ? 'Starts on boot' : 'Manual start only',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
