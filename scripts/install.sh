@@ -75,12 +75,23 @@ stop_services() {
     fi
 }
 
+# Create required data directories
+# These must exist before systemd starts the daemon due to ReadWritePaths
+create_data_dirs() {
+    mkdir -p "${HOME}/.config/skeys"
+    mkdir -p "${HOME}/.cache/skeys"
+    mkdir -p "${HOME}/.local/share/skeys"
+}
+
 # Install files from tarball
 install_files() {
     local tarball="$1"
 
     # Create parent directories
     mkdir -p "$BIN_DIR" "$SYSTEMD_DIR" "$APPLICATIONS_DIR"
+
+    # Create data directories required by systemd sandboxing
+    create_data_dirs
 
     # Handle existing installation directory
     if [[ -d "$INSTALL_DIR" ]]; then

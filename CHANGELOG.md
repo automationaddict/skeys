@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Show first-start dialog after reinstall and use XDG runtime dir
+## [0.0.5] - 2025-11-28
+
 ### Added
 
 - Add include patches toggle for update settings

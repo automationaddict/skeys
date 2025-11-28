@@ -17,7 +17,7 @@ RuntimeDirectoryMode=0700
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=%h/.ssh %h/.config/skeys %h/.cache/skeys %t/skeys
+ReadWritePaths=%h/.ssh %h/.config/skeys %h/.cache/skeys %h/.local/share/skeys %t/skeys
 PrivateTmp=true
 
 [Install]

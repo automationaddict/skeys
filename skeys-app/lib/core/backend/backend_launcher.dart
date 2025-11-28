@@ -44,9 +44,13 @@ class BackendLauncher {
   /// Returns true if running in development mode (SKEYS_DEV=true)
   static bool get isDevMode => Platform.environment['SKEYS_DEV'] == 'true';
 
+  /// Returns the XDG runtime directory for the current user
+  static String get _runtimeDir =>
+      Platform.environment['XDG_RUNTIME_DIR'] ?? '/tmp';
+
   /// Returns the appropriate socket path based on mode
   static String get defaultSocketPath =>
-      isDevMode ? '/tmp/skeys-dev.sock' : '/tmp/skeys.sock';
+      isDevMode ? '/tmp/skeys-dev.sock' : '$_runtimeDir/skeys/skeys.sock';
 
   /// Returns the Unix socket path for daemon communication.
   ///
@@ -91,8 +95,14 @@ class BackendLauncher {
       );
     }
 
-    // Production mode: always kill any existing daemon to ensure we run the
-    // latest version (important after updates)
+    // Production mode: ensure runtime directory exists, kill any existing daemon,
+    // and launch our own.
+    //
+    // IMPORTANT: We intentionally kill and restart the daemon every time, even if
+    // one is already running. This is because dev and prod run on the same machine
+    // and would otherwise cause socket conflicts - prod would connect to dev's
+    // daemon or vice versa. Do NOT "optimize" this to reuse existing daemons.
+    await _ensureRuntimeDirectory();
     await _killExistingDaemon();
 
     // Production mode: find and launch the daemon
@@ -182,6 +192,15 @@ class BackendLauncher {
     _isRunning = false;
     _process = null;
     _log.info('backend launcher stopped');
+  }
+
+  /// Ensures the runtime directory for the socket exists.
+  Future<void> _ensureRuntimeDirectory() async {
+    final socketDir = Directory(path.dirname(_socketPath!));
+    if (!await socketDir.exists()) {
+      _log.debug('creating runtime directory', {'path': socketDir.path});
+      await socketDir.create(recursive: true);
+    }
   }
 
   /// Kills any existing skeys-daemon process to ensure we start fresh.

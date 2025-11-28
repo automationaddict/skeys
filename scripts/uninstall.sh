@@ -13,6 +13,8 @@ CONFIG_DIR="${HOME}/.config/skeys"
 APP_DATA_DIR="${HOME}/.local/share/com.skeys.skeys-app"
 RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
 SSH_CONFIG="${HOME}/.ssh/config"
+# SharedPreferences file (Flutter shared_preferences plugin on Linux)
+PREFS_FILE="${HOME}/.local/share/com.skeys.skeys-app/shared_preferences.json"
 
 # Colors for output
 RED='\033[0;31m'
@@ -22,6 +24,34 @@ NC='\033[0m' # No Color
 
 info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+
+# Reset the SSH config prompt flag in SharedPreferences
+# This ensures the first-run dialog shows again on next install
+reset_ssh_prompt_flag() {
+    if [[ ! -f "$PREFS_FILE" ]]; then
+        return
+    fi
+
+    # Check if jq is available for safe JSON editing
+    if command -v jq &>/dev/null; then
+        local tmp_file
+        tmp_file=$(mktemp)
+        if jq 'del(.["flutter.ssh_config_prompt_shown"])' "$PREFS_FILE" > "$tmp_file" 2>/dev/null; then
+            mv "$tmp_file" "$PREFS_FILE"
+            info "Reset SSH config prompt flag"
+        else
+            rm -f "$tmp_file"
+        fi
+    else
+        # Fallback: use sed to remove the key (less safe but works for simple cases)
+        if grep -q "flutter.ssh_config_prompt_shown" "$PREFS_FILE" 2>/dev/null; then
+            sed -i 's/"flutter.ssh_config_prompt_shown":[^,}]*//' "$PREFS_FILE"
+            # Clean up any resulting double commas or leading/trailing commas
+            sed -i 's/,,/,/g; s/{,/{/g; s/,}/}/g' "$PREFS_FILE"
+            info "Reset SSH config prompt flag"
+        fi
+    fi
+}
 
 # Remove skeys managed block from SSH config
 remove_ssh_config() {
@@ -129,6 +159,7 @@ main() {
 
     stop_services
     remove_ssh_config
+    reset_ssh_prompt_flag
     remove_systemd
     remove_files
 
