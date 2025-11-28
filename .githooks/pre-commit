@@ -27,6 +27,49 @@ else
 fi
 
 # =============================================================================
+# YAML linting
+# =============================================================================
+if command -v yamllint &> /dev/null; then
+    echo "Checking YAML files..."
+    if ! yamllint -d "{extends: relaxed, rules: {line-length: disable}}" .github/ 2>/dev/null; then
+        echo ""
+        echo "ERROR: YAML validation failed!"
+        echo ""
+        errors=1
+    else
+        echo "YAML files OK"
+    fi
+else
+    echo "WARNING: yamllint not installed, skipping YAML check"
+fi
+
+# =============================================================================
+# Markdown linting
+# =============================================================================
+if command -v markdownlint &> /dev/null; then
+    echo "Checking Markdown files..."
+    # Disabled rules:
+    # MD013 - line length
+    # MD022 - blanks around headings (too strict for changelogs)
+    # MD024 - duplicate headings (changelogs have repeated Added/Changed/etc)
+    # MD032 - blanks around lists (too strict)
+    # MD033 - inline HTML
+    # MD040 - fenced code language (not always needed)
+    # MD041 - first line heading
+    # MD060 - table column style
+    if ! markdownlint --disable MD013 MD022 MD024 MD032 MD033 MD040 MD041 MD060 -- *.md 2>/dev/null; then
+        echo ""
+        echo "ERROR: Markdown validation failed!"
+        echo ""
+        errors=1
+    else
+        echo "Markdown files OK"
+    fi
+else
+    echo "WARNING: markdownlint not installed, skipping Markdown check"
+fi
+
+# =============================================================================
 # License Headers
 # =============================================================================
 if command -v addlicense &> /dev/null; then
