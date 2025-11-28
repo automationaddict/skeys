@@ -19,7 +19,27 @@ jobs:
 
       - name: Extract version from tag
         id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: |
+          # Extract version from tag (e.g., v0.0.5 -> 0.0.5)
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "VERSION=v${VERSION}" >> $GITHUB_OUTPUT
+          echo "SEMVER=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Generate build number
+        id: build
+        run: |
+          # Build number = total commit count (always incrementing)
+          BUILD_NUMBER=$(git rev-list --count HEAD)
+          echo "NUMBER=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+          echo "Build number: ${BUILD_NUMBER}"
+
+      - name: Update Flutter version
+        run: |
+          # Update pubspec.yaml with version from tag and build number
+          cd skeys-app
+          sed -i "s/^version: .*/version: ${{ steps.version.outputs.SEMVER }}+${{ steps.build.outputs.NUMBER }}/" pubspec.yaml
+          echo "Updated version to: ${{ steps.version.outputs.SEMVER }}+${{ steps.build.outputs.NUMBER }}"
+          grep "^version:" pubspec.yaml
 
       - name: Setup Go
         uses: actions/setup-go@v5
