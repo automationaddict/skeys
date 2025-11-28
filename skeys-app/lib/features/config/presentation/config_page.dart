@@ -623,38 +623,42 @@ class _DirectiveHelpTooltip extends StatelessWidget {
     return Tooltip(
       richMessage: WidgetSpan(
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 400),
+          constraints: const BoxConstraints(maxWidth: 400, maxHeight: 350),
           padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                directiveKey,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onInverseSurface,
-                ),
-              ),
-              if (description != null) ...[
-                const SizedBox(height: 4),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  description!,
+                  directiveKey,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onInverseSurface,
+                  ),
+                ),
+                if (description != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    description!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onInverseSurface.withValues(
+                        alpha: 0.8,
+                      ),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Text(
+                  helpText,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
-                    fontStyle: FontStyle.italic,
+                    color: colorScheme.onInverseSurface,
+                    height: 1.4,
                   ),
                 ),
               ],
-              const SizedBox(height: 8),
-              Text(
-                helpText,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onInverseSurface,
-                  height: 1.4,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
