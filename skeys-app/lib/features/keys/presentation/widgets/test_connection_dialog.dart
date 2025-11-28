@@ -29,12 +29,22 @@ import '../../domain/key_entity.dart';
 
 /// Preset service configurations for common SSH services.
 class ServicePreset {
+  /// The display name of the service.
   final String name;
+
+  /// The hostname of the service.
   final String host;
+
+  /// The SSH port of the service.
   final int port;
+
+  /// The username to use for authentication.
   final String user;
+
+  /// The icon to display for this service.
   final IconData icon;
 
+  /// Creates a ServicePreset with the given parameters.
   const ServicePreset({
     required this.name,
     required this.host,
@@ -43,6 +53,7 @@ class ServicePreset {
     required this.icon,
   });
 
+  /// List of common service presets.
   static const List<ServicePreset> presets = [
     ServicePreset(
       name: 'GitHub',
@@ -70,8 +81,10 @@ class ServicePreset {
 
 /// Dialog for testing SSH connection with a key.
 class TestConnectionDialog extends StatefulWidget {
+  /// The SSH key to test.
   final KeyEntity keyEntity;
 
+  /// Creates a TestConnectionDialog widget.
   const TestConnectionDialog({super.key, required this.keyEntity});
 
   @override

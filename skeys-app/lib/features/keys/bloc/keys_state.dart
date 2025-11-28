@@ -21,18 +21,47 @@
 part of 'keys_bloc.dart';
 
 /// Status of keys operations.
-enum KeysStatus { initial, loading, success, failure, testingConnection }
+enum KeysStatus {
+  /// Initial state before any operation.
+  initial,
+
+  /// A load or operation is in progress.
+  loading,
+
+  /// The operation completed successfully.
+  success,
+
+  /// The operation failed with an error.
+  failure,
+
+  /// A connection test is in progress.
+  testingConnection,
+}
 
 /// Result of a connection test for display purposes.
 class ConnectionTestResult {
+  /// Whether the connection succeeded.
   final bool success;
+
+  /// Status message describing the result.
   final String message;
+
+  /// The SSH server version string if available.
   final String? serverVersion;
+
+  /// Connection latency in milliseconds.
   final int? latencyMs;
+
+  /// The host that was tested.
   final String host;
+
+  /// The status of host key verification.
   final HostKeyVerificationStatus hostKeyStatus;
+
+  /// Information about the host key if available.
   final HostKeyInfo? hostKeyInfo;
 
+  /// Creates a ConnectionTestResult with the given parameters.
   const ConnectionTestResult({
     required this.success,
     required this.message,
@@ -54,12 +83,22 @@ class ConnectionTestResult {
 
 /// State for the keys feature.
 final class KeysState extends Equatable {
+  /// The current status of BLoC operations.
   final KeysStatus status;
+
+  /// List of SSH key entities.
   final List<KeyEntity> keys;
+
+  /// Error message if the last operation failed.
   final String? errorMessage;
+
+  /// Public key content that was copied to clipboard.
   final String? copiedPublicKey;
+
+  /// Result of the last connection test.
   final ConnectionTestResult? testConnectionResult;
 
+  /// Creates a KeysState with the given parameters.
   const KeysState({
     this.status = KeysStatus.initial,
     this.keys = const [],
@@ -68,6 +107,7 @@ final class KeysState extends Equatable {
     this.testConnectionResult,
   });
 
+  /// Creates a copy of this state with the given fields replaced.
   KeysState copyWith({
     KeysStatus? status,
     List<KeyEntity>? keys,

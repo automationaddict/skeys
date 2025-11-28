@@ -26,6 +26,7 @@ import '../../domain/key_entity.dart';
 
 /// Dialog for generating a new SSH key.
 class GenerateKeyDialog extends StatefulWidget {
+  /// Creates a GenerateKeyDialog widget.
   const GenerateKeyDialog({super.key});
 
   @override

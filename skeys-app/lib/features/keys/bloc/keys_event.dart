@@ -22,6 +22,7 @@ part of 'keys_bloc.dart';
 
 /// Base class for all keys events.
 sealed class KeysEvent extends Equatable {
+  /// Creates a KeysEvent.
   const KeysEvent();
 
   @override
@@ -30,23 +31,37 @@ sealed class KeysEvent extends Equatable {
 
 /// Load all SSH keys.
 final class KeysLoadRequested extends KeysEvent {
+  /// Creates a KeysLoadRequested event.
   const KeysLoadRequested();
 }
 
 /// Subscribe to key list updates via streaming.
 final class KeysWatchRequested extends KeysEvent {
+  /// Creates a KeysWatchRequested event.
   const KeysWatchRequested();
 }
 
 /// Generate a new SSH key.
 final class KeysGenerateRequested extends KeysEvent {
+  /// The name for the new key file.
   final String name;
+
+  /// The key type (RSA, ED25519, etc.).
   final KeyType type;
+
+  /// The key size in bits (for RSA/ECDSA).
   final int? bits;
+
+  /// Optional comment for the key.
   final String? comment;
+
+  /// Optional passphrase to protect the key.
   final String? passphrase;
+
+  /// Whether to add the key to the SSH agent after generation.
   final bool addToAgent;
 
+  /// Creates a KeysGenerateRequested event.
   const KeysGenerateRequested({
     required this.name,
     required this.type,
@@ -69,8 +84,10 @@ final class KeysGenerateRequested extends KeysEvent {
 
 /// Delete an SSH key.
 final class KeysDeleteRequested extends KeysEvent {
+  /// The path to the key file to delete.
   final String path;
 
+  /// Creates a KeysDeleteRequested event.
   const KeysDeleteRequested(this.path);
 
   @override
@@ -79,10 +96,16 @@ final class KeysDeleteRequested extends KeysEvent {
 
 /// Change passphrase for an SSH key.
 final class KeysChangePassphraseRequested extends KeysEvent {
+  /// The path to the key file.
   final String path;
+
+  /// The current passphrase.
   final String oldPassphrase;
+
+  /// The new passphrase to set.
   final String newPassphrase;
 
+  /// Creates a KeysChangePassphraseRequested event.
   const KeysChangePassphraseRequested({
     required this.path,
     required this.oldPassphrase,
@@ -95,8 +118,10 @@ final class KeysChangePassphraseRequested extends KeysEvent {
 
 /// Copy public key to clipboard.
 final class KeysCopyPublicKeyRequested extends KeysEvent {
+  /// The path to the key file.
   final String path;
 
+  /// Creates a KeysCopyPublicKeyRequested event.
   const KeysCopyPublicKeyRequested(this.path);
 
   @override
@@ -105,13 +130,25 @@ final class KeysCopyPublicKeyRequested extends KeysEvent {
 
 /// Test SSH connection with a key.
 final class KeysTestConnectionRequested extends KeysEvent {
+  /// The path to the key file.
   final String keyPath;
+
+  /// The hostname to connect to.
   final String host;
+
+  /// The SSH port number.
   final int port;
+
+  /// The username for authentication.
   final String user;
+
+  /// Optional passphrase if key is encrypted.
   final String? passphrase;
+
+  /// Whether to trust an unknown host key.
   final bool trustHostKey;
 
+  /// Creates a KeysTestConnectionRequested event.
   const KeysTestConnectionRequested({
     required this.keyPath,
     required this.host,
@@ -134,5 +171,6 @@ final class KeysTestConnectionRequested extends KeysEvent {
 
 /// Clear the test connection result.
 final class KeysTestConnectionCleared extends KeysEvent {
+  /// Creates a KeysTestConnectionCleared event.
   const KeysTestConnectionCleared();
 }

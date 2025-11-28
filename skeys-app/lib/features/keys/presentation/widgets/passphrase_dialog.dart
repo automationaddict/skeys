@@ -22,8 +22,10 @@ import 'package:flutter/material.dart';
 
 /// Dialog for entering a passphrase to unlock a key.
 class PassphraseDialog extends StatefulWidget {
+  /// The name of the key requiring a passphrase.
   final String keyName;
 
+  /// Creates a PassphraseDialog widget.
   const PassphraseDialog({super.key, required this.keyName});
 
   @override

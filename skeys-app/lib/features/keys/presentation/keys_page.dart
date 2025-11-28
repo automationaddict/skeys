@@ -34,6 +34,7 @@ import 'widgets/add_to_agent_dialog.dart';
 
 /// Page displaying SSH keys.
 class KeysPage extends StatefulWidget {
+  /// Creates a KeysPage widget.
   const KeysPage({super.key});
 
   @override

@@ -28,12 +28,22 @@ import '../../domain/key_entity.dart';
 
 /// List tile widget for displaying an SSH key.
 class KeyListTile extends StatefulWidget {
+  /// The SSH key entity to display.
   final KeyEntity keyEntity;
+
+  /// Callback when the copy public key action is triggered.
   final VoidCallback onCopyPublicKey;
+
+  /// Callback when the delete action is triggered.
   final VoidCallback onDelete;
+
+  /// Callback when the add to agent action is triggered.
   final VoidCallback? onAddToAgent;
+
+  /// Callback when the test connection action is triggered.
   final VoidCallback? onTestConnection;
 
+  /// Creates a KeyListTile widget.
   const KeyListTile({
     super.key,
     required this.keyEntity,

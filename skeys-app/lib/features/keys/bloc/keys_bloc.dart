@@ -36,6 +36,7 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
   final RemoteRepository _remoteRepository;
   final AppLogger _log = AppLogger('bloc.keys');
 
+  /// Creates a KeysBloc with the given repositories.
   KeysBloc(this._repository, this._remoteRepository)
     : super(const KeysState()) {
     on<KeysLoadRequested>(_onLoadRequested);

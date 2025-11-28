@@ -28,8 +28,13 @@ import '../../../core/generated/skeys/v1/common.pb.dart' as common;
 /// This follows the Adapter Pattern - the implementation adapts
 /// the gRPC interface to the domain interface.
 abstract class KeysRepository {
+  /// Lists all SSH keys in the user's SSH directory.
   Future<List<KeyEntity>> listKeys();
+
+  /// Gets a specific SSH key by its ID (path).
   Future<KeyEntity> getKey(String keyId);
+
+  /// Generates a new SSH key with the given parameters.
   Future<KeyEntity> generateKey({
     required String name,
     required KeyType type,
@@ -38,12 +43,18 @@ abstract class KeysRepository {
     String? passphrase,
     bool addToAgent = false,
   });
+
+  /// Deletes an SSH key by its ID (path).
   Future<void> deleteKey(String keyId);
+
+  /// Changes the passphrase for an SSH key.
   Future<void> changePassphrase(
     String keyId,
     String oldPassphrase,
     String newPassphrase,
   );
+
+  /// Gets the fingerprint of an SSH key.
   Future<String> getFingerprint(String keyId);
 
   /// Returns a stream of key list updates.
@@ -55,6 +66,7 @@ abstract class KeysRepository {
 class KeysRepositoryImpl implements KeysRepository {
   final GrpcClient _client;
 
+  /// Creates a KeysRepositoryImpl with the given gRPC client.
   KeysRepositoryImpl(this._client);
 
   @override
