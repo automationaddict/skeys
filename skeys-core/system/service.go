@@ -155,6 +155,11 @@ func (m *SystemManager) StartSSHService(ctx context.Context) (*ServiceStatus, er
 	}
 
 	if err := m.runPrivilegedCommand(ctx, "systemctl", "start", serviceName); err != nil {
+		// Try to get more details about the failure
+		details := m.getServiceFailureDetails(ctx, serviceName)
+		if details != "" {
+			return nil, fmt.Errorf("failed to start SSH service: %s", details)
+		}
 		return nil, fmt.Errorf("failed to start SSH service: %w", err)
 	}
 
@@ -444,6 +449,57 @@ func (m *SystemManager) runPrivilegedCommand(ctx context.Context, name string, a
 	}
 
 	return nil
+}
+
+// getServiceFailureDetails gets the reason why a service failed to start.
+func (m *SystemManager) getServiceFailureDetails(ctx context.Context, serviceName string) string {
+	// Get the last few lines from journalctl for this service
+	cmd := exec.CommandContext(ctx, "journalctl", "-u", serviceName, "-n", "5", "--no-pager", "-q")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+
+	lines := strings.TrimSpace(string(output))
+	if lines == "" {
+		return ""
+	}
+
+	// Look for common error patterns
+	if strings.Contains(lines, "No such file or directory") {
+		// Try to extract the missing file path
+		if strings.Contains(lines, "sshd_config") {
+			return "sshd_config file is missing - try: sudo apt reinstall openssh-server"
+		}
+		return "configuration file missing - check journalctl -u " + serviceName
+	}
+
+	if strings.Contains(lines, "Permission denied") {
+		return "permission denied - check file permissions"
+	}
+
+	if strings.Contains(lines, "Address already in use") {
+		return "port 22 is already in use by another process"
+	}
+
+	if strings.Contains(lines, "Bad configuration") || strings.Contains(lines, "error in") {
+		return "configuration error - run 'sudo sshd -t' to check config"
+	}
+
+	// Return last meaningful line if we can find one
+	linesList := strings.Split(lines, "\n")
+	for i := len(linesList) - 1; i >= 0; i-- {
+		line := strings.TrimSpace(linesList[i])
+		if line != "" && !strings.Contains(line, "Starting") && !strings.Contains(line, "Stopped") {
+			// Truncate if too long
+			if len(line) > 200 {
+				line = line[:200] + "..."
+			}
+			return line
+		}
+	}
+
+	return ""
 }
 
 // getClientInstallInstructions returns installation instructions for SSH client.
