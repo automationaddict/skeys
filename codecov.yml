@@ -1,0 +1,53 @@
+# Codecov configuration
+# https://docs.codecov.com/docs/codecovyml-reference
+
+coverage:
+  precision: 2
+  round: down
+  range: "0...100"
+
+  status:
+    project:
+      default:
+        # Report only, don't fail CI
+        informational: true
+        target: 70%
+      go:
+        flags:
+          - go
+        informational: true
+        target: 70%
+      flutter:
+        flags:
+          - flutter
+        informational: true
+        target: 70%
+    patch:
+      default:
+        # Report only, don't fail CI
+        informational: true
+        target: 50%
+
+flags:
+  go:
+    paths:
+      - skeys-core/
+      - skeys-daemon/
+    carryforward: true
+  flutter:
+    paths:
+      - skeys-app/lib/
+    carryforward: true
+
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default
+  require_changes: false
+
+ignore:
+  # Generated code
+  - "skeys-app/lib/core/generated/**"
+  - "skeys-daemon/api/gen/**"
+  # Test files
+  - "**/*_test.go"
+  - "**/test/**"

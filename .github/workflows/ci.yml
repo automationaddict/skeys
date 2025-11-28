@@ -1,0 +1,128 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  go-test:
+    name: Go Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache-dependency-path: |
+            skeys-core/go.sum
+            skeys-daemon/go.sum
+
+      - name: Run skeys-core tests
+        run: |
+          cd skeys-core
+          go test -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Run skeys-daemon tests
+        run: |
+          cd skeys-daemon
+          go test -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Upload Go coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: skeys-core/coverage.out,skeys-daemon/coverage.out
+          flags: go
+          name: go-coverage
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  flutter-test:
+    name: Flutter Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.3'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          cd skeys-app
+          flutter pub get
+
+      - name: Run tests with coverage
+        run: |
+          cd skeys-app
+          flutter test --coverage
+
+      - name: Upload Flutter coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: skeys-app/coverage/lcov.info
+          flags: flutter
+          name: flutter-coverage
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache-dependency-path: |
+            skeys-core/go.sum
+            skeys-daemon/go.sum
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.3'
+          channel: 'stable'
+          cache: true
+
+      - name: Go vet (skeys-core)
+        run: |
+          cd skeys-core
+          go vet ./...
+
+      - name: Go vet (skeys-daemon)
+        run: |
+          cd skeys-daemon
+          go vet ./...
+
+      - name: Install staticcheck
+        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+
+      - name: Staticcheck (skeys-core)
+        run: |
+          cd skeys-core
+          staticcheck ./...
+
+      - name: Staticcheck (skeys-daemon)
+        run: |
+          cd skeys-daemon
+          staticcheck ./...
+
+      - name: Flutter analyze
+        run: |
+          cd skeys-app
+          flutter pub get
+          flutter analyze
