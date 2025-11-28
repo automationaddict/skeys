@@ -20,17 +20,33 @@
 
 import 'package:equatable/equatable.dart';
 
-/// Type of SSH config entry
-enum SSHConfigEntryType { host, match }
+/// Type of SSH config entry.
+enum SSHConfigEntryType {
+  /// A Host block that matches by hostname pattern.
+  host,
 
-/// Represents a Host or Match block in SSH config
+  /// A Match block with conditional matching.
+  match,
+}
+
+/// Represents a Host or Match block in SSH config.
 class SSHConfigEntry extends Equatable {
+  /// Unique identifier for this entry.
   final String id;
+
+  /// The type of entry (Host or Match).
   final SSHConfigEntryType type;
+
+  /// Position in the config file (affects matching order).
   final int position;
+
+  /// List of patterns this entry matches.
   final List<String> patterns;
+
+  /// The configuration options for this entry.
   final SSHOptions options;
 
+  /// Creates an SSHConfigEntry with the given parameters.
   const SSHConfigEntry({
     required this.id,
     required this.type,
@@ -39,7 +55,7 @@ class SSHConfigEntry extends Equatable {
     required this.options,
   });
 
-  /// Display name for UI
+  /// Display name for UI (patterns joined with comma).
   String get displayName {
     if (patterns.isEmpty) {
       return type == SSHConfigEntryType.host ? 'Host' : 'Match';
@@ -47,16 +63,17 @@ class SSHConfigEntry extends Equatable {
     return patterns.join(', ');
   }
 
-  /// Whether this is a wildcard/pattern entry
+  /// Whether this is a wildcard/pattern entry containing * or ?.
   bool get isWildcard =>
       patterns.any((p) => p.contains('*') || p.contains('?'));
 
-  /// Whether this is a catch-all entry (Host *)
+  /// Whether this is a catch-all entry (Host *).
   bool get isCatchAll =>
       type == SSHConfigEntryType.host &&
       patterns.length == 1 &&
       patterns.first == '*';
 
+  /// Creates a copy of this entry with the given fields replaced.
   SSHConfigEntry copyWith({
     String? id,
     SSHConfigEntryType? type,
@@ -77,29 +94,48 @@ class SSHConfigEntry extends Equatable {
   List<Object?> get props => [id, type, position, patterns, options];
 }
 
-/// All SSH configuration options
+/// All SSH configuration options for a Host or Match block.
 class SSHOptions extends Equatable {
-  // Essential (always visible in basic section)
+  /// The actual hostname to connect to.
   final String? hostname;
+
+  /// The username for the connection.
   final String? user;
+
+  /// The port number for the connection.
   final int? port;
+
+  /// List of identity files (private keys) to try.
   final List<String> identityFiles;
+
+  /// Whether to forward the SSH agent to the remote host.
   final bool? forwardAgent;
 
-  // Connection (progressive disclosure)
+  /// Comma-separated list of hosts to jump through (ProxyJump).
   final String? proxyJump;
+
+  /// Command to use to connect to the server (ProxyCommand).
   final String? proxyCommand;
+
+  /// Seconds between keepalive messages sent to the server.
   final int? serverAliveInterval;
+
+  /// Max keepalive messages sent without receiving a reply.
   final int? serverAliveCountMax;
 
-  // Security (progressive disclosure)
+  /// Only use explicitly configured identity files.
   final bool? identitiesOnly;
+
+  /// Enable compression.
   final bool? compression;
+
+  /// Host key checking policy (yes/no/ask/accept-new).
   final String? strictHostKeyChecking;
 
-  // Custom options
+  /// Additional options not covered by dedicated fields.
   final Map<String, String> extraOptions;
 
+  /// Creates an SSHOptions with the given parameters.
   const SSHOptions({
     this.hostname,
     this.user,
@@ -116,7 +152,7 @@ class SSHOptions extends Equatable {
     this.extraOptions = const {},
   });
 
-  /// Check if options are mostly empty (useful for UI hints)
+  /// Returns true if no options are configured.
   bool get isEmpty =>
       hostname == null &&
       user == null &&
@@ -132,7 +168,7 @@ class SSHOptions extends Equatable {
       strictHostKeyChecking == null &&
       extraOptions.isEmpty;
 
-  /// Count of configured advanced options (for "X configured" badge)
+  /// Count of configured advanced options (for UI badges).
   int get advancedOptionsCount {
     var count = 0;
     if (proxyJump != null && proxyJump!.isNotEmpty) count++;
@@ -149,14 +185,15 @@ class SSHOptions extends Equatable {
     return count;
   }
 
-  /// Get the primary identity file (first one)
+  /// The primary identity file (first one), or null if none.
   String? get primaryIdentityFile =>
       identityFiles.isNotEmpty ? identityFiles.first : null;
 
-  /// Get additional identity files (all except first)
+  /// Additional identity files (all except the first).
   List<String> get additionalIdentityFiles =>
       identityFiles.length > 1 ? identityFiles.sublist(1) : [];
 
+  /// Creates a copy of these options with the given fields replaced.
   SSHOptions copyWith({
     String? hostname,
     String? user,

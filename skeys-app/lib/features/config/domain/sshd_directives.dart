@@ -25,12 +25,22 @@
 
 /// Represents a category of SSH server directives.
 class SshdDirectiveCategory {
+  /// Unique identifier for the category.
   final String id;
+
+  /// Display name for the category.
   final String name;
+
+  /// Description of what this category contains.
   final String description;
+
+  /// Icon identifier for the category.
   final String icon;
+
+  /// List of directives in this category.
   final List<SshdDirectiveDefinition> directives;
 
+  /// Creates an SshdDirectiveCategory with the given parameters.
   const SshdDirectiveCategory({
     required this.id,
     required this.name,
@@ -42,14 +52,28 @@ class SshdDirectiveCategory {
 
 /// Defines an SSH server directive with its allowed values and metadata.
 class SshdDirectiveDefinition {
+  /// The directive key name as used in sshd_config.
   final String key;
+
+  /// Human-readable description of what this directive does.
   final String description;
+
+  /// The default value if not specified.
   final String defaultValue;
+
+  /// The type of value this directive accepts.
   final SshdValueType valueType;
+
+  /// List of allowed values for selection-type directives.
   final List<String>? allowedValues;
+
+  /// Additional hint text for users.
   final String? hint;
+
+  /// Whether this is an advanced directive (hidden by default).
   final bool isAdvanced;
 
+  /// Creates an SshdDirectiveDefinition with the given parameters.
   const SshdDirectiveDefinition({
     required this.key,
     required this.description,

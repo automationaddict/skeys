@@ -20,29 +20,45 @@
 
 part of 'config_bloc.dart';
 
-enum ConfigStatus { initial, loading, success, failure }
+/// Status of the ConfigBloc operations.
+enum ConfigStatus {
+  /// Initial state before any operation.
+  initial,
 
+  /// An operation is in progress.
+  loading,
+
+  /// The operation completed successfully.
+  success,
+
+  /// The operation failed with an error.
+  failure,
+}
+
+/// State of the SSH configuration BLoC.
 final class ConfigState extends Equatable {
+  /// The current status of BLoC operations.
   final ConfigStatus status;
 
-  // New unified SSH config entries
+  /// Unified SSH config entries (Host and Match blocks).
   final List<SSHConfigEntry> sshEntries;
 
-  // Global directives (options outside Host/Match blocks)
+  /// Global directives (options outside Host/Match blocks).
   final List<GlobalDirective> globalDirectives;
 
-  // Legacy client hosts (backward compatibility)
+  /// Legacy client hosts (for backward compatibility).
   final List<ConfigHostEntry> clientHosts;
 
-  // Server config
+  /// Server configuration (sshd_config).
   final ServerConfig? serverConfig;
 
-  // Server config has been modified and needs SSH service restart
+  /// Whether the server config has pending changes requiring SSH service restart.
   final bool serverConfigPendingRestart;
 
-  // Error handling
+  /// Error message if the last operation failed.
   final String? errorMessage;
 
+  /// Creates a ConfigState.
   const ConfigState({
     this.status = ConfigStatus.initial,
     this.sshEntries = const [],
@@ -53,6 +69,7 @@ final class ConfigState extends Equatable {
     this.errorMessage,
   });
 
+  /// Creates a copy of this state with the given fields replaced.
   ConfigState copyWith({
     ConfigStatus? status,
     List<SSHConfigEntry>? sshEntries,
