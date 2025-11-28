@@ -43,11 +43,9 @@ func (a *UpdateServiceAdapter) CheckForUpdates(ctx context.Context, req *emptypb
 	}
 
 	if release == nil {
-		// No update available
-		status := a.manager.GetStatus()
+		// No update available - already on latest version
 		return &pb.UpdateInfo{
 			UpdateAvailable: false,
-			CurrentVersion:  status.AvailableUpdate.TagName,
 		}, nil
 	}
 
