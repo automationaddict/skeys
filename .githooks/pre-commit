@@ -58,6 +58,33 @@ else
 fi
 
 # =============================================================================
+# Go vet
+# =============================================================================
+if command -v go &> /dev/null; then
+    echo "Checking Go vet..."
+    vet_failed=0
+    for dir in skeys-core skeys-daemon; do
+        if [[ -f "$dir/go.mod" ]]; then
+            pushd "$dir" > /dev/null
+            if ! go vet ./... 2>&1; then
+                vet_failed=1
+            fi
+            popd > /dev/null
+        fi
+    done
+    if [[ $vet_failed -ne 0 ]]; then
+        echo ""
+        echo "ERROR: Go vet issues found!"
+        echo ""
+        errors=1
+    else
+        echo "Go vet OK"
+    fi
+else
+    echo "WARNING: go not installed, skipping Go vet"
+fi
+
+# =============================================================================
 # Go linting (staticcheck or golangci-lint)
 # =============================================================================
 if command -v staticcheck &> /dev/null; then
@@ -105,6 +132,60 @@ else
 fi
 
 # =============================================================================
+# Go build verification
+# =============================================================================
+if command -v go &> /dev/null; then
+    echo "Checking Go build..."
+    build_failed=0
+    for dir in skeys-core skeys-daemon; do
+        if [[ -f "$dir/go.mod" ]]; then
+            pushd "$dir" > /dev/null
+            if ! go build ./... 2>&1; then
+                build_failed=1
+            fi
+            popd > /dev/null
+        fi
+    done
+    if [[ $build_failed -ne 0 ]]; then
+        echo ""
+        echo "ERROR: Go build failed!"
+        echo ""
+        errors=1
+    else
+        echo "Go build OK"
+    fi
+else
+    echo "WARNING: go not installed, skipping Go build check"
+fi
+
+# =============================================================================
+# Go tests
+# =============================================================================
+if command -v go &> /dev/null; then
+    echo "Running Go tests..."
+    test_failed=0
+    for dir in skeys-core skeys-daemon; do
+        if [[ -f "$dir/go.mod" ]]; then
+            pushd "$dir" > /dev/null
+            if ! go test -short ./... 2>&1; then
+                test_failed=1
+            fi
+            popd > /dev/null
+        fi
+    done
+    if [[ $test_failed -ne 0 ]]; then
+        echo ""
+        echo "ERROR: Go tests failed!"
+        echo ""
+        errors=1
+    else
+        echo "Go tests OK"
+    fi
+else
+    echo "WARNING: go not installed, skipping Go tests"
+fi
+
+# =============================================================================
 # Dart formatting
 # =============================================================================
 if command -v dart &> /dev/null; then
@@ -140,6 +221,83 @@ if command -v dart &> /dev/null; then
     popd > /dev/null
 else
     echo "WARNING: dart not installed, skipping Dart analysis"
+fi
+
+# =============================================================================
+# Flutter build verification
+# =============================================================================
+if command -v flutter &> /dev/null; then
+    echo "Checking Flutter build..."
+    pushd skeys-app > /dev/null
+    if ! flutter build linux --debug 2>&1 | tail -5; then
+        echo ""
+        echo "ERROR: Flutter build failed!"
+        echo ""
+        errors=1
+    else
+        echo "Flutter build OK"
+    fi
+    popd > /dev/null
+else
+    echo "WARNING: flutter not installed, skipping Flutter build check"
+fi
+
+# =============================================================================
+# Flutter tests
+# =============================================================================
+if command -v flutter &> /dev/null; then
+    echo "Running Flutter tests..."
+    pushd skeys-app > /dev/null
+    if ! flutter test 2>&1; then
+        echo ""
+        echo "ERROR: Flutter tests failed!"
+        echo ""
+        errors=1
+    else
+        echo "Flutter tests OK"
+    fi
+    popd > /dev/null
+else
+    echo "WARNING: flutter not installed, skipping Flutter tests"
+fi
+
+# =============================================================================
+# Protobuf generation check
+# =============================================================================
+if command -v protoc &> /dev/null; then
+    echo "Checking protobuf generation..."
+
+    # Generate to temp directory and compare
+    tmpdir=$(mktemp -d)
+    trap "rm -rf $tmpdir" EXIT
+
+    # Check if proto files exist
+    if [[ -d "proto" ]]; then
+        # Generate Go protos
+        if [[ -f "skeys-daemon/api/gen/skeys/v1/agent.pb.go" ]]; then
+            protoc --proto_path=proto \
+                --go_out="$tmpdir" --go_opt=module=github.com/johnnelson/skeys-daemon/api/gen \
+                --go-grpc_out="$tmpdir" --go-grpc_opt=module=github.com/johnnelson/skeys-daemon/api/gen \
+                proto/skeys/v1/*.proto 2>/dev/null || true
+
+            # Compare generated files (just check if they would differ)
+            if ! diff -rq "$tmpdir/skeys/v1" "skeys-daemon/api/gen/skeys/v1" &>/dev/null 2>&1; then
+                echo ""
+                echo "WARNING: Generated protobuf files may be out of date"
+                echo "  Run: make proto (or your proto generation command)"
+                echo ""
+                # Don't fail on this, just warn
+            else
+                echo "Protobuf files OK"
+            fi
+        else
+            echo "Protobuf files OK (skipped - no generated files found)"
+        fi
+    else
+        echo "Protobuf files OK (skipped - no proto directory)"
+    fi
+else
+    echo "WARNING: protoc not installed, skipping protobuf check"
 fi
 
 # =============================================================================

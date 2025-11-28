@@ -30,6 +30,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"golang.org/x/crypto/ssh"
@@ -237,7 +238,7 @@ func (v *HostKeyVerifier) CreateHostKeyCallback(trustUnknown bool) (ssh.HostKeyC
 
 // scanHostKey connects to a host and retrieves its host key
 func (v *HostKeyVerifier) scanHostKey(host string, port int) (ssh.PublicKey, string, error) {
-	addr := fmt.Sprintf("%s:%d", host, port)
+	addr := net.JoinHostPort(host, strconv.Itoa(port))
 
 	var hostKey ssh.PublicKey
 	var keyType string
