@@ -23,7 +23,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:skeys_app/features/config/bloc/config_bloc.dart';
-import 'package:skeys_app/features/config/domain/ssh_config_entry.dart';
 import '../../../mocks/mocks.dart';
 import '../../../mocks/test_helpers.dart';
 

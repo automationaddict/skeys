@@ -23,8 +23,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:skeys_app/features/keys/bloc/keys_bloc.dart';
-import 'package:skeys_app/features/keys/domain/key_entity.dart';
-import 'package:skeys_app/features/remote/domain/remote_entity.dart';
 import '../../../mocks/mocks.dart';
 import '../../../mocks/test_helpers.dart';
 

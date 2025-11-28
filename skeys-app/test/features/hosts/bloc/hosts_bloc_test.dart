@@ -23,7 +23,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:skeys_app/features/hosts/bloc/hosts_bloc.dart';
-import 'package:skeys_app/features/hosts/domain/host_entity.dart';
 import '../../../mocks/mocks.dart';
 import '../../../mocks/test_helpers.dart';
 

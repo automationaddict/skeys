@@ -24,7 +24,6 @@ import 'package:get_it/get_it.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:skeys_app/features/agent/bloc/agent_bloc.dart';
-import 'package:skeys_app/features/agent/domain/agent_entity.dart';
 import 'package:skeys_app/features/agent/repository/agent_repository.dart';
 import 'package:skeys_app/core/settings/settings_service.dart';
 import '../../../mocks/mocks.dart';

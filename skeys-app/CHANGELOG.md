@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Add include patches toggle for update settings
 
+### Changed
+
+- Update app icon and add logo to UI
+
 ### Documentation
 
 - Add documentation to core modules (batch 1/~13)
@@ -29,24 +33,11 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous
 
 - Add git hooks and license headers
-- Expand pre-commit checks and fix IPv6 address format
-- Add TOML linting to pre-commit hook
-- Add YAML and Markdown linting to pre-commit hook
 - Bump build number to 0.0.4+2
 
 ### Testing
 
 - Add CI workflow, Codecov, and keys package tests
-- Add comprehensive unit tests for skeys-core packages
-## [0.0.4] - 2025-11-28
-
-### Added
-
-- Add CHANGELOG.md and update release workflow
-
-### Changed
-
-- Update app icon and add logo to UI
 ## [0.0.3] - 2025-11-28
 
 ### Added
@@ -58,28 +49,8 @@ All notable changes to this project will be documented in this file.
 
 ### Other
 
-- Standardize Go backend patterns for consistency
 - Refactor streaming to shared broadcaster pattern
 ## [0.0.2] - 2025-11-28
-
-### Added
-
-- Add SSH service auto-start toggle
-- Add real-time streaming to Server page with BLoC architecture
-
-### Changed
-
-- Improve SSH service start failure error messages
-- Update server help docs with auto-start toggle and troubleshooting
-
-### Fixed
-
-- Fix nil pointer dereference in update check
-
-### Other
-
-- Use AppToast for server page messages
-## [0.0.1] - 2025-11-28
 
 ### Added
 
@@ -98,21 +69,23 @@ All notable changes to this project will be documented in this file.
 - Add global SSH directives support to Client Config
 - Add Server status page and SSH system service support
 - Add auto-update system with GitHub Releases distribution
+- Add SSH service auto-start toggle
+- Add real-time streaming to Server page with BLoC architecture
 
 ### Changed
 
-- Update README with current project state and features
 - Replace polling with event-driven updates and add core version info
 - Update dependencies to latest compatible versions
 - Improve UX with keyboard shortcuts, timer fix, and help panel
+- Update server help docs with auto-start toggle and troubleshooting
 
 ### Fixed
 
 - Fix stale socket detection in backend launcher
 - Fix help panel navigation to settings via service
 - Fix UI freeze when re-adding key to agent and update app icons
-- Fix dev container socket and XDG runtime mount
-- Fix Flutter version in release workflow
 - Fix GitHub repo URLs in documentation
-- Fix install script stdout/stderr handling
-- Fix install script to handle partial installations
+
+### Other
+
+- Use AppToast for server page messages
