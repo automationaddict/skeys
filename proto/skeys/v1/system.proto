@@ -12,6 +12,9 @@ service SystemService {
   // Get comprehensive SSH system status (client, server, configs)
   rpc GetSSHStatus(GetSSHStatusRequest) returns (GetSSHStatusResponse);
 
+  // Watch for SSH status changes (service state, config changes)
+  rpc WatchSSHStatus(WatchSSHStatusRequest) returns (stream GetSSHStatusResponse);
+
   // SSH Server service control (requires elevated privileges)
   rpc GetSSHServiceStatus(GetSSHServiceStatusRequest) returns (GetSSHServiceStatusResponse);
   rpc StartSSHService(StartSSHServiceRequest) returns (SSHServiceControlResponse);
@@ -30,6 +33,10 @@ service SystemService {
 // ============================================================
 
 message GetSSHStatusRequest {
+  Target target = 1;
+}
+
+message WatchSSHStatusRequest {
   Target target = 1;
 }
 

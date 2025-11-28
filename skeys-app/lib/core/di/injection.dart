@@ -19,6 +19,8 @@ import '../../features/agent/repository/agent_repository.dart';
 import '../../features/remote/bloc/remote_bloc.dart';
 import '../../features/remote/repository/remote_repository.dart';
 import '../../features/metadata/repository/metadata_repository.dart';
+import '../../features/server/bloc/server_bloc.dart';
+import '../../features/server/repository/server_repository.dart';
 
 final getIt = GetIt.instance;
 
@@ -107,6 +109,9 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<MetadataRepository>(
     () => MetadataRepositoryImpl(grpcClient),
   );
+  getIt.registerLazySingleton<ServerRepository>(
+    () => ServerRepositoryImpl(grpcClient),
+  );
 
   // BLoCs
   _log.debug('registering BLoCs');
@@ -124,6 +129,9 @@ Future<void> configureDependencies() async {
   );
   getIt.registerFactory<RemoteBloc>(
     () => RemoteBloc(getIt<RemoteRepository>()),
+  );
+  getIt.registerFactory<ServerBloc>(
+    () => ServerBloc(getIt<ServerRepository>()),
   );
 
   _log.info('dependency injection configured successfully');

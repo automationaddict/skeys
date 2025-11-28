@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	SystemService_GetSSHStatus_FullMethodName                = "/skeys.v1.SystemService/GetSSHStatus"
+	SystemService_WatchSSHStatus_FullMethodName              = "/skeys.v1.SystemService/WatchSSHStatus"
 	SystemService_GetSSHServiceStatus_FullMethodName         = "/skeys.v1.SystemService/GetSSHServiceStatus"
 	SystemService_StartSSHService_FullMethodName             = "/skeys.v1.SystemService/StartSSHService"
 	SystemService_StopSSHService_FullMethodName              = "/skeys.v1.SystemService/StopSSHService"
@@ -38,6 +39,8 @@ const (
 type SystemServiceClient interface {
 	// Get comprehensive SSH system status (client, server, configs)
 	GetSSHStatus(ctx context.Context, in *GetSSHStatusRequest, opts ...grpc.CallOption) (*GetSSHStatusResponse, error)
+	// Watch for SSH status changes (service state, config changes)
+	WatchSSHStatus(ctx context.Context, in *WatchSSHStatusRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetSSHStatusResponse], error)
 	// SSH Server service control (requires elevated privileges)
 	GetSSHServiceStatus(ctx context.Context, in *GetSSHServiceStatusRequest, opts ...grpc.CallOption) (*GetSSHServiceStatusResponse, error)
 	StartSSHService(ctx context.Context, in *StartSSHServiceRequest, opts ...grpc.CallOption) (*SSHServiceControlResponse, error)
@@ -67,6 +70,25 @@ func (c *systemServiceClient) GetSSHStatus(ctx context.Context, in *GetSSHStatus
 	}
 	return out, nil
 }
+
+func (c *systemServiceClient) WatchSSHStatus(ctx context.Context, in *WatchSSHStatusRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetSSHStatusResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SystemService_ServiceDesc.Streams[0], SystemService_WatchSSHStatus_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[WatchSSHStatusRequest, GetSSHStatusResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SystemService_WatchSSHStatusClient = grpc.ServerStreamingClient[GetSSHStatusResponse]
 
 func (c *systemServiceClient) GetSSHServiceStatus(ctx context.Context, in *GetSSHServiceStatusRequest, opts ...grpc.CallOption) (*GetSSHServiceStatusResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -156,6 +178,8 @@ func (c *systemServiceClient) GetInstallInstructions(ctx context.Context, in *Ge
 type SystemServiceServer interface {
 	// Get comprehensive SSH system status (client, server, configs)
 	GetSSHStatus(context.Context, *GetSSHStatusRequest) (*GetSSHStatusResponse, error)
+	// Watch for SSH status changes (service state, config changes)
+	WatchSSHStatus(*WatchSSHStatusRequest, grpc.ServerStreamingServer[GetSSHStatusResponse]) error
 	// SSH Server service control (requires elevated privileges)
 	GetSSHServiceStatus(context.Context, *GetSSHServiceStatusRequest) (*GetSSHServiceStatusResponse, error)
 	StartSSHService(context.Context, *StartSSHServiceRequest) (*SSHServiceControlResponse, error)
@@ -178,6 +202,9 @@ type UnimplementedSystemServiceServer struct{}
 
 func (UnimplementedSystemServiceServer) GetSSHStatus(context.Context, *GetSSHStatusRequest) (*GetSSHStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSSHStatus not implemented")
+}
+func (UnimplementedSystemServiceServer) WatchSSHStatus(*WatchSSHStatusRequest, grpc.ServerStreamingServer[GetSSHStatusResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method WatchSSHStatus not implemented")
 }
 func (UnimplementedSystemServiceServer) GetSSHServiceStatus(context.Context, *GetSSHServiceStatusRequest) (*GetSSHServiceStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSSHServiceStatus not implemented")
@@ -241,6 +268,17 @@ func _SystemService_GetSSHStatus_Handler(srv interface{}, ctx context.Context, d
 	}
 	return interceptor(ctx, in, info, handler)
 }
+
+func _SystemService_WatchSSHStatus_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WatchSSHStatusRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SystemServiceServer).WatchSSHStatus(m, &grpc.GenericServerStream[WatchSSHStatusRequest, GetSSHStatusResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SystemService_WatchSSHStatusServer = grpc.ServerStreamingServer[GetSSHStatusResponse]
 
 func _SystemService_GetSSHServiceStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetSSHServiceStatusRequest)
@@ -430,6 +468,12 @@ var SystemService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SystemService_GetInstallInstructions_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "WatchSSHStatus",
+			Handler:       _SystemService_WatchSSHStatus_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "skeys/v1/system.proto",
 }

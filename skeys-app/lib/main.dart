@@ -18,6 +18,7 @@ import 'features/config/bloc/config_bloc.dart';
 import 'features/hosts/bloc/hosts_bloc.dart';
 import 'features/agent/bloc/agent_bloc.dart';
 import 'features/remote/bloc/remote_bloc.dart';
+import 'features/server/bloc/server_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -176,6 +177,7 @@ class _SKeysAppState extends State<SKeysApp> {
         BlocProvider(create: (_) => getIt<HostsBloc>()),
         BlocProvider(create: (_) => getIt<AgentBloc>()),
         BlocProvider(create: (_) => getIt<RemoteBloc>()),
+        BlocProvider(create: (_) => getIt<ServerBloc>()),
       ],
       child: ToastificationWrapper(
         child: ListenableBuilder(

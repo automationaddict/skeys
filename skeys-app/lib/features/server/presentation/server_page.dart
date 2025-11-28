@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/backend/daemon_status_service.dart';
 import '../../../core/di/injection.dart';
-import '../../../core/generated/skeys/v1/config.pb.dart';
-import '../../../core/generated/skeys/v1/system.pb.dart';
-import '../../../core/grpc/grpc_client.dart';
 import '../../../core/notifications/app_toast.dart';
+import '../bloc/server_bloc.dart';
+import '../domain/server_entity.dart';
+import '../repository/server_repository.dart';
 
 /// Server status page showing SSH client/server installation and service status.
 class ServerPage extends StatefulWidget {
@@ -17,131 +18,10 @@ class ServerPage extends StatefulWidget {
 }
 
 class _ServerPageState extends State<ServerPage> {
-  final _grpcClient = getIt<GrpcClient>();
-  GetSSHStatusResponse? _status;
-  bool _loading = true;
-  String? _error;
-  bool _actionInProgress = false;
-
   @override
   void initState() {
     super.initState();
-    _loadStatus();
-  }
-
-  Future<void> _loadStatus() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-
-    try {
-      final status = await _grpcClient.system.getSSHStatus(GetSSHStatusRequest());
-      setState(() {
-        _status = status;
-        _loading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _loading = false;
-      });
-    }
-  }
-
-  Future<void> _startService() async {
-    setState(() => _actionInProgress = true);
-    try {
-      final response = await _grpcClient.system.startSSHService(StartSSHServiceRequest());
-      if (response.success) {
-        _showMessage('SSH service started successfully');
-        await _loadStatus();
-      } else {
-        _showMessage('Failed to start SSH service: ${response.message}', isError: true);
-      }
-    } catch (e) {
-      _showMessage('Error: $e', isError: true);
-    } finally {
-      setState(() => _actionInProgress = false);
-    }
-  }
-
-  Future<void> _stopService() async {
-    setState(() => _actionInProgress = true);
-    try {
-      final response = await _grpcClient.system.stopSSHService(StopSSHServiceRequest());
-      if (response.success) {
-        _showMessage('SSH service stopped successfully');
-        await _loadStatus();
-      } else {
-        _showMessage('Failed to stop SSH service: ${response.message}', isError: true);
-      }
-    } catch (e) {
-      _showMessage('Error: $e', isError: true);
-    } finally {
-      setState(() => _actionInProgress = false);
-    }
-  }
-
-  Future<void> _restartService() async {
-    setState(() => _actionInProgress = true);
-    try {
-      final response = await _grpcClient.system.restartSSHServiceWithStatus(
-        RestartSSHServiceWithStatusRequest(),
-      );
-      if (response.success) {
-        _showMessage('SSH service restarted successfully');
-        await _loadStatus();
-      } else {
-        _showMessage('Failed to restart SSH service: ${response.message}', isError: true);
-      }
-    } catch (e) {
-      _showMessage('Error: $e', isError: true);
-    } finally {
-      setState(() => _actionInProgress = false);
-    }
-  }
-
-  void _showMessage(String message, {bool isError = false}) {
-    if (isError) {
-      AppToast.error(context, message: message);
-    } else {
-      AppToast.success(context, message: message);
-    }
-  }
-
-  Future<void> _enableService() async {
-    setState(() => _actionInProgress = true);
-    try {
-      final response = await _grpcClient.system.enableSSHService(EnableSSHServiceRequest());
-      if (response.success) {
-        _showMessage('SSH service will start automatically on boot');
-        await _loadStatus();
-      } else {
-        _showMessage('Failed to enable SSH service: ${response.message}', isError: true);
-      }
-    } catch (e) {
-      _showMessage('Error: $e', isError: true);
-    } finally {
-      setState(() => _actionInProgress = false);
-    }
-  }
-
-  Future<void> _disableService() async {
-    setState(() => _actionInProgress = true);
-    try {
-      final response = await _grpcClient.system.disableSSHService(DisableSSHServiceRequest());
-      if (response.success) {
-        _showMessage('SSH service will not start automatically on boot');
-        await _loadStatus();
-      } else {
-        _showMessage('Failed to disable SSH service: ${response.message}', isError: true);
-      }
-    } catch (e) {
-      _showMessage('Error: $e', isError: true);
-    } finally {
-      setState(() => _actionInProgress = false);
-    }
+    context.read<ServerBloc>().add(const ServerWatchRequested());
   }
 
   @override
@@ -152,23 +32,39 @@ class _ServerPageState extends State<ServerPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('SSH Server Status'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
-            onPressed: _loading ? null : _loadStatus,
-          ),
-        ],
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? _buildErrorState(colorScheme)
-              : _buildContent(theme, colorScheme),
+      body: BlocConsumer<ServerBloc, ServerState>(
+        listener: (context, state) {
+          // Handle action results
+          if (state.actionResult != null) {
+            if (state.actionResult!.success) {
+              AppToast.success(context, message: state.actionResult!.message);
+            } else {
+              AppToast.error(context, message: state.actionResult!.message);
+            }
+            // Clear the action result
+            context.read<ServerBloc>().add(const ServerActionResultCleared());
+          }
+          if (state.status == ServerStatus.failure && state.errorMessage != null) {
+            AppToast.error(context, message: state.errorMessage!);
+          }
+        },
+        builder: (context, state) {
+          if (state.status == ServerStatus.loading && state.sshStatus == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state.sshStatus == null) {
+            return _buildErrorState(colorScheme, state.errorMessage);
+          }
+
+          return _buildContent(theme, colorScheme, state);
+        },
+      ),
     );
   }
 
-  Widget _buildErrorState(ColorScheme colorScheme) {
+  Widget _buildErrorState(ColorScheme colorScheme, String? error) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -180,10 +76,12 @@ class _ServerPageState extends State<ServerPage> {
             style: TextStyle(color: colorScheme.error),
           ),
           const SizedBox(height: 8),
-          Text(_error ?? 'Unknown error'),
+          Text(error ?? 'Unknown error'),
           const SizedBox(height: 24),
           FilledButton.icon(
-            onPressed: _loadStatus,
+            onPressed: () {
+              context.read<ServerBloc>().add(const ServerWatchRequested());
+            },
             icon: const Icon(Icons.refresh),
             label: const Text('Retry'),
           ),
@@ -192,8 +90,8 @@ class _ServerPageState extends State<ServerPage> {
     );
   }
 
-  Widget _buildContent(ThemeData theme, ColorScheme colorScheme) {
-    final status = _status!;
+  Widget _buildContent(ThemeData theme, ColorScheme colorScheme, ServerState state) {
+    final status = state.sshStatus!;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -207,13 +105,13 @@ class _ServerPageState extends State<ServerPage> {
           _buildClientCard(theme, colorScheme, status.client),
           const SizedBox(height: 16),
           // SSH Server Card
-          _buildServerCard(theme, colorScheme, status.server),
+          _buildServerCard(theme, colorScheme, status.server, state.actionInProgress),
         ],
       ),
     );
   }
 
-  Widget _buildSystemInfoCard(ThemeData theme, ColorScheme colorScheme, GetSSHStatusResponse status) {
+  Widget _buildSystemInfoCard(ThemeData theme, ColorScheme colorScheme, SSHSystemStatus status) {
     final daemonStatusService = getIt<DaemonStatusService>();
 
     return Card(
@@ -358,7 +256,7 @@ class _ServerPageState extends State<ServerPage> {
                 ),
                 if (!installed)
                   FilledButton.tonalIcon(
-                    onPressed: () => _showInstallInstructions(SSHComponent.SSH_COMPONENT_CLIENT),
+                    onPressed: () => _showInstallInstructions(SSHComponent.client),
                     icon: const Icon(Icons.help_outline),
                     label: const Text('How to Install'),
                   ),
@@ -381,12 +279,17 @@ class _ServerPageState extends State<ServerPage> {
     );
   }
 
-  Widget _buildServerCard(ThemeData theme, ColorScheme colorScheme, SSHServerStatus server) {
+  Widget _buildServerCard(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    SSHServerStatus server,
+    bool actionInProgress,
+  ) {
     final installed = server.installed;
     final service = server.service;
-    final isRunning = service.state == ServiceState.SERVICE_STATE_RUNNING;
-    final isStopped = service.state == ServiceState.SERVICE_STATE_STOPPED;
-    final isFailed = service.state == ServiceState.SERVICE_STATE_FAILED;
+    final isRunning = service.state == ServiceState.running;
+    final isStopped = service.state == ServiceState.stopped;
+    final isFailed = service.state == ServiceState.failed;
 
     return Card(
       child: Padding(
@@ -421,7 +324,7 @@ class _ServerPageState extends State<ServerPage> {
                 ),
                 if (!installed)
                   FilledButton.tonalIcon(
-                    onPressed: () => _showInstallInstructions(SSHComponent.SSH_COMPONENT_SERVER),
+                    onPressed: () => _showInstallInstructions(SSHComponent.server),
                     icon: const Icon(Icons.help_outline),
                     label: const Text('How to Install'),
                   ),
@@ -434,8 +337,10 @@ class _ServerPageState extends State<ServerPage> {
                 children: [
                   if (isStopped || isFailed)
                     FilledButton.icon(
-                      onPressed: _actionInProgress ? null : _startService,
-                      icon: _actionInProgress
+                      onPressed: actionInProgress
+                          ? null
+                          : () => context.read<ServerBloc>().add(const ServerStartRequested()),
+                      icon: actionInProgress
                           ? const SizedBox(
                               width: 16,
                               height: 16,
@@ -446,8 +351,10 @@ class _ServerPageState extends State<ServerPage> {
                     ),
                   if (isRunning) ...[
                     FilledButton.tonalIcon(
-                      onPressed: _actionInProgress ? null : _restartService,
-                      icon: _actionInProgress
+                      onPressed: actionInProgress
+                          ? null
+                          : () => context.read<ServerBloc>().add(const ServerRestartRequested()),
+                      icon: actionInProgress
                           ? const SizedBox(
                               width: 16,
                               height: 16,
@@ -458,7 +365,9 @@ class _ServerPageState extends State<ServerPage> {
                     ),
                     const SizedBox(width: 8),
                     OutlinedButton.icon(
-                      onPressed: _actionInProgress ? null : _stopService,
+                      onPressed: actionInProgress
+                          ? null
+                          : () => context.read<ServerBloc>().add(const ServerStopRequested()),
                       icon: const Icon(Icons.stop),
                       label: const Text('Stop'),
                     ),
@@ -473,7 +382,7 @@ class _ServerPageState extends State<ServerPage> {
                 _buildInfoRow('Binary', server.binaryPath, theme, copyable: true),
               if (service.serviceName.isNotEmpty)
                 _buildInfoRow('Service', service.serviceName, theme),
-              _buildAutoStartRow(theme, colorScheme, service),
+              _buildAutoStartRow(theme, colorScheme, service, actionInProgress),
               if (isRunning && service.pid > 0)
                 _buildInfoRow('PID', service.pid.toString(), theme),
               if (service.startedAt.isNotEmpty)
@@ -565,7 +474,12 @@ class _ServerPageState extends State<ServerPage> {
     );
   }
 
-  Widget _buildAutoStartRow(ThemeData theme, ColorScheme colorScheme, ServiceStatus service) {
+  Widget _buildAutoStartRow(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    ServiceStatus service,
+    bool actionInProgress,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -584,13 +498,13 @@ class _ServerPageState extends State<ServerPage> {
               children: [
                 Switch(
                   value: service.enabled,
-                  onChanged: _actionInProgress
+                  onChanged: actionInProgress
                       ? null
                       : (value) {
                           if (value) {
-                            _enableService();
+                            context.read<ServerBloc>().add(const ServerEnableRequested());
                           } else {
-                            _disableService();
+                            context.read<ServerBloc>().add(const ServerDisableRequested());
                           }
                         },
                 ),
@@ -700,13 +614,13 @@ class _ServerPageState extends State<ServerPage> {
     if (!installed) return 'Not Installed';
 
     switch (service.state) {
-      case ServiceState.SERVICE_STATE_RUNNING:
+      case ServiceState.running:
         return 'Running';
-      case ServiceState.SERVICE_STATE_STOPPED:
+      case ServiceState.stopped:
         return 'Stopped';
-      case ServiceState.SERVICE_STATE_FAILED:
+      case ServiceState.failed:
         return 'Failed';
-      case ServiceState.SERVICE_STATE_NOT_FOUND:
+      case ServiceState.notFound:
         return 'Service Not Found';
       default:
         return 'Unknown';
@@ -717,11 +631,11 @@ class _ServerPageState extends State<ServerPage> {
     if (!installed) return colorScheme.error;
 
     switch (service.state) {
-      case ServiceState.SERVICE_STATE_RUNNING:
+      case ServiceState.running:
         return Colors.green;
-      case ServiceState.SERVICE_STATE_STOPPED:
+      case ServiceState.stopped:
         return Colors.orange;
-      case ServiceState.SERVICE_STATE_FAILED:
+      case ServiceState.failed:
         return colorScheme.error;
       default:
         return colorScheme.onSurfaceVariant;
@@ -730,9 +644,8 @@ class _ServerPageState extends State<ServerPage> {
 
   Future<void> _showInstallInstructions(SSHComponent component) async {
     try {
-      final instructions = await _grpcClient.system.getInstallInstructions(
-        GetInstallInstructionsRequest()..component = component,
-      );
+      final repository = getIt<ServerRepository>();
+      final instructions = await repository.getInstallInstructions(component);
 
       if (!mounted) return;
 
@@ -741,13 +654,13 @@ class _ServerPageState extends State<ServerPage> {
         builder: (context) => _InstallInstructionsDialog(instructions: instructions),
       );
     } catch (e) {
-      _showMessage('Failed to load instructions: $e', isError: true);
+      AppToast.error(context, message: 'Failed to load instructions: $e');
     }
   }
 }
 
 class _InstallInstructionsDialog extends StatelessWidget {
-  final GetInstallInstructionsResponse instructions;
+  final InstallInstructions instructions;
 
   const _InstallInstructionsDialog({required this.instructions});
 
@@ -755,7 +668,7 @@ class _InstallInstructionsDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isServer = instructions.component == SSHComponent.SSH_COMPONENT_SERVER;
+    final isServer = instructions.component == SSHComponent.server;
 
     return AlertDialog(
       title: Row(

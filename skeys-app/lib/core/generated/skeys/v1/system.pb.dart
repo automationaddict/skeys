@@ -80,6 +80,64 @@ class GetSSHStatusRequest extends $pb.GeneratedMessage {
   $1.Target ensureTarget() => $_ensure(0);
 }
 
+class WatchSSHStatusRequest extends $pb.GeneratedMessage {
+  factory WatchSSHStatusRequest({
+    $1.Target? target,
+  }) {
+    final result = create();
+    if (target != null) result.target = target;
+    return result;
+  }
+
+  WatchSSHStatusRequest._();
+
+  factory WatchSSHStatusRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory WatchSSHStatusRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'WatchSSHStatusRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'),
+      createEmptyInstance: create)
+    ..aOM<$1.Target>(1, _omitFieldNames ? '' : 'target',
+        subBuilder: $1.Target.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  WatchSSHStatusRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  WatchSSHStatusRequest copyWith(
+          void Function(WatchSSHStatusRequest) updates) =>
+      super.copyWith((message) => updates(message as WatchSSHStatusRequest))
+          as WatchSSHStatusRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static WatchSSHStatusRequest create() => WatchSSHStatusRequest._();
+  @$core.override
+  WatchSSHStatusRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static WatchSSHStatusRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<WatchSSHStatusRequest>(create);
+  static WatchSSHStatusRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $1.Target get target => $_getN(0);
+  @$pb.TagNumber(1)
+  set target($1.Target value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTarget() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTarget() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $1.Target ensureTarget() => $_ensure(0);
+}
+
 class GetSSHStatusResponse extends $pb.GeneratedMessage {
   factory GetSSHStatusResponse({
     $core.String? distribution,

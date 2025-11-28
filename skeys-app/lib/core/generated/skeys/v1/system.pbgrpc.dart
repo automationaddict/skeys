@@ -41,6 +41,16 @@ class SystemServiceClient extends $grpc.Client {
     return $createUnaryCall(_$getSSHStatus, request, options: options);
   }
 
+  /// Watch for SSH status changes (service state, config changes)
+  $grpc.ResponseStream<$0.GetSSHStatusResponse> watchSSHStatus(
+    $0.WatchSSHStatusRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createStreamingCall(
+        _$watchSSHStatus, $async.Stream.fromIterable([request]),
+        options: options);
+  }
+
   /// SSH Server service control (requires elevated privileges)
   $grpc.ResponseFuture<$0.GetSSHServiceStatusResponse> getSSHServiceStatus(
     $0.GetSSHServiceStatusRequest request, {
@@ -110,6 +120,11 @@ class SystemServiceClient extends $grpc.Client {
           '/skeys.v1.SystemService/GetSSHStatus',
           ($0.GetSSHStatusRequest value) => value.writeToBuffer(),
           $0.GetSSHStatusResponse.fromBuffer);
+  static final _$watchSSHStatus =
+      $grpc.ClientMethod<$0.WatchSSHStatusRequest, $0.GetSSHStatusResponse>(
+          '/skeys.v1.SystemService/WatchSSHStatus',
+          ($0.WatchSSHStatusRequest value) => value.writeToBuffer(),
+          $0.GetSSHStatusResponse.fromBuffer);
   static final _$getSSHServiceStatus = $grpc.ClientMethod<
           $0.GetSSHServiceStatusRequest, $0.GetSSHServiceStatusResponse>(
       '/skeys.v1.SystemService/GetSSHServiceStatus',
@@ -165,6 +180,15 @@ abstract class SystemServiceBase extends $grpc.Service {
             false,
             ($core.List<$core.int> value) =>
                 $0.GetSSHStatusRequest.fromBuffer(value),
+            ($0.GetSSHStatusResponse value) => value.writeToBuffer()));
+    $addMethod(
+        $grpc.ServiceMethod<$0.WatchSSHStatusRequest, $0.GetSSHStatusResponse>(
+            'WatchSSHStatus',
+            watchSSHStatus_Pre,
+            false,
+            true,
+            ($core.List<$core.int> value) =>
+                $0.WatchSSHStatusRequest.fromBuffer(value),
             ($0.GetSSHStatusResponse value) => value.writeToBuffer()));
     $addMethod($grpc.ServiceMethod<$0.GetSSHServiceStatusRequest,
             $0.GetSSHServiceStatusResponse>(
@@ -248,6 +272,15 @@ abstract class SystemServiceBase extends $grpc.Service {
 
   $async.Future<$0.GetSSHStatusResponse> getSSHStatus(
       $grpc.ServiceCall call, $0.GetSSHStatusRequest request);
+
+  $async.Stream<$0.GetSSHStatusResponse> watchSSHStatus_Pre(
+      $grpc.ServiceCall $call,
+      $async.Future<$0.WatchSSHStatusRequest> $request) async* {
+    yield* watchSSHStatus($call, await $request);
+  }
+
+  $async.Stream<$0.GetSSHStatusResponse> watchSSHStatus(
+      $grpc.ServiceCall call, $0.WatchSSHStatusRequest request);
 
   $async.Future<$0.GetSSHServiceStatusResponse> getSSHServiceStatus_Pre(
       $grpc.ServiceCall $call,

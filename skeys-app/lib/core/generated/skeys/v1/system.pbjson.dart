@@ -70,6 +70,26 @@ final $typed_data.Uint8List getSSHStatusRequestDescriptor = $convert.base64Decod
     'ChNHZXRTU0hTdGF0dXNSZXF1ZXN0EigKBnRhcmdldBgBIAEoCzIQLnNrZXlzLnYxLlRhcmdldF'
     'IGdGFyZ2V0');
 
+@$core.Deprecated('Use watchSSHStatusRequestDescriptor instead')
+const WatchSSHStatusRequest$json = {
+  '1': 'WatchSSHStatusRequest',
+  '2': [
+    {
+      '1': 'target',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.Target',
+      '10': 'target'
+    },
+  ],
+};
+
+/// Descriptor for `WatchSSHStatusRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List watchSSHStatusRequestDescriptor = $convert.base64Decode(
+    'ChVXYXRjaFNTSFN0YXR1c1JlcXVlc3QSKAoGdGFyZ2V0GAEgASgLMhAuc2tleXMudjEuVGFyZ2'
+    'V0UgZ0YXJnZXQ=');
+
 @$core.Deprecated('Use getSSHStatusResponseDescriptor instead')
 const GetSSHStatusResponse$json = {
   '1': 'GetSSHStatusResponse',

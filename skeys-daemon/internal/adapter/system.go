@@ -24,6 +24,33 @@ func NewSystemServiceAdapter() *SystemServiceAdapter {
 	}
 }
 
+// WatchSSHStatus streams SSH status updates when changes are detected.
+func (a *SystemServiceAdapter) WatchSSHStatus(req *pb.WatchSSHStatusRequest, stream pb.SystemService_WatchSSHStatusServer) error {
+	ctx := stream.Context()
+
+	// Use the core service's Watch method which polls for status changes
+	updates := a.systemMgr.Watch(ctx)
+
+	for update := range updates {
+		if update.Err != nil {
+			return status.Errorf(codes.Internal, "watch error: %v", update.Err)
+		}
+
+		resp := &pb.GetSSHStatusResponse{
+			Distribution:        update.Status.Distribution,
+			DistributionVersion: update.Status.DistributionVersion,
+			Client:              toProtoSSHClientStatus(&update.Status.Client),
+			Server:              toProtoSSHServerStatus(&update.Status.Server),
+		}
+
+		if err := stream.Send(resp); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // GetSSHStatus returns comprehensive SSH system status.
 func (a *SystemServiceAdapter) GetSSHStatus(ctx context.Context, req *pb.GetSSHStatusRequest) (*pb.GetSSHStatusResponse, error) {
 	sshStatus, err := a.systemMgr.GetSSHStatus(ctx)
