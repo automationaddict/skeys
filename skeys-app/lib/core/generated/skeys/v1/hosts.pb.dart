@@ -219,6 +219,64 @@ class ListKnownHostsRequest extends $pb.GeneratedMessage {
   $2.Target ensureTarget() => $_ensure(0);
 }
 
+class WatchKnownHostsRequest extends $pb.GeneratedMessage {
+  factory WatchKnownHostsRequest({
+    $2.Target? target,
+  }) {
+    final result = create();
+    if (target != null) result.target = target;
+    return result;
+  }
+
+  WatchKnownHostsRequest._();
+
+  factory WatchKnownHostsRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory WatchKnownHostsRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'WatchKnownHostsRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'),
+      createEmptyInstance: create)
+    ..aOM<$2.Target>(1, _omitFieldNames ? '' : 'target',
+        subBuilder: $2.Target.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  WatchKnownHostsRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  WatchKnownHostsRequest copyWith(
+          void Function(WatchKnownHostsRequest) updates) =>
+      super.copyWith((message) => updates(message as WatchKnownHostsRequest))
+          as WatchKnownHostsRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static WatchKnownHostsRequest create() => WatchKnownHostsRequest._();
+  @$core.override
+  WatchKnownHostsRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static WatchKnownHostsRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<WatchKnownHostsRequest>(create);
+  static WatchKnownHostsRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $2.Target get target => $_getN(0);
+  @$pb.TagNumber(1)
+  set target($2.Target value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTarget() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTarget() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $2.Target ensureTarget() => $_ensure(0);
+}
+
 class ListKnownHostsResponse extends $pb.GeneratedMessage {
   factory ListKnownHostsResponse({
     $core.Iterable<KnownHost>? hosts,
@@ -1053,6 +1111,77 @@ class ListAuthorizedKeysRequest extends $pb.GeneratedMessage {
   static ListAuthorizedKeysRequest getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ListAuthorizedKeysRequest>(create);
   static ListAuthorizedKeysRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $2.Target get target => $_getN(0);
+  @$pb.TagNumber(1)
+  set target($2.Target value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTarget() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTarget() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $2.Target ensureTarget() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  $core.String get user => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set user($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasUser() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearUser() => $_clearField(2);
+}
+
+class WatchAuthorizedKeysRequest extends $pb.GeneratedMessage {
+  factory WatchAuthorizedKeysRequest({
+    $2.Target? target,
+    $core.String? user,
+  }) {
+    final result = create();
+    if (target != null) result.target = target;
+    if (user != null) result.user = user;
+    return result;
+  }
+
+  WatchAuthorizedKeysRequest._();
+
+  factory WatchAuthorizedKeysRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory WatchAuthorizedKeysRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'WatchAuthorizedKeysRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'),
+      createEmptyInstance: create)
+    ..aOM<$2.Target>(1, _omitFieldNames ? '' : 'target',
+        subBuilder: $2.Target.create)
+    ..aOS(2, _omitFieldNames ? '' : 'user')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  WatchAuthorizedKeysRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  WatchAuthorizedKeysRequest copyWith(
+          void Function(WatchAuthorizedKeysRequest) updates) =>
+      super.copyWith(
+              (message) => updates(message as WatchAuthorizedKeysRequest))
+          as WatchAuthorizedKeysRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static WatchAuthorizedKeysRequest create() => WatchAuthorizedKeysRequest._();
+  @$core.override
+  WatchAuthorizedKeysRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static WatchAuthorizedKeysRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<WatchAuthorizedKeysRequest>(create);
+  static WatchAuthorizedKeysRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
   $2.Target get target => $_getN(0);

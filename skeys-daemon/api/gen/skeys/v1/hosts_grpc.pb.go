@@ -21,12 +21,14 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	HostsService_ListKnownHosts_FullMethodName      = "/skeys.v1.HostsService/ListKnownHosts"
+	HostsService_WatchKnownHosts_FullMethodName     = "/skeys.v1.HostsService/WatchKnownHosts"
 	HostsService_GetKnownHost_FullMethodName        = "/skeys.v1.HostsService/GetKnownHost"
 	HostsService_ScanHostKeys_FullMethodName        = "/skeys.v1.HostsService/ScanHostKeys"
 	HostsService_AddKnownHost_FullMethodName        = "/skeys.v1.HostsService/AddKnownHost"
 	HostsService_RemoveKnownHost_FullMethodName     = "/skeys.v1.HostsService/RemoveKnownHost"
 	HostsService_HashKnownHosts_FullMethodName      = "/skeys.v1.HostsService/HashKnownHosts"
 	HostsService_ListAuthorizedKeys_FullMethodName  = "/skeys.v1.HostsService/ListAuthorizedKeys"
+	HostsService_WatchAuthorizedKeys_FullMethodName = "/skeys.v1.HostsService/WatchAuthorizedKeys"
 	HostsService_AddAuthorizedKey_FullMethodName    = "/skeys.v1.HostsService/AddAuthorizedKey"
 	HostsService_UpdateAuthorizedKey_FullMethodName = "/skeys.v1.HostsService/UpdateAuthorizedKey"
 	HostsService_RemoveAuthorizedKey_FullMethodName = "/skeys.v1.HostsService/RemoveAuthorizedKey"
@@ -38,6 +40,7 @@ const (
 type HostsServiceClient interface {
 	// Known Hosts
 	ListKnownHosts(ctx context.Context, in *ListKnownHostsRequest, opts ...grpc.CallOption) (*ListKnownHostsResponse, error)
+	WatchKnownHosts(ctx context.Context, in *WatchKnownHostsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ListKnownHostsResponse], error)
 	GetKnownHost(ctx context.Context, in *GetKnownHostRequest, opts ...grpc.CallOption) (*GetKnownHostResponse, error)
 	ScanHostKeys(ctx context.Context, in *ScanHostKeysRequest, opts ...grpc.CallOption) (*ScanHostKeysResponse, error)
 	AddKnownHost(ctx context.Context, in *AddKnownHostRequest, opts ...grpc.CallOption) (*KnownHost, error)
@@ -45,6 +48,7 @@ type HostsServiceClient interface {
 	HashKnownHosts(ctx context.Context, in *HashKnownHostsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Authorized Keys
 	ListAuthorizedKeys(ctx context.Context, in *ListAuthorizedKeysRequest, opts ...grpc.CallOption) (*ListAuthorizedKeysResponse, error)
+	WatchAuthorizedKeys(ctx context.Context, in *WatchAuthorizedKeysRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ListAuthorizedKeysResponse], error)
 	AddAuthorizedKey(ctx context.Context, in *AddAuthorizedKeyRequest, opts ...grpc.CallOption) (*AuthorizedKey, error)
 	UpdateAuthorizedKey(ctx context.Context, in *UpdateAuthorizedKeyRequest, opts ...grpc.CallOption) (*AuthorizedKey, error)
 	RemoveAuthorizedKey(ctx context.Context, in *RemoveAuthorizedKeyRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -67,6 +71,25 @@ func (c *hostsServiceClient) ListKnownHosts(ctx context.Context, in *ListKnownHo
 	}
 	return out, nil
 }
+
+func (c *hostsServiceClient) WatchKnownHosts(ctx context.Context, in *WatchKnownHostsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ListKnownHostsResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &HostsService_ServiceDesc.Streams[0], HostsService_WatchKnownHosts_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[WatchKnownHostsRequest, ListKnownHostsResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type HostsService_WatchKnownHostsClient = grpc.ServerStreamingClient[ListKnownHostsResponse]
 
 func (c *hostsServiceClient) GetKnownHost(ctx context.Context, in *GetKnownHostRequest, opts ...grpc.CallOption) (*GetKnownHostResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -128,6 +151,25 @@ func (c *hostsServiceClient) ListAuthorizedKeys(ctx context.Context, in *ListAut
 	return out, nil
 }
 
+func (c *hostsServiceClient) WatchAuthorizedKeys(ctx context.Context, in *WatchAuthorizedKeysRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ListAuthorizedKeysResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &HostsService_ServiceDesc.Streams[1], HostsService_WatchAuthorizedKeys_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[WatchAuthorizedKeysRequest, ListAuthorizedKeysResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type HostsService_WatchAuthorizedKeysClient = grpc.ServerStreamingClient[ListAuthorizedKeysResponse]
+
 func (c *hostsServiceClient) AddAuthorizedKey(ctx context.Context, in *AddAuthorizedKeyRequest, opts ...grpc.CallOption) (*AuthorizedKey, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AuthorizedKey)
@@ -164,6 +206,7 @@ func (c *hostsServiceClient) RemoveAuthorizedKey(ctx context.Context, in *Remove
 type HostsServiceServer interface {
 	// Known Hosts
 	ListKnownHosts(context.Context, *ListKnownHostsRequest) (*ListKnownHostsResponse, error)
+	WatchKnownHosts(*WatchKnownHostsRequest, grpc.ServerStreamingServer[ListKnownHostsResponse]) error
 	GetKnownHost(context.Context, *GetKnownHostRequest) (*GetKnownHostResponse, error)
 	ScanHostKeys(context.Context, *ScanHostKeysRequest) (*ScanHostKeysResponse, error)
 	AddKnownHost(context.Context, *AddKnownHostRequest) (*KnownHost, error)
@@ -171,6 +214,7 @@ type HostsServiceServer interface {
 	HashKnownHosts(context.Context, *HashKnownHostsRequest) (*emptypb.Empty, error)
 	// Authorized Keys
 	ListAuthorizedKeys(context.Context, *ListAuthorizedKeysRequest) (*ListAuthorizedKeysResponse, error)
+	WatchAuthorizedKeys(*WatchAuthorizedKeysRequest, grpc.ServerStreamingServer[ListAuthorizedKeysResponse]) error
 	AddAuthorizedKey(context.Context, *AddAuthorizedKeyRequest) (*AuthorizedKey, error)
 	UpdateAuthorizedKey(context.Context, *UpdateAuthorizedKeyRequest) (*AuthorizedKey, error)
 	RemoveAuthorizedKey(context.Context, *RemoveAuthorizedKeyRequest) (*emptypb.Empty, error)
@@ -186,6 +230,9 @@ type UnimplementedHostsServiceServer struct{}
 
 func (UnimplementedHostsServiceServer) ListKnownHosts(context.Context, *ListKnownHostsRequest) (*ListKnownHostsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListKnownHosts not implemented")
+}
+func (UnimplementedHostsServiceServer) WatchKnownHosts(*WatchKnownHostsRequest, grpc.ServerStreamingServer[ListKnownHostsResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method WatchKnownHosts not implemented")
 }
 func (UnimplementedHostsServiceServer) GetKnownHost(context.Context, *GetKnownHostRequest) (*GetKnownHostResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetKnownHost not implemented")
@@ -204,6 +251,9 @@ func (UnimplementedHostsServiceServer) HashKnownHosts(context.Context, *HashKnow
 }
 func (UnimplementedHostsServiceServer) ListAuthorizedKeys(context.Context, *ListAuthorizedKeysRequest) (*ListAuthorizedKeysResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAuthorizedKeys not implemented")
+}
+func (UnimplementedHostsServiceServer) WatchAuthorizedKeys(*WatchAuthorizedKeysRequest, grpc.ServerStreamingServer[ListAuthorizedKeysResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method WatchAuthorizedKeys not implemented")
 }
 func (UnimplementedHostsServiceServer) AddAuthorizedKey(context.Context, *AddAuthorizedKeyRequest) (*AuthorizedKey, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddAuthorizedKey not implemented")
@@ -252,6 +302,17 @@ func _HostsService_ListKnownHosts_Handler(srv interface{}, ctx context.Context, 
 	}
 	return interceptor(ctx, in, info, handler)
 }
+
+func _HostsService_WatchKnownHosts_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WatchKnownHostsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(HostsServiceServer).WatchKnownHosts(m, &grpc.GenericServerStream[WatchKnownHostsRequest, ListKnownHostsResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type HostsService_WatchKnownHostsServer = grpc.ServerStreamingServer[ListKnownHostsResponse]
 
 func _HostsService_GetKnownHost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetKnownHostRequest)
@@ -361,6 +422,17 @@ func _HostsService_ListAuthorizedKeys_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _HostsService_WatchAuthorizedKeys_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WatchAuthorizedKeysRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(HostsServiceServer).WatchAuthorizedKeys(m, &grpc.GenericServerStream[WatchAuthorizedKeysRequest, ListAuthorizedKeysResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type HostsService_WatchAuthorizedKeysServer = grpc.ServerStreamingServer[ListAuthorizedKeysResponse]
+
 func _HostsService_AddAuthorizedKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddAuthorizedKeyRequest)
 	if err := dec(in); err != nil {
@@ -463,6 +535,17 @@ var HostsService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _HostsService_RemoveAuthorizedKey_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "WatchKnownHosts",
+			Handler:       _HostsService_WatchKnownHosts_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "WatchAuthorizedKeys",
+			Handler:       _HostsService_WatchAuthorizedKeys_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "skeys/v1/hosts.proto",
 }

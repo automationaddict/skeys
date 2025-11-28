@@ -15,9 +15,11 @@ class HostsBloc extends Bloc<HostsEvent, HostsState> {
 
   HostsBloc(this._repository) : super(const HostsState()) {
     on<HostsLoadKnownHostsRequested>(_onLoadKnownHosts);
+    on<HostsWatchKnownHostsRequested>(_onWatchKnownHosts);
     on<HostsRemoveKnownHostRequested>(_onRemoveKnownHost);
     on<HostsHashKnownHostsRequested>(_onHashKnownHosts);
     on<HostsLoadAuthorizedKeysRequested>(_onLoadAuthorizedKeys);
+    on<HostsWatchAuthorizedKeysRequested>(_onWatchAuthorizedKeys);
     on<HostsAddAuthorizedKeyRequested>(_onAddAuthorizedKey);
     on<HostsRemoveAuthorizedKeyRequested>(_onRemoveAuthorizedKey);
     on<HostsScanHostKeysRequested>(_onScanHostKeys);
@@ -47,6 +49,32 @@ class HostsBloc extends Bloc<HostsEvent, HostsState> {
         errorMessage: e.toString(),
       ));
     }
+  }
+
+  Future<void> _onWatchKnownHosts(
+    HostsWatchKnownHostsRequested event,
+    Emitter<HostsState> emit,
+  ) async {
+    _log.debug('subscribing to known hosts stream');
+    emit(state.copyWith(status: HostsStatus.loading));
+
+    await emit.forEach<List<KnownHostEntry>>(
+      _repository.watchKnownHosts(),
+      onData: (hosts) {
+        _log.debug('known hosts stream update', {'count': hosts.length});
+        return state.copyWith(
+          status: HostsStatus.success,
+          knownHosts: hosts,
+        );
+      },
+      onError: (error, stackTrace) {
+        _log.error('known hosts stream error', error, stackTrace);
+        return state.copyWith(
+          status: HostsStatus.failure,
+          errorMessage: error.toString(),
+        );
+      },
+    );
   }
 
   Future<void> _onRemoveKnownHost(
@@ -118,6 +146,32 @@ class HostsBloc extends Bloc<HostsEvent, HostsState> {
         errorMessage: e.toString(),
       ));
     }
+  }
+
+  Future<void> _onWatchAuthorizedKeys(
+    HostsWatchAuthorizedKeysRequested event,
+    Emitter<HostsState> emit,
+  ) async {
+    _log.debug('subscribing to authorized keys stream');
+    emit(state.copyWith(status: HostsStatus.loading));
+
+    await emit.forEach<List<AuthorizedKeyEntry>>(
+      _repository.watchAuthorizedKeys(),
+      onData: (keys) {
+        _log.debug('authorized keys stream update', {'count': keys.length});
+        return state.copyWith(
+          status: HostsStatus.success,
+          authorizedKeys: keys,
+        );
+      },
+      onError: (error, stackTrace) {
+        _log.error('authorized keys stream error', error, stackTrace);
+        return state.copyWith(
+          status: HostsStatus.failure,
+          errorMessage: error.toString(),
+        );
+      },
+    );
   }
 
   Future<void> _onAddAuthorizedKey(

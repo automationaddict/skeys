@@ -10,6 +10,7 @@ import "skeys/v1/common.proto";
 service HostsService {
   // Known Hosts
   rpc ListKnownHosts(ListKnownHostsRequest) returns (ListKnownHostsResponse);
+  rpc WatchKnownHosts(WatchKnownHostsRequest) returns (stream ListKnownHostsResponse);
   rpc GetKnownHost(GetKnownHostRequest) returns (GetKnownHostResponse);
   rpc ScanHostKeys(ScanHostKeysRequest) returns (ScanHostKeysResponse);
   rpc AddKnownHost(AddKnownHostRequest) returns (KnownHost);
@@ -18,6 +19,7 @@ service HostsService {
 
   // Authorized Keys
   rpc ListAuthorizedKeys(ListAuthorizedKeysRequest) returns (ListAuthorizedKeysResponse);
+  rpc WatchAuthorizedKeys(WatchAuthorizedKeysRequest) returns (stream ListAuthorizedKeysResponse);
   rpc AddAuthorizedKey(AddAuthorizedKeyRequest) returns (AuthorizedKey);
   rpc UpdateAuthorizedKey(UpdateAuthorizedKeyRequest) returns (AuthorizedKey);
   rpc RemoveAuthorizedKey(RemoveAuthorizedKeyRequest) returns (google.protobuf.Empty);
@@ -36,6 +38,10 @@ message KnownHost {
 }
 
 message ListKnownHostsRequest {
+  Target target = 1;
+}
+
+message WatchKnownHostsRequest {
   Target target = 1;
 }
 
@@ -101,6 +107,11 @@ message AuthorizedKey {
 }
 
 message ListAuthorizedKeysRequest {
+  Target target = 1;
+  string user = 2;
+}
+
+message WatchAuthorizedKeysRequest {
   Target target = 1;
   string user = 2;
 }

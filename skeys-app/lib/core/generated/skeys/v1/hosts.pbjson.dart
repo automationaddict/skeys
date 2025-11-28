@@ -60,6 +60,27 @@ final $typed_data.Uint8List listKnownHostsRequestDescriptor = $convert.base64Dec
     'ChVMaXN0S25vd25Ib3N0c1JlcXVlc3QSKAoGdGFyZ2V0GAEgASgLMhAuc2tleXMudjEuVGFyZ2'
     'V0UgZ0YXJnZXQ=');
 
+@$core.Deprecated('Use watchKnownHostsRequestDescriptor instead')
+const WatchKnownHostsRequest$json = {
+  '1': 'WatchKnownHostsRequest',
+  '2': [
+    {
+      '1': 'target',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.Target',
+      '10': 'target'
+    },
+  ],
+};
+
+/// Descriptor for `WatchKnownHostsRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List watchKnownHostsRequestDescriptor =
+    $convert.base64Decode(
+        'ChZXYXRjaEtub3duSG9zdHNSZXF1ZXN0EigKBnRhcmdldBgBIAEoCzIQLnNrZXlzLnYxLlRhcm'
+        'dldFIGdGFyZ2V0');
+
 @$core.Deprecated('Use listKnownHostsResponseDescriptor instead')
 const ListKnownHostsResponse$json = {
   '1': 'ListKnownHostsResponse',
@@ -288,6 +309,28 @@ final $typed_data.Uint8List listAuthorizedKeysRequestDescriptor =
     $convert.base64Decode(
         'ChlMaXN0QXV0aG9yaXplZEtleXNSZXF1ZXN0EigKBnRhcmdldBgBIAEoCzIQLnNrZXlzLnYxLl'
         'RhcmdldFIGdGFyZ2V0EhIKBHVzZXIYAiABKAlSBHVzZXI=');
+
+@$core.Deprecated('Use watchAuthorizedKeysRequestDescriptor instead')
+const WatchAuthorizedKeysRequest$json = {
+  '1': 'WatchAuthorizedKeysRequest',
+  '2': [
+    {
+      '1': 'target',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.Target',
+      '10': 'target'
+    },
+    {'1': 'user', '3': 2, '4': 1, '5': 9, '10': 'user'},
+  ],
+};
+
+/// Descriptor for `WatchAuthorizedKeysRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List watchAuthorizedKeysRequestDescriptor =
+    $convert.base64Decode(
+        'ChpXYXRjaEF1dGhvcml6ZWRLZXlzUmVxdWVzdBIoCgZ0YXJnZXQYASABKAsyEC5za2V5cy52MS'
+        '5UYXJnZXRSBnRhcmdldBISCgR1c2VyGAIgASgJUgR1c2Vy');
 
 @$core.Deprecated('Use listAuthorizedKeysResponseDescriptor instead')
 const ListAuthorizedKeysResponse$json = {

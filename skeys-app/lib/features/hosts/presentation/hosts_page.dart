@@ -19,7 +19,7 @@ class HostsPage extends StatefulWidget {
 class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _helpContextService = getIt<HelpContextService>();
-  bool _authorizedKeysLoaded = false;
+  bool _authorizedKeysWatching = false;
 
   static const _tabContexts = ['known', 'authorized'];
 
@@ -30,7 +30,7 @@ class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMix
     _tabController.addListener(_onTabChanged);
     // Set initial context
     _helpContextService.setContextSuffix(_tabContexts[0]);
-    context.read<HostsBloc>().add(const HostsLoadKnownHostsRequested());
+    context.read<HostsBloc>().add(const HostsWatchKnownHostsRequested());
   }
 
   void _onTabChanged() {
@@ -60,19 +60,6 @@ class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMix
             Tab(text: 'Authorized Keys'),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              if (_tabController.index == 0) {
-                context.read<HostsBloc>().add(const HostsLoadKnownHostsRequested());
-              } else {
-                context.read<HostsBloc>().add(const HostsLoadAuthorizedKeysRequested());
-              }
-            },
-            tooltip: 'Refresh',
-          ),
-        ],
       ),
       body: BlocBuilder<HostsBloc, HostsState>(
         builder: (context, state) {
@@ -160,11 +147,11 @@ class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMix
   }
 
   Widget _buildAuthorizedKeysTab(BuildContext context, HostsState state) {
-    // Only load once when first viewing the tab
-    if (!_authorizedKeysLoaded && state.status != HostsStatus.loading) {
-      _authorizedKeysLoaded = true;
+    // Start watching when first viewing the tab
+    if (!_authorizedKeysWatching && state.status != HostsStatus.loading) {
+      _authorizedKeysWatching = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<HostsBloc>().add(const HostsLoadAuthorizedKeysRequested());
+        context.read<HostsBloc>().add(const HostsWatchAuthorizedKeysRequested());
       });
     }
 

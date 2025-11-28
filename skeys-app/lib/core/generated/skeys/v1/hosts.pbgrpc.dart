@@ -41,6 +41,15 @@ class HostsServiceClient extends $grpc.Client {
     return $createUnaryCall(_$listKnownHosts, request, options: options);
   }
 
+  $grpc.ResponseStream<$0.ListKnownHostsResponse> watchKnownHosts(
+    $0.WatchKnownHostsRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createStreamingCall(
+        _$watchKnownHosts, $async.Stream.fromIterable([request]),
+        options: options);
+  }
+
   $grpc.ResponseFuture<$0.GetKnownHostResponse> getKnownHost(
     $0.GetKnownHostRequest request, {
     $grpc.CallOptions? options,
@@ -84,6 +93,15 @@ class HostsServiceClient extends $grpc.Client {
     return $createUnaryCall(_$listAuthorizedKeys, request, options: options);
   }
 
+  $grpc.ResponseStream<$0.ListAuthorizedKeysResponse> watchAuthorizedKeys(
+    $0.WatchAuthorizedKeysRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createStreamingCall(
+        _$watchAuthorizedKeys, $async.Stream.fromIterable([request]),
+        options: options);
+  }
+
   $grpc.ResponseFuture<$0.AuthorizedKey> addAuthorizedKey(
     $0.AddAuthorizedKeyRequest request, {
     $grpc.CallOptions? options,
@@ -111,6 +129,11 @@ class HostsServiceClient extends $grpc.Client {
       $grpc.ClientMethod<$0.ListKnownHostsRequest, $0.ListKnownHostsResponse>(
           '/skeys.v1.HostsService/ListKnownHosts',
           ($0.ListKnownHostsRequest value) => value.writeToBuffer(),
+          $0.ListKnownHostsResponse.fromBuffer);
+  static final _$watchKnownHosts =
+      $grpc.ClientMethod<$0.WatchKnownHostsRequest, $0.ListKnownHostsResponse>(
+          '/skeys.v1.HostsService/WatchKnownHosts',
+          ($0.WatchKnownHostsRequest value) => value.writeToBuffer(),
           $0.ListKnownHostsResponse.fromBuffer);
   static final _$getKnownHost =
       $grpc.ClientMethod<$0.GetKnownHostRequest, $0.GetKnownHostResponse>(
@@ -142,6 +165,11 @@ class HostsServiceClient extends $grpc.Client {
       '/skeys.v1.HostsService/ListAuthorizedKeys',
       ($0.ListAuthorizedKeysRequest value) => value.writeToBuffer(),
       $0.ListAuthorizedKeysResponse.fromBuffer);
+  static final _$watchAuthorizedKeys = $grpc.ClientMethod<
+          $0.WatchAuthorizedKeysRequest, $0.ListAuthorizedKeysResponse>(
+      '/skeys.v1.HostsService/WatchAuthorizedKeys',
+      ($0.WatchAuthorizedKeysRequest value) => value.writeToBuffer(),
+      $0.ListAuthorizedKeysResponse.fromBuffer);
   static final _$addAuthorizedKey =
       $grpc.ClientMethod<$0.AddAuthorizedKeyRequest, $0.AuthorizedKey>(
           '/skeys.v1.HostsService/AddAuthorizedKey',
@@ -172,6 +200,15 @@ abstract class HostsServiceBase extends $grpc.Service {
         false,
         ($core.List<$core.int> value) =>
             $0.ListKnownHostsRequest.fromBuffer(value),
+        ($0.ListKnownHostsResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.WatchKnownHostsRequest,
+            $0.ListKnownHostsResponse>(
+        'WatchKnownHosts',
+        watchKnownHosts_Pre,
+        false,
+        true,
+        ($core.List<$core.int> value) =>
+            $0.WatchKnownHostsRequest.fromBuffer(value),
         ($0.ListKnownHostsResponse value) => value.writeToBuffer()));
     $addMethod(
         $grpc.ServiceMethod<$0.GetKnownHostRequest, $0.GetKnownHostResponse>(
@@ -224,6 +261,15 @@ abstract class HostsServiceBase extends $grpc.Service {
         ($core.List<$core.int> value) =>
             $0.ListAuthorizedKeysRequest.fromBuffer(value),
         ($0.ListAuthorizedKeysResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.WatchAuthorizedKeysRequest,
+            $0.ListAuthorizedKeysResponse>(
+        'WatchAuthorizedKeys',
+        watchAuthorizedKeys_Pre,
+        false,
+        true,
+        ($core.List<$core.int> value) =>
+            $0.WatchAuthorizedKeysRequest.fromBuffer(value),
+        ($0.ListAuthorizedKeysResponse value) => value.writeToBuffer()));
     $addMethod(
         $grpc.ServiceMethod<$0.AddAuthorizedKeyRequest, $0.AuthorizedKey>(
             'AddAuthorizedKey',
@@ -260,6 +306,15 @@ abstract class HostsServiceBase extends $grpc.Service {
 
   $async.Future<$0.ListKnownHostsResponse> listKnownHosts(
       $grpc.ServiceCall call, $0.ListKnownHostsRequest request);
+
+  $async.Stream<$0.ListKnownHostsResponse> watchKnownHosts_Pre(
+      $grpc.ServiceCall $call,
+      $async.Future<$0.WatchKnownHostsRequest> $request) async* {
+    yield* watchKnownHosts($call, await $request);
+  }
+
+  $async.Stream<$0.ListKnownHostsResponse> watchKnownHosts(
+      $grpc.ServiceCall call, $0.WatchKnownHostsRequest request);
 
   $async.Future<$0.GetKnownHostResponse> getKnownHost_Pre(
       $grpc.ServiceCall $call,
@@ -311,6 +366,15 @@ abstract class HostsServiceBase extends $grpc.Service {
 
   $async.Future<$0.ListAuthorizedKeysResponse> listAuthorizedKeys(
       $grpc.ServiceCall call, $0.ListAuthorizedKeysRequest request);
+
+  $async.Stream<$0.ListAuthorizedKeysResponse> watchAuthorizedKeys_Pre(
+      $grpc.ServiceCall $call,
+      $async.Future<$0.WatchAuthorizedKeysRequest> $request) async* {
+    yield* watchAuthorizedKeys($call, await $request);
+  }
+
+  $async.Stream<$0.ListAuthorizedKeysResponse> watchAuthorizedKeys(
+      $grpc.ServiceCall call, $0.WatchAuthorizedKeysRequest request);
 
   $async.Future<$0.AuthorizedKey> addAuthorizedKey_Pre($grpc.ServiceCall $call,
       $async.Future<$0.AddAuthorizedKeyRequest> $request) async {

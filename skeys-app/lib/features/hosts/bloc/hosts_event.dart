@@ -11,6 +11,10 @@ final class HostsLoadKnownHostsRequested extends HostsEvent {
   const HostsLoadKnownHostsRequested();
 }
 
+final class HostsWatchKnownHostsRequested extends HostsEvent {
+  const HostsWatchKnownHostsRequested();
+}
+
 final class HostsRemoveKnownHostRequested extends HostsEvent {
   final String host;
 
@@ -26,6 +30,10 @@ final class HostsHashKnownHostsRequested extends HostsEvent {
 
 final class HostsLoadAuthorizedKeysRequested extends HostsEvent {
   const HostsLoadAuthorizedKeysRequested();
+}
+
+final class HostsWatchAuthorizedKeysRequested extends HostsEvent {
+  const HostsWatchAuthorizedKeysRequested();
 }
 
 final class HostsAddAuthorizedKeyRequested extends HostsEvent {

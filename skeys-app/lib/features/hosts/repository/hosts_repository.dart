@@ -7,6 +7,7 @@ import '../../../core/generated/skeys/v1/common.pb.dart' as common;
 abstract class HostsRepository {
   // Known hosts
   Future<List<KnownHostEntry>> listKnownHosts();
+  Stream<List<KnownHostEntry>> watchKnownHosts();
   Future<void> removeKnownHost(String hostname, {int port = 22});
   Future<void> hashKnownHosts();
   Future<List<ScannedHostKey>> scanHostKeys(String hostname, {int port = 22, int timeout = 10});
@@ -14,6 +15,7 @@ abstract class HostsRepository {
 
   // Authorized keys
   Future<List<AuthorizedKeyEntry>> listAuthorizedKeys({String? user});
+  Stream<List<AuthorizedKeyEntry>> watchAuthorizedKeys({String? user});
   Future<void> addAuthorizedKey(String publicKey, {List<String>? options, String? user});
   Future<void> removeAuthorizedKey(String keyId, {String? user});
 }
@@ -36,6 +38,21 @@ class HostsRepositoryImpl implements HostsRepository {
       publicKey: h.publicKey,
       isHashed: h.isHashed,
     )).toList();
+  }
+
+  @override
+  Stream<List<KnownHostEntry>> watchKnownHosts() {
+    final request = pb.WatchKnownHostsRequest()
+      ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL);
+
+    return _client.hosts.watchKnownHosts(request).map((response) =>
+      response.hosts.map((h) => KnownHostEntry(
+        host: h.hostnames.isNotEmpty ? h.hostnames.first : '',
+        keyType: h.keyType,
+        publicKey: h.publicKey,
+        isHashed: h.isHashed,
+      )).toList()
+    );
   }
 
   @override
@@ -105,6 +122,22 @@ class HostsRepositoryImpl implements HostsRepository {
       comment: k.comment,
       options: List.from(k.options),
     )).toList();
+  }
+
+  @override
+  Stream<List<AuthorizedKeyEntry>> watchAuthorizedKeys({String? user}) {
+    final request = pb.WatchAuthorizedKeysRequest()
+      ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL);
+    if (user != null) request.user = user;
+
+    return _client.hosts.watchAuthorizedKeys(request).map((response) =>
+      response.keys.map((k) => AuthorizedKeyEntry(
+        keyType: k.keyType,
+        publicKey: k.publicKey,
+        comment: k.comment,
+        options: List.from(k.options),
+      )).toList()
+    );
   }
 
   @override

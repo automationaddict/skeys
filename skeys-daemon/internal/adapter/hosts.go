@@ -28,6 +28,32 @@ func NewHostsServiceAdapter(kh *hosts.KnownHostsManager, ak *hosts.AuthorizedKey
 	}
 }
 
+// WatchKnownHosts streams known_hosts updates when changes are detected.
+func (a *HostsServiceAdapter) WatchKnownHosts(req *pb.WatchKnownHostsRequest, stream pb.HostsService_WatchKnownHostsServer) error {
+	ctx := stream.Context()
+
+	// Use the core service's Watch method which polls for changes
+	updates := a.knownHosts.Watch(ctx)
+
+	for update := range updates {
+		if update.Err != nil {
+			return status.Errorf(codes.Internal, "watch error: %v", update.Err)
+		}
+
+		var pbHosts []*pb.KnownHost
+		for _, h := range update.Hosts {
+			pbHosts = append(pbHosts, toProtoKnownHost(h))
+		}
+
+		resp := &pb.ListKnownHostsResponse{Hosts: pbHosts}
+		if err := stream.Send(resp); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // ListKnownHosts returns all entries in known_hosts
 func (a *HostsServiceAdapter) ListKnownHosts(ctx context.Context, req *pb.ListKnownHostsRequest) (*pb.ListKnownHostsResponse, error) {
 	hostList, err := a.knownHosts.List()
@@ -139,6 +165,32 @@ func (a *HostsServiceAdapter) AddKnownHost(ctx context.Context, req *pb.AddKnown
 	}
 
 	return toProtoKnownHost(host), nil
+}
+
+// WatchAuthorizedKeys streams authorized_keys updates when changes are detected.
+func (a *HostsServiceAdapter) WatchAuthorizedKeys(req *pb.WatchAuthorizedKeysRequest, stream pb.HostsService_WatchAuthorizedKeysServer) error {
+	ctx := stream.Context()
+
+	// Use the core service's Watch method which polls for changes
+	updates := a.authorizedKeys.Watch(ctx)
+
+	for update := range updates {
+		if update.Err != nil {
+			return status.Errorf(codes.Internal, "watch error: %v", update.Err)
+		}
+
+		var pbKeys []*pb.AuthorizedKey
+		for _, k := range update.Keys {
+			pbKeys = append(pbKeys, toProtoAuthorizedKey(k))
+		}
+
+		resp := &pb.ListAuthorizedKeysResponse{Keys: pbKeys}
+		if err := stream.Send(resp); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // ListAuthorizedKeys returns all keys in authorized_keys
