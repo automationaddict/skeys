@@ -54,13 +54,13 @@ class _ServerPageState extends State<ServerPage> {
     try {
       final response = await _grpcClient.system.startSSHService(StartSSHServiceRequest());
       if (response.success) {
-        _showSnackBar('SSH service started successfully');
+        _showMessage('SSH service started successfully');
         await _loadStatus();
       } else {
-        _showSnackBar('Failed to start SSH service: ${response.message}', isError: true);
+        _showMessage('Failed to start SSH service: ${response.message}', isError: true);
       }
     } catch (e) {
-      _showSnackBar('Error: $e', isError: true);
+      _showMessage('Error: $e', isError: true);
     } finally {
       setState(() => _actionInProgress = false);
     }
@@ -71,13 +71,13 @@ class _ServerPageState extends State<ServerPage> {
     try {
       final response = await _grpcClient.system.stopSSHService(StopSSHServiceRequest());
       if (response.success) {
-        _showSnackBar('SSH service stopped successfully');
+        _showMessage('SSH service stopped successfully');
         await _loadStatus();
       } else {
-        _showSnackBar('Failed to stop SSH service: ${response.message}', isError: true);
+        _showMessage('Failed to stop SSH service: ${response.message}', isError: true);
       }
     } catch (e) {
-      _showSnackBar('Error: $e', isError: true);
+      _showMessage('Error: $e', isError: true);
     } finally {
       setState(() => _actionInProgress = false);
     }
@@ -90,25 +90,24 @@ class _ServerPageState extends State<ServerPage> {
         RestartSSHServiceWithStatusRequest(),
       );
       if (response.success) {
-        _showSnackBar('SSH service restarted successfully');
+        _showMessage('SSH service restarted successfully');
         await _loadStatus();
       } else {
-        _showSnackBar('Failed to restart SSH service: ${response.message}', isError: true);
+        _showMessage('Failed to restart SSH service: ${response.message}', isError: true);
       }
     } catch (e) {
-      _showSnackBar('Error: $e', isError: true);
+      _showMessage('Error: $e', isError: true);
     } finally {
       setState(() => _actionInProgress = false);
     }
   }
 
-  void _showSnackBar(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Theme.of(context).colorScheme.error : null,
-      ),
-    );
+  void _showMessage(String message, {bool isError = false}) {
+    if (isError) {
+      AppToast.error(context, message: message);
+    } else {
+      AppToast.success(context, message: message);
+    }
   }
 
   @override
@@ -503,7 +502,7 @@ class _ServerPageState extends State<ServerPage> {
                 ? InkWell(
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: value));
-                      _showSnackBar('Copied to clipboard');
+                      AppToast.info(context, message: 'Copied to clipboard');
                     },
                     child: Row(
                       children: [
@@ -665,7 +664,7 @@ class _ServerPageState extends State<ServerPage> {
         builder: (context) => _InstallInstructionsDialog(instructions: instructions),
       );
     } catch (e) {
-      _showSnackBar('Failed to load instructions: $e', isError: true);
+      _showMessage('Failed to load instructions: $e', isError: true);
     }
   }
 }
