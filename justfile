@@ -30,10 +30,18 @@ proto-gen-go:
 proto-gen-dart:
     @echo "Generating Dart proto files..."
     @mkdir -p skeys-app/lib/core/generated/skeys/v1
+    @mkdir -p skeys-app/lib/core/generated/google/protobuf
     protoc \
         --proto_path=proto \
         --dart_out=grpc:skeys-app/lib/core/generated \
-        proto/skeys/v1/*.proto
+        proto/skeys/v1/*.proto \
+        proto/google/protobuf/*.proto
+    @# Fix well_known_types imports to use local generated files
+    @echo "Fixing import paths..."
+    @cd skeys-app/lib/core/generated/skeys/v1 && \
+        sed -i "s|package:protobuf/well_known_types/google/protobuf/empty.pb.dart|../../google/protobuf/empty.pb.dart|g" *.dart && \
+        sed -i "s|package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart|../../google/protobuf/timestamp.pb.dart|g" *.dart && \
+        sed -i "s|package:protobuf/well_known_types/google/protobuf/duration.pb.dart|../../google/protobuf/duration.pb.dart|g" *.dart
     @echo "Dart proto files generated"
 
 # Clean generated proto files

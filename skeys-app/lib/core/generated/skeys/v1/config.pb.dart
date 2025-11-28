@@ -2899,6 +2899,313 @@ class DeleteGlobalDirectiveRequest extends $pb.GeneratedMessage {
   void clearKey() => $_clearField(2);
 }
 
+/// Config Path Discovery messages
+class DiscoverConfigPathsRequest extends $pb.GeneratedMessage {
+  factory DiscoverConfigPathsRequest({
+    $2.Target? target,
+  }) {
+    final result = create();
+    if (target != null) result.target = target;
+    return result;
+  }
+
+  DiscoverConfigPathsRequest._();
+
+  factory DiscoverConfigPathsRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory DiscoverConfigPathsRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'DiscoverConfigPathsRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'),
+      createEmptyInstance: create)
+    ..aOM<$2.Target>(1, _omitFieldNames ? '' : 'target',
+        subBuilder: $2.Target.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DiscoverConfigPathsRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DiscoverConfigPathsRequest copyWith(
+          void Function(DiscoverConfigPathsRequest) updates) =>
+      super.copyWith(
+              (message) => updates(message as DiscoverConfigPathsRequest))
+          as DiscoverConfigPathsRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static DiscoverConfigPathsRequest create() => DiscoverConfigPathsRequest._();
+  @$core.override
+  DiscoverConfigPathsRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static DiscoverConfigPathsRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DiscoverConfigPathsRequest>(create);
+  static DiscoverConfigPathsRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $2.Target get target => $_getN(0);
+  @$pb.TagNumber(1)
+  set target($2.Target value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTarget() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTarget() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $2.Target ensureTarget() => $_ensure(0);
+}
+
+class DiscoverConfigPathsResponse extends $pb.GeneratedMessage {
+  factory DiscoverConfigPathsResponse({
+    ConfigPathInfo? clientSystemConfig,
+    ConfigPathInfo? clientUserConfig,
+    ConfigPathInfo? serverConfig,
+    $core.String? distribution,
+    $core.bool? sshClientInstalled,
+    $core.bool? sshServerInstalled,
+  }) {
+    final result = create();
+    if (clientSystemConfig != null)
+      result.clientSystemConfig = clientSystemConfig;
+    if (clientUserConfig != null) result.clientUserConfig = clientUserConfig;
+    if (serverConfig != null) result.serverConfig = serverConfig;
+    if (distribution != null) result.distribution = distribution;
+    if (sshClientInstalled != null)
+      result.sshClientInstalled = sshClientInstalled;
+    if (sshServerInstalled != null)
+      result.sshServerInstalled = sshServerInstalled;
+    return result;
+  }
+
+  DiscoverConfigPathsResponse._();
+
+  factory DiscoverConfigPathsResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory DiscoverConfigPathsResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'DiscoverConfigPathsResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'),
+      createEmptyInstance: create)
+    ..aOM<ConfigPathInfo>(1, _omitFieldNames ? '' : 'clientSystemConfig',
+        subBuilder: ConfigPathInfo.create)
+    ..aOM<ConfigPathInfo>(2, _omitFieldNames ? '' : 'clientUserConfig',
+        subBuilder: ConfigPathInfo.create)
+    ..aOM<ConfigPathInfo>(3, _omitFieldNames ? '' : 'serverConfig',
+        subBuilder: ConfigPathInfo.create)
+    ..aOS(4, _omitFieldNames ? '' : 'distribution')
+    ..aOB(5, _omitFieldNames ? '' : 'sshClientInstalled')
+    ..aOB(6, _omitFieldNames ? '' : 'sshServerInstalled')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DiscoverConfigPathsResponse clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DiscoverConfigPathsResponse copyWith(
+          void Function(DiscoverConfigPathsResponse) updates) =>
+      super.copyWith(
+              (message) => updates(message as DiscoverConfigPathsResponse))
+          as DiscoverConfigPathsResponse;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static DiscoverConfigPathsResponse create() =>
+      DiscoverConfigPathsResponse._();
+  @$core.override
+  DiscoverConfigPathsResponse createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static DiscoverConfigPathsResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DiscoverConfigPathsResponse>(create);
+  static DiscoverConfigPathsResponse? _defaultInstance;
+
+  /// Client config paths
+  @$pb.TagNumber(1)
+  ConfigPathInfo get clientSystemConfig => $_getN(0);
+  @$pb.TagNumber(1)
+  set clientSystemConfig(ConfigPathInfo value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasClientSystemConfig() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearClientSystemConfig() => $_clearField(1);
+  @$pb.TagNumber(1)
+  ConfigPathInfo ensureClientSystemConfig() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  ConfigPathInfo get clientUserConfig => $_getN(1);
+  @$pb.TagNumber(2)
+  set clientUserConfig(ConfigPathInfo value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasClientUserConfig() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearClientUserConfig() => $_clearField(2);
+  @$pb.TagNumber(2)
+  ConfigPathInfo ensureClientUserConfig() => $_ensure(1);
+
+  /// Server config paths
+  @$pb.TagNumber(3)
+  ConfigPathInfo get serverConfig => $_getN(2);
+  @$pb.TagNumber(3)
+  set serverConfig(ConfigPathInfo value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasServerConfig() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearServerConfig() => $_clearField(3);
+  @$pb.TagNumber(3)
+  ConfigPathInfo ensureServerConfig() => $_ensure(2);
+
+  /// Additional info
+  @$pb.TagNumber(4)
+  $core.String get distribution => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set distribution($core.String value) => $_setString(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasDistribution() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearDistribution() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.bool get sshClientInstalled => $_getBF(4);
+  @$pb.TagNumber(5)
+  set sshClientInstalled($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasSshClientInstalled() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearSshClientInstalled() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.bool get sshServerInstalled => $_getBF(5);
+  @$pb.TagNumber(6)
+  set sshServerInstalled($core.bool value) => $_setBool(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasSshServerInstalled() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearSshServerInstalled() => $_clearField(6);
+}
+
+class ConfigPathInfo extends $pb.GeneratedMessage {
+  factory ConfigPathInfo({
+    $core.String? path,
+    $core.bool? exists,
+    $core.bool? readable,
+    $core.bool? writable,
+    $core.String? includeDir,
+    DiscoveryMethod? discoveryMethod,
+  }) {
+    final result = create();
+    if (path != null) result.path = path;
+    if (exists != null) result.exists = exists;
+    if (readable != null) result.readable = readable;
+    if (writable != null) result.writable = writable;
+    if (includeDir != null) result.includeDir = includeDir;
+    if (discoveryMethod != null) result.discoveryMethod = discoveryMethod;
+    return result;
+  }
+
+  ConfigPathInfo._();
+
+  factory ConfigPathInfo.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ConfigPathInfo.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ConfigPathInfo',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'skeys.v1'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'path')
+    ..aOB(2, _omitFieldNames ? '' : 'exists')
+    ..aOB(3, _omitFieldNames ? '' : 'readable')
+    ..aOB(4, _omitFieldNames ? '' : 'writable')
+    ..aOS(5, _omitFieldNames ? '' : 'includeDir')
+    ..aE<DiscoveryMethod>(6, _omitFieldNames ? '' : 'discoveryMethod',
+        enumValues: DiscoveryMethod.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ConfigPathInfo clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ConfigPathInfo copyWith(void Function(ConfigPathInfo) updates) =>
+      super.copyWith((message) => updates(message as ConfigPathInfo))
+          as ConfigPathInfo;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ConfigPathInfo create() => ConfigPathInfo._();
+  @$core.override
+  ConfigPathInfo createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ConfigPathInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ConfigPathInfo>(create);
+  static ConfigPathInfo? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get path => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set path($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPath() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPath() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get exists => $_getBF(1);
+  @$pb.TagNumber(2)
+  set exists($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasExists() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearExists() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get readable => $_getBF(2);
+  @$pb.TagNumber(3)
+  set readable($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasReadable() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearReadable() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get writable => $_getBF(3);
+  @$pb.TagNumber(4)
+  set writable($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasWritable() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearWritable() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.String get includeDir => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set includeDir($core.String value) => $_setString(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasIncludeDir() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearIncludeDir() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  DiscoveryMethod get discoveryMethod => $_getN(5);
+  @$pb.TagNumber(6)
+  set discoveryMethod(DiscoveryMethod value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasDiscoveryMethod() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearDiscoveryMethod() => $_clearField(6);
+}
+
 const $core.bool _omitFieldNames =
     $core.bool.fromEnvironment('protobuf.omit_field_names');
 const $core.bool _omitMessageNames =

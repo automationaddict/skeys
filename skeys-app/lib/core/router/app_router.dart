@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 
+import '../../features/server/presentation/server_page.dart';
 import '../../features/keys/presentation/keys_page.dart';
 import '../../features/config/presentation/config_page.dart';
 import '../../features/hosts/presentation/hosts_page.dart';
@@ -14,6 +15,11 @@ final appRouter = GoRouter(
     ShellRoute(
       builder: (context, state, child) => AppShell(child: child),
       routes: [
+        GoRoute(
+          path: '/server',
+          name: 'server',
+          builder: (context, state) => const ServerPage(),
+        ),
         GoRoute(
           path: '/keys',
           name: 'keys',

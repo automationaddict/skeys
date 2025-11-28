@@ -194,6 +194,15 @@ class ConfigServiceClient extends $grpc.Client {
     return $createUnaryCall(_$restartSSHService, request, options: options);
   }
 
+  /// Config Path Discovery
+  /// Auto-detect SSH config file locations across different Linux distributions
+  $grpc.ResponseFuture<$0.DiscoverConfigPathsResponse> discoverConfigPaths(
+    $0.DiscoverConfigPathsRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createUnaryCall(_$discoverConfigPaths, request, options: options);
+  }
+
   // method descriptors
 
   static final _$listSSHConfigEntries = $grpc.ClientMethod<
@@ -306,6 +315,11 @@ class ConfigServiceClient extends $grpc.Client {
       '/skeys.v1.ConfigService/RestartSSHService',
       ($0.RestartSSHServiceRequest value) => value.writeToBuffer(),
       $0.RestartSSHServiceResponse.fromBuffer);
+  static final _$discoverConfigPaths = $grpc.ClientMethod<
+          $0.DiscoverConfigPathsRequest, $0.DiscoverConfigPathsResponse>(
+      '/skeys.v1.ConfigService/DiscoverConfigPaths',
+      ($0.DiscoverConfigPathsRequest value) => value.writeToBuffer(),
+      $0.DiscoverConfigPathsResponse.fromBuffer);
 }
 
 @$pb.GrpcServiceName('skeys.v1.ConfigService')
@@ -504,6 +518,15 @@ abstract class ConfigServiceBase extends $grpc.Service {
         ($core.List<$core.int> value) =>
             $0.RestartSSHServiceRequest.fromBuffer(value),
         ($0.RestartSSHServiceResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.DiscoverConfigPathsRequest,
+            $0.DiscoverConfigPathsResponse>(
+        'DiscoverConfigPaths',
+        discoverConfigPaths_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) =>
+            $0.DiscoverConfigPathsRequest.fromBuffer(value),
+        ($0.DiscoverConfigPathsResponse value) => value.writeToBuffer()));
   }
 
   $async.Future<$0.ListSSHConfigEntriesResponse> listSSHConfigEntries_Pre(
@@ -695,4 +718,13 @@ abstract class ConfigServiceBase extends $grpc.Service {
 
   $async.Future<$0.RestartSSHServiceResponse> restartSSHService(
       $grpc.ServiceCall call, $0.RestartSSHServiceRequest request);
+
+  $async.Future<$0.DiscoverConfigPathsResponse> discoverConfigPaths_Pre(
+      $grpc.ServiceCall $call,
+      $async.Future<$0.DiscoverConfigPathsRequest> $request) async {
+    return discoverConfigPaths($call, await $request);
+  }
+
+  $async.Future<$0.DiscoverConfigPathsResponse> discoverConfigPaths(
+      $grpc.ServiceCall call, $0.DiscoverConfigPathsRequest request);
 }

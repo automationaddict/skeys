@@ -7,6 +7,7 @@ import '../bloc/config_bloc.dart';
 import '../domain/config_entity.dart';
 import '../domain/ssh_config_entry.dart';
 import 'widgets/global_directive_dialog.dart';
+import 'widgets/server_config_tab.dart';
 import 'widgets/ssh_config_dialog.dart';
 
 /// Page for SSH configuration management.
@@ -82,7 +83,7 @@ class _ConfigPageState extends State<ConfigPage> with SingleTickerProviderStateM
             controller: _tabController,
             children: [
               _ClientConfigTab(state: state),
-              _buildServerConfigTab(context, state),
+              ServerConfigTab(state: state),
             ],
           );
         },
@@ -106,43 +107,6 @@ class _ConfigPageState extends State<ConfigPage> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildServerConfigTab(BuildContext context, ConfigState state) {
-    if (state.serverConfig == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.settings, size: 64, color: Theme.of(context).colorScheme.outline),
-            const SizedBox(height: 16),
-            Text('Server config not loaded', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                context.read<ConfigBloc>().add(const ConfigLoadServerConfigRequested());
-              },
-              child: const Text('Load Server Config'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: state.serverConfig!.options.length,
-      itemBuilder: (context, index) {
-        final option = state.serverConfig!.options[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            title: Text(option.key),
-            subtitle: Text(option.value),
-            trailing: Text('Line ${option.lineNumber}'),
-          ),
-        );
-      },
-    );
-  }
 }
 
 /// Client config tab with Global Settings section and reorderable SSH config entries.

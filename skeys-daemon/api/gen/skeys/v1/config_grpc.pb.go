@@ -42,6 +42,7 @@ const (
 	ConfigService_UpdateServerConfig_FullMethodName      = "/skeys.v1.ConfigService/UpdateServerConfig"
 	ConfigService_ValidateServerConfig_FullMethodName    = "/skeys.v1.ConfigService/ValidateServerConfig"
 	ConfigService_RestartSSHService_FullMethodName       = "/skeys.v1.ConfigService/RestartSSHService"
+	ConfigService_DiscoverConfigPaths_FullMethodName     = "/skeys.v1.ConfigService/DiscoverConfigPaths"
 )
 
 // ConfigServiceClient is the client API for ConfigService service.
@@ -76,6 +77,9 @@ type ConfigServiceClient interface {
 	UpdateServerConfig(ctx context.Context, in *UpdateServerConfigRequest, opts ...grpc.CallOption) (*ServerConfig, error)
 	ValidateServerConfig(ctx context.Context, in *ValidateServerConfigRequest, opts ...grpc.CallOption) (*ValidateServerConfigResponse, error)
 	RestartSSHService(ctx context.Context, in *RestartSSHServiceRequest, opts ...grpc.CallOption) (*RestartSSHServiceResponse, error)
+	// Config Path Discovery
+	// Auto-detect SSH config file locations across different Linux distributions
+	DiscoverConfigPaths(ctx context.Context, in *DiscoverConfigPathsRequest, opts ...grpc.CallOption) (*DiscoverConfigPathsResponse, error)
 }
 
 type configServiceClient struct {
@@ -306,6 +310,16 @@ func (c *configServiceClient) RestartSSHService(ctx context.Context, in *Restart
 	return out, nil
 }
 
+func (c *configServiceClient) DiscoverConfigPaths(ctx context.Context, in *DiscoverConfigPathsRequest, opts ...grpc.CallOption) (*DiscoverConfigPathsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DiscoverConfigPathsResponse)
+	err := c.cc.Invoke(ctx, ConfigService_DiscoverConfigPaths_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ConfigServiceServer is the server API for ConfigService service.
 // All implementations must embed UnimplementedConfigServiceServer
 // for forward compatibility.
@@ -338,6 +352,9 @@ type ConfigServiceServer interface {
 	UpdateServerConfig(context.Context, *UpdateServerConfigRequest) (*ServerConfig, error)
 	ValidateServerConfig(context.Context, *ValidateServerConfigRequest) (*ValidateServerConfigResponse, error)
 	RestartSSHService(context.Context, *RestartSSHServiceRequest) (*RestartSSHServiceResponse, error)
+	// Config Path Discovery
+	// Auto-detect SSH config file locations across different Linux distributions
+	DiscoverConfigPaths(context.Context, *DiscoverConfigPathsRequest) (*DiscoverConfigPathsResponse, error)
 	mustEmbedUnimplementedConfigServiceServer()
 }
 
@@ -413,6 +430,9 @@ func (UnimplementedConfigServiceServer) ValidateServerConfig(context.Context, *V
 }
 func (UnimplementedConfigServiceServer) RestartSSHService(context.Context, *RestartSSHServiceRequest) (*RestartSSHServiceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RestartSSHService not implemented")
+}
+func (UnimplementedConfigServiceServer) DiscoverConfigPaths(context.Context, *DiscoverConfigPathsRequest) (*DiscoverConfigPathsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DiscoverConfigPaths not implemented")
 }
 func (UnimplementedConfigServiceServer) mustEmbedUnimplementedConfigServiceServer() {}
 func (UnimplementedConfigServiceServer) testEmbeddedByValue()                       {}
@@ -831,6 +851,24 @@ func _ConfigService_RestartSSHService_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ConfigService_DiscoverConfigPaths_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DiscoverConfigPathsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServiceServer).DiscoverConfigPaths(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ConfigService_DiscoverConfigPaths_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServiceServer).DiscoverConfigPaths(ctx, req.(*DiscoverConfigPathsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ConfigService_ServiceDesc is the grpc.ServiceDesc for ConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -925,6 +963,10 @@ var ConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RestartSSHService",
 			Handler:    _ConfigService_RestartSSHService_Handler,
+		},
+		{
+			MethodName: "DiscoverConfigPaths",
+			Handler:    _ConfigService_DiscoverConfigPaths_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

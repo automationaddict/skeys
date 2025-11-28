@@ -1,0 +1,138 @@
+syntax = "proto3";
+
+package skeys.v1;
+
+option go_package = "github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1";
+
+import "skeys/v1/common.proto";
+import "skeys/v1/config.proto";
+
+// SystemService provides system-level operations for SSH client and server
+service SystemService {
+  // Get comprehensive SSH system status (client, server, configs)
+  rpc GetSSHStatus(GetSSHStatusRequest) returns (GetSSHStatusResponse);
+
+  // SSH Server service control (requires elevated privileges)
+  rpc GetSSHServiceStatus(GetSSHServiceStatusRequest) returns (GetSSHServiceStatusResponse);
+  rpc StartSSHService(StartSSHServiceRequest) returns (SSHServiceControlResponse);
+  rpc StopSSHService(StopSSHServiceRequest) returns (SSHServiceControlResponse);
+  rpc RestartSSHServiceWithStatus(RestartSSHServiceWithStatusRequest) returns (SSHServiceControlResponse);
+  rpc ReloadSSHService(ReloadSSHServiceRequest) returns (SSHServiceControlResponse);
+
+  // Get installation instructions for the detected distribution
+  rpc GetInstallInstructions(GetInstallInstructionsRequest) returns (GetInstallInstructionsResponse);
+}
+
+// ============================================================
+// SSH System Status
+// ============================================================
+
+message GetSSHStatusRequest {
+  Target target = 1;
+}
+
+message GetSSHStatusResponse {
+  // System info
+  string distribution = 1;
+  string distribution_version = 2;
+
+  // SSH Client status
+  SSHClientStatus client = 3;
+
+  // SSH Server status
+  SSHServerStatus server = 4;
+}
+
+message SSHClientStatus {
+  bool installed = 1;
+  string version = 2;                    // e.g., "OpenSSH_9.6p1"
+  string binary_path = 3;                // e.g., "/usr/bin/ssh"
+  ConfigPathInfo system_config = 4;      // /etc/ssh/ssh_config (reuses ConfigPathInfo from config.proto)
+  ConfigPathInfo user_config = 5;        // ~/.ssh/config
+}
+
+message SSHServerStatus {
+  bool installed = 1;
+  string version = 2;                    // e.g., "OpenSSH_9.6p1"
+  string binary_path = 3;                // e.g., "/usr/sbin/sshd"
+  ServiceStatus service = 4;             // systemd service status
+  ConfigPathInfo config = 5;             // /etc/ssh/sshd_config (reuses ConfigPathInfo from config.proto)
+}
+
+// ============================================================
+// SSH Service Control
+// ============================================================
+
+enum ServiceState {
+  SERVICE_STATE_UNSPECIFIED = 0;
+  SERVICE_STATE_RUNNING = 1;
+  SERVICE_STATE_STOPPED = 2;
+  SERVICE_STATE_FAILED = 3;
+  SERVICE_STATE_NOT_FOUND = 4;           // Service unit doesn't exist
+  SERVICE_STATE_UNKNOWN = 5;
+}
+
+message ServiceStatus {
+  ServiceState state = 1;
+  bool enabled = 2;                      // Starts on boot
+  string active_state = 3;               // Raw systemd state (active, inactive, failed)
+  string sub_state = 4;                  // Raw systemd sub-state (running, dead, etc.)
+  string load_state = 5;                 // loaded, not-found, masked
+  int64 pid = 6;                         // Main PID if running
+  string started_at = 7;                 // When service started (ISO8601)
+  string service_name = 8;               // e.g., "ssh.service" or "sshd.service"
+}
+
+message GetSSHServiceStatusRequest {
+  Target target = 1;
+}
+
+message GetSSHServiceStatusResponse {
+  ServiceStatus status = 1;
+}
+
+message StartSSHServiceRequest {
+  Target target = 1;
+}
+
+message StopSSHServiceRequest {
+  Target target = 1;
+}
+
+message RestartSSHServiceWithStatusRequest {
+  Target target = 1;
+}
+
+message ReloadSSHServiceRequest {
+  Target target = 1;
+}
+
+message SSHServiceControlResponse {
+  bool success = 1;
+  string message = 2;
+  ServiceStatus status = 3;              // Status after the operation
+}
+
+// ============================================================
+// Installation Instructions
+// ============================================================
+
+enum SSHComponent {
+  SSH_COMPONENT_UNSPECIFIED = 0;
+  SSH_COMPONENT_CLIENT = 1;
+  SSH_COMPONENT_SERVER = 2;
+}
+
+message GetInstallInstructionsRequest {
+  Target target = 1;
+  SSHComponent component = 2;
+}
+
+message GetInstallInstructionsResponse {
+  string distribution = 1;
+  SSHComponent component = 2;
+  string package_name = 3;               // e.g., "openssh-server"
+  string install_command = 4;            // e.g., "sudo apt install openssh-server"
+  string documentation_url = 5;          // Link to official docs
+  repeated string steps = 6;             // Step-by-step instructions
+}

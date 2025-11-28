@@ -72,6 +72,61 @@ func (SSHConfigEntryType) EnumDescriptor() ([]byte, []int) {
 	return file_skeys_v1_config_proto_rawDescGZIP(), []int{0}
 }
 
+type DiscoveryMethod int32
+
+const (
+	DiscoveryMethod_DISCOVERY_METHOD_UNSPECIFIED     DiscoveryMethod = 0
+	DiscoveryMethod_DISCOVERY_METHOD_COMMAND         DiscoveryMethod = 1 // Discovered via command (ssh -G, sshd -T)
+	DiscoveryMethod_DISCOVERY_METHOD_PACKAGE_MANAGER DiscoveryMethod = 2 // Discovered via package manager (dpkg, rpm, pacman)
+	DiscoveryMethod_DISCOVERY_METHOD_COMMON_PATH     DiscoveryMethod = 3 // Found at common/standard path
+	DiscoveryMethod_DISCOVERY_METHOD_USER_SPECIFIED  DiscoveryMethod = 4 // User-provided path
+)
+
+// Enum value maps for DiscoveryMethod.
+var (
+	DiscoveryMethod_name = map[int32]string{
+		0: "DISCOVERY_METHOD_UNSPECIFIED",
+		1: "DISCOVERY_METHOD_COMMAND",
+		2: "DISCOVERY_METHOD_PACKAGE_MANAGER",
+		3: "DISCOVERY_METHOD_COMMON_PATH",
+		4: "DISCOVERY_METHOD_USER_SPECIFIED",
+	}
+	DiscoveryMethod_value = map[string]int32{
+		"DISCOVERY_METHOD_UNSPECIFIED":     0,
+		"DISCOVERY_METHOD_COMMAND":         1,
+		"DISCOVERY_METHOD_PACKAGE_MANAGER": 2,
+		"DISCOVERY_METHOD_COMMON_PATH":     3,
+		"DISCOVERY_METHOD_USER_SPECIFIED":  4,
+	}
+)
+
+func (x DiscoveryMethod) Enum() *DiscoveryMethod {
+	p := new(DiscoveryMethod)
+	*p = x
+	return p
+}
+
+func (x DiscoveryMethod) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (DiscoveryMethod) Descriptor() protoreflect.EnumDescriptor {
+	return file_skeys_v1_config_proto_enumTypes[1].Descriptor()
+}
+
+func (DiscoveryMethod) Type() protoreflect.EnumType {
+	return &file_skeys_v1_config_proto_enumTypes[1]
+}
+
+func (x DiscoveryMethod) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use DiscoveryMethod.Descriptor instead.
+func (DiscoveryMethod) EnumDescriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{1}
+}
+
 type SSHConfigEntry struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`                                       // Stable hash-based ID
@@ -2252,6 +2307,222 @@ func (x *DeleteGlobalDirectiveRequest) GetKey() string {
 	return ""
 }
 
+// Config Path Discovery messages
+type DiscoverConfigPathsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Target        *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DiscoverConfigPathsRequest) Reset() {
+	*x = DiscoverConfigPathsRequest{}
+	mi := &file_skeys_v1_config_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DiscoverConfigPathsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DiscoverConfigPathsRequest) ProtoMessage() {}
+
+func (x *DiscoverConfigPathsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DiscoverConfigPathsRequest.ProtoReflect.Descriptor instead.
+func (*DiscoverConfigPathsRequest) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *DiscoverConfigPathsRequest) GetTarget() *Target {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+type DiscoverConfigPathsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Client config paths
+	ClientSystemConfig *ConfigPathInfo `protobuf:"bytes,1,opt,name=client_system_config,json=clientSystemConfig,proto3" json:"client_system_config,omitempty"` // System-wide client config (e.g., /etc/ssh/ssh_config)
+	ClientUserConfig   *ConfigPathInfo `protobuf:"bytes,2,opt,name=client_user_config,json=clientUserConfig,proto3" json:"client_user_config,omitempty"`       // User client config (~/.ssh/config)
+	// Server config paths
+	ServerConfig *ConfigPathInfo `protobuf:"bytes,3,opt,name=server_config,json=serverConfig,proto3" json:"server_config,omitempty"` // Server config (e.g., /etc/ssh/sshd_config)
+	// Additional info
+	Distribution       string `protobuf:"bytes,4,opt,name=distribution,proto3" json:"distribution,omitempty"`                                          // Detected Linux distribution (e.g., "ubuntu", "fedora", "arch")
+	SshClientInstalled bool   `protobuf:"varint,5,opt,name=ssh_client_installed,json=sshClientInstalled,proto3" json:"ssh_client_installed,omitempty"` // Whether SSH client is installed
+	SshServerInstalled bool   `protobuf:"varint,6,opt,name=ssh_server_installed,json=sshServerInstalled,proto3" json:"ssh_server_installed,omitempty"` // Whether SSH server is installed
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *DiscoverConfigPathsResponse) Reset() {
+	*x = DiscoverConfigPathsResponse{}
+	mi := &file_skeys_v1_config_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DiscoverConfigPathsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DiscoverConfigPathsResponse) ProtoMessage() {}
+
+func (x *DiscoverConfigPathsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DiscoverConfigPathsResponse.ProtoReflect.Descriptor instead.
+func (*DiscoverConfigPathsResponse) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *DiscoverConfigPathsResponse) GetClientSystemConfig() *ConfigPathInfo {
+	if x != nil {
+		return x.ClientSystemConfig
+	}
+	return nil
+}
+
+func (x *DiscoverConfigPathsResponse) GetClientUserConfig() *ConfigPathInfo {
+	if x != nil {
+		return x.ClientUserConfig
+	}
+	return nil
+}
+
+func (x *DiscoverConfigPathsResponse) GetServerConfig() *ConfigPathInfo {
+	if x != nil {
+		return x.ServerConfig
+	}
+	return nil
+}
+
+func (x *DiscoverConfigPathsResponse) GetDistribution() string {
+	if x != nil {
+		return x.Distribution
+	}
+	return ""
+}
+
+func (x *DiscoverConfigPathsResponse) GetSshClientInstalled() bool {
+	if x != nil {
+		return x.SshClientInstalled
+	}
+	return false
+}
+
+func (x *DiscoverConfigPathsResponse) GetSshServerInstalled() bool {
+	if x != nil {
+		return x.SshServerInstalled
+	}
+	return false
+}
+
+type ConfigPathInfo struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Path            string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`                                                                             // Discovered path
+	Exists          bool                   `protobuf:"varint,2,opt,name=exists,proto3" json:"exists,omitempty"`                                                                        // Whether the file exists
+	Readable        bool                   `protobuf:"varint,3,opt,name=readable,proto3" json:"readable,omitempty"`                                                                    // Whether the file is readable
+	Writable        bool                   `protobuf:"varint,4,opt,name=writable,proto3" json:"writable,omitempty"`                                                                    // Whether the file is writable (may require sudo)
+	IncludeDir      string                 `protobuf:"bytes,5,opt,name=include_dir,json=includeDir,proto3" json:"include_dir,omitempty"`                                               // Associated .d directory for drop-in configs (if any)
+	DiscoveryMethod DiscoveryMethod        `protobuf:"varint,6,opt,name=discovery_method,json=discoveryMethod,proto3,enum=skeys.v1.DiscoveryMethod" json:"discovery_method,omitempty"` // How this path was discovered
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ConfigPathInfo) Reset() {
+	*x = ConfigPathInfo{}
+	mi := &file_skeys_v1_config_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConfigPathInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConfigPathInfo) ProtoMessage() {}
+
+func (x *ConfigPathInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_skeys_v1_config_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConfigPathInfo.ProtoReflect.Descriptor instead.
+func (*ConfigPathInfo) Descriptor() ([]byte, []int) {
+	return file_skeys_v1_config_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *ConfigPathInfo) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *ConfigPathInfo) GetExists() bool {
+	if x != nil {
+		return x.Exists
+	}
+	return false
+}
+
+func (x *ConfigPathInfo) GetReadable() bool {
+	if x != nil {
+		return x.Readable
+	}
+	return false
+}
+
+func (x *ConfigPathInfo) GetWritable() bool {
+	if x != nil {
+		return x.Writable
+	}
+	return false
+}
+
+func (x *ConfigPathInfo) GetIncludeDir() string {
+	if x != nil {
+		return x.IncludeDir
+	}
+	return ""
+}
+
+func (x *ConfigPathInfo) GetDiscoveryMethod() DiscoveryMethod {
+	if x != nil {
+		return x.DiscoveryMethod
+	}
+	return DiscoveryMethod_DISCOVERY_METHOD_UNSPECIFIED
+}
+
 var File_skeys_v1_config_proto protoreflect.FileDescriptor
 
 const file_skeys_v1_config_proto_rawDesc = "" +
@@ -2418,11 +2689,34 @@ const file_skeys_v1_config_proto_rawDesc = "" +
 	"\x05value\x18\x03 \x01(\tR\x05value\"Z\n" +
 	"\x1cDeleteGlobalDirectiveRequest\x12(\n" +
 	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\x12\x10\n" +
-	"\x03key\x18\x02 \x01(\tR\x03key*|\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\"F\n" +
+	"\x1aDiscoverConfigPathsRequest\x12(\n" +
+	"\x06target\x18\x01 \x01(\v2\x10.skeys.v1.TargetR\x06target\"\xf8\x02\n" +
+	"\x1bDiscoverConfigPathsResponse\x12J\n" +
+	"\x14client_system_config\x18\x01 \x01(\v2\x18.skeys.v1.ConfigPathInfoR\x12clientSystemConfig\x12F\n" +
+	"\x12client_user_config\x18\x02 \x01(\v2\x18.skeys.v1.ConfigPathInfoR\x10clientUserConfig\x12=\n" +
+	"\rserver_config\x18\x03 \x01(\v2\x18.skeys.v1.ConfigPathInfoR\fserverConfig\x12\"\n" +
+	"\fdistribution\x18\x04 \x01(\tR\fdistribution\x120\n" +
+	"\x14ssh_client_installed\x18\x05 \x01(\bR\x12sshClientInstalled\x120\n" +
+	"\x14ssh_server_installed\x18\x06 \x01(\bR\x12sshServerInstalled\"\xdb\x01\n" +
+	"\x0eConfigPathInfo\x12\x12\n" +
+	"\x04path\x18\x01 \x01(\tR\x04path\x12\x16\n" +
+	"\x06exists\x18\x02 \x01(\bR\x06exists\x12\x1a\n" +
+	"\breadable\x18\x03 \x01(\bR\breadable\x12\x1a\n" +
+	"\bwritable\x18\x04 \x01(\bR\bwritable\x12\x1f\n" +
+	"\vinclude_dir\x18\x05 \x01(\tR\n" +
+	"includeDir\x12D\n" +
+	"\x10discovery_method\x18\x06 \x01(\x0e2\x19.skeys.v1.DiscoveryMethodR\x0fdiscoveryMethod*|\n" +
 	"\x12SSHConfigEntryType\x12%\n" +
 	"!SSH_CONFIG_ENTRY_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aSSH_CONFIG_ENTRY_TYPE_HOST\x10\x01\x12\x1f\n" +
-	"\x1bSSH_CONFIG_ENTRY_TYPE_MATCH\x10\x022\xab\x0f\n" +
+	"\x1bSSH_CONFIG_ENTRY_TYPE_MATCH\x10\x02*\xbe\x01\n" +
+	"\x0fDiscoveryMethod\x12 \n" +
+	"\x1cDISCOVERY_METHOD_UNSPECIFIED\x10\x00\x12\x1c\n" +
+	"\x18DISCOVERY_METHOD_COMMAND\x10\x01\x12$\n" +
+	" DISCOVERY_METHOD_PACKAGE_MANAGER\x10\x02\x12 \n" +
+	"\x1cDISCOVERY_METHOD_COMMON_PATH\x10\x03\x12#\n" +
+	"\x1fDISCOVERY_METHOD_USER_SPECIFIED\x10\x042\x8f\x10\n" +
 	"\rConfigService\x12e\n" +
 	"\x14ListSSHConfigEntries\x12%.skeys.v1.ListSSHConfigEntriesRequest\x1a&.skeys.v1.ListSSHConfigEntriesResponse\x12Q\n" +
 	"\x11GetSSHConfigEntry\x12\".skeys.v1.GetSSHConfigEntryRequest\x1a\x18.skeys.v1.SSHConfigEntry\x12W\n" +
@@ -2445,7 +2739,8 @@ const file_skeys_v1_config_proto_rawDesc = "" +
 	"\x0fGetServerConfig\x12 .skeys.v1.GetServerConfigRequest\x1a\x16.skeys.v1.ServerConfig\x12Q\n" +
 	"\x12UpdateServerConfig\x12#.skeys.v1.UpdateServerConfigRequest\x1a\x16.skeys.v1.ServerConfig\x12e\n" +
 	"\x14ValidateServerConfig\x12%.skeys.v1.ValidateServerConfigRequest\x1a&.skeys.v1.ValidateServerConfigResponse\x12\\\n" +
-	"\x11RestartSSHService\x12\".skeys.v1.RestartSSHServiceRequest\x1a#.skeys.v1.RestartSSHServiceResponseB7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"
+	"\x11RestartSSHService\x12\".skeys.v1.RestartSSHServiceRequest\x1a#.skeys.v1.RestartSSHServiceResponse\x12b\n" +
+	"\x13DiscoverConfigPaths\x12$.skeys.v1.DiscoverConfigPathsRequest\x1a%.skeys.v1.DiscoverConfigPathsResponseB7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"
 
 var (
 	file_skeys_v1_config_proto_rawDescOnce sync.Once
@@ -2459,135 +2754,146 @@ func file_skeys_v1_config_proto_rawDescGZIP() []byte {
 	return file_skeys_v1_config_proto_rawDescData
 }
 
-var file_skeys_v1_config_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_skeys_v1_config_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
+var file_skeys_v1_config_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_skeys_v1_config_proto_msgTypes = make([]protoimpl.MessageInfo, 43)
 var file_skeys_v1_config_proto_goTypes = []any{
 	(SSHConfigEntryType)(0),                // 0: skeys.v1.SSHConfigEntryType
-	(*SSHConfigEntry)(nil),                 // 1: skeys.v1.SSHConfigEntry
-	(*SSHOptions)(nil),                     // 2: skeys.v1.SSHOptions
-	(*ListSSHConfigEntriesRequest)(nil),    // 3: skeys.v1.ListSSHConfigEntriesRequest
-	(*ListSSHConfigEntriesResponse)(nil),   // 4: skeys.v1.ListSSHConfigEntriesResponse
-	(*GetSSHConfigEntryRequest)(nil),       // 5: skeys.v1.GetSSHConfigEntryRequest
-	(*CreateSSHConfigEntryRequest)(nil),    // 6: skeys.v1.CreateSSHConfigEntryRequest
-	(*UpdateSSHConfigEntryRequest)(nil),    // 7: skeys.v1.UpdateSSHConfigEntryRequest
-	(*DeleteSSHConfigEntryRequest)(nil),    // 8: skeys.v1.DeleteSSHConfigEntryRequest
-	(*ReorderSSHConfigEntriesRequest)(nil), // 9: skeys.v1.ReorderSSHConfigEntriesRequest
-	(*HostConfig)(nil),                     // 10: skeys.v1.HostConfig
-	(*ListHostConfigsRequest)(nil),         // 11: skeys.v1.ListHostConfigsRequest
-	(*ListHostConfigsResponse)(nil),        // 12: skeys.v1.ListHostConfigsResponse
-	(*GetHostConfigRequest)(nil),           // 13: skeys.v1.GetHostConfigRequest
-	(*CreateHostConfigRequest)(nil),        // 14: skeys.v1.CreateHostConfigRequest
-	(*UpdateHostConfigRequest)(nil),        // 15: skeys.v1.UpdateHostConfigRequest
-	(*DeleteHostConfigRequest)(nil),        // 16: skeys.v1.DeleteHostConfigRequest
-	(*TestConnectionRequest)(nil),          // 17: skeys.v1.TestConnectionRequest
-	(*TestConnectionResponse)(nil),         // 18: skeys.v1.TestConnectionResponse
-	(*ServerConfig)(nil),                   // 19: skeys.v1.ServerConfig
-	(*ServerConfigDirective)(nil),          // 20: skeys.v1.ServerConfigDirective
-	(*GetServerConfigRequest)(nil),         // 21: skeys.v1.GetServerConfigRequest
-	(*UpdateServerConfigRequest)(nil),      // 22: skeys.v1.UpdateServerConfigRequest
-	(*ServerConfigUpdate)(nil),             // 23: skeys.v1.ServerConfigUpdate
-	(*ValidateServerConfigRequest)(nil),    // 24: skeys.v1.ValidateServerConfigRequest
-	(*ValidateServerConfigResponse)(nil),   // 25: skeys.v1.ValidateServerConfigResponse
-	(*RestartSSHServiceRequest)(nil),       // 26: skeys.v1.RestartSSHServiceRequest
-	(*RestartSSHServiceResponse)(nil),      // 27: skeys.v1.RestartSSHServiceResponse
-	(*GetSshConfigStatusRequest)(nil),      // 28: skeys.v1.GetSshConfigStatusRequest
-	(*GetSshConfigStatusResponse)(nil),     // 29: skeys.v1.GetSshConfigStatusResponse
-	(*EnableSshConfigRequest)(nil),         // 30: skeys.v1.EnableSshConfigRequest
-	(*EnableSshConfigResponse)(nil),        // 31: skeys.v1.EnableSshConfigResponse
-	(*DisableSshConfigRequest)(nil),        // 32: skeys.v1.DisableSshConfigRequest
-	(*DisableSshConfigResponse)(nil),       // 33: skeys.v1.DisableSshConfigResponse
-	(*GlobalDirective)(nil),                // 34: skeys.v1.GlobalDirective
-	(*ListGlobalDirectivesRequest)(nil),    // 35: skeys.v1.ListGlobalDirectivesRequest
-	(*ListGlobalDirectivesResponse)(nil),   // 36: skeys.v1.ListGlobalDirectivesResponse
-	(*SetGlobalDirectiveRequest)(nil),      // 37: skeys.v1.SetGlobalDirectiveRequest
-	(*DeleteGlobalDirectiveRequest)(nil),   // 38: skeys.v1.DeleteGlobalDirectiveRequest
-	nil,                                    // 39: skeys.v1.SSHOptions.ExtraOptionsEntry
-	nil,                                    // 40: skeys.v1.HostConfig.ExtraOptionsEntry
-	(*Target)(nil),                         // 41: skeys.v1.Target
-	(*emptypb.Empty)(nil),                  // 42: google.protobuf.Empty
+	(DiscoveryMethod)(0),                   // 1: skeys.v1.DiscoveryMethod
+	(*SSHConfigEntry)(nil),                 // 2: skeys.v1.SSHConfigEntry
+	(*SSHOptions)(nil),                     // 3: skeys.v1.SSHOptions
+	(*ListSSHConfigEntriesRequest)(nil),    // 4: skeys.v1.ListSSHConfigEntriesRequest
+	(*ListSSHConfigEntriesResponse)(nil),   // 5: skeys.v1.ListSSHConfigEntriesResponse
+	(*GetSSHConfigEntryRequest)(nil),       // 6: skeys.v1.GetSSHConfigEntryRequest
+	(*CreateSSHConfigEntryRequest)(nil),    // 7: skeys.v1.CreateSSHConfigEntryRequest
+	(*UpdateSSHConfigEntryRequest)(nil),    // 8: skeys.v1.UpdateSSHConfigEntryRequest
+	(*DeleteSSHConfigEntryRequest)(nil),    // 9: skeys.v1.DeleteSSHConfigEntryRequest
+	(*ReorderSSHConfigEntriesRequest)(nil), // 10: skeys.v1.ReorderSSHConfigEntriesRequest
+	(*HostConfig)(nil),                     // 11: skeys.v1.HostConfig
+	(*ListHostConfigsRequest)(nil),         // 12: skeys.v1.ListHostConfigsRequest
+	(*ListHostConfigsResponse)(nil),        // 13: skeys.v1.ListHostConfigsResponse
+	(*GetHostConfigRequest)(nil),           // 14: skeys.v1.GetHostConfigRequest
+	(*CreateHostConfigRequest)(nil),        // 15: skeys.v1.CreateHostConfigRequest
+	(*UpdateHostConfigRequest)(nil),        // 16: skeys.v1.UpdateHostConfigRequest
+	(*DeleteHostConfigRequest)(nil),        // 17: skeys.v1.DeleteHostConfigRequest
+	(*TestConnectionRequest)(nil),          // 18: skeys.v1.TestConnectionRequest
+	(*TestConnectionResponse)(nil),         // 19: skeys.v1.TestConnectionResponse
+	(*ServerConfig)(nil),                   // 20: skeys.v1.ServerConfig
+	(*ServerConfigDirective)(nil),          // 21: skeys.v1.ServerConfigDirective
+	(*GetServerConfigRequest)(nil),         // 22: skeys.v1.GetServerConfigRequest
+	(*UpdateServerConfigRequest)(nil),      // 23: skeys.v1.UpdateServerConfigRequest
+	(*ServerConfigUpdate)(nil),             // 24: skeys.v1.ServerConfigUpdate
+	(*ValidateServerConfigRequest)(nil),    // 25: skeys.v1.ValidateServerConfigRequest
+	(*ValidateServerConfigResponse)(nil),   // 26: skeys.v1.ValidateServerConfigResponse
+	(*RestartSSHServiceRequest)(nil),       // 27: skeys.v1.RestartSSHServiceRequest
+	(*RestartSSHServiceResponse)(nil),      // 28: skeys.v1.RestartSSHServiceResponse
+	(*GetSshConfigStatusRequest)(nil),      // 29: skeys.v1.GetSshConfigStatusRequest
+	(*GetSshConfigStatusResponse)(nil),     // 30: skeys.v1.GetSshConfigStatusResponse
+	(*EnableSshConfigRequest)(nil),         // 31: skeys.v1.EnableSshConfigRequest
+	(*EnableSshConfigResponse)(nil),        // 32: skeys.v1.EnableSshConfigResponse
+	(*DisableSshConfigRequest)(nil),        // 33: skeys.v1.DisableSshConfigRequest
+	(*DisableSshConfigResponse)(nil),       // 34: skeys.v1.DisableSshConfigResponse
+	(*GlobalDirective)(nil),                // 35: skeys.v1.GlobalDirective
+	(*ListGlobalDirectivesRequest)(nil),    // 36: skeys.v1.ListGlobalDirectivesRequest
+	(*ListGlobalDirectivesResponse)(nil),   // 37: skeys.v1.ListGlobalDirectivesResponse
+	(*SetGlobalDirectiveRequest)(nil),      // 38: skeys.v1.SetGlobalDirectiveRequest
+	(*DeleteGlobalDirectiveRequest)(nil),   // 39: skeys.v1.DeleteGlobalDirectiveRequest
+	(*DiscoverConfigPathsRequest)(nil),     // 40: skeys.v1.DiscoverConfigPathsRequest
+	(*DiscoverConfigPathsResponse)(nil),    // 41: skeys.v1.DiscoverConfigPathsResponse
+	(*ConfigPathInfo)(nil),                 // 42: skeys.v1.ConfigPathInfo
+	nil,                                    // 43: skeys.v1.SSHOptions.ExtraOptionsEntry
+	nil,                                    // 44: skeys.v1.HostConfig.ExtraOptionsEntry
+	(*Target)(nil),                         // 45: skeys.v1.Target
+	(*emptypb.Empty)(nil),                  // 46: google.protobuf.Empty
 }
 var file_skeys_v1_config_proto_depIdxs = []int32{
 	0,  // 0: skeys.v1.SSHConfigEntry.type:type_name -> skeys.v1.SSHConfigEntryType
-	2,  // 1: skeys.v1.SSHConfigEntry.options:type_name -> skeys.v1.SSHOptions
-	39, // 2: skeys.v1.SSHOptions.extra_options:type_name -> skeys.v1.SSHOptions.ExtraOptionsEntry
-	41, // 3: skeys.v1.ListSSHConfigEntriesRequest.target:type_name -> skeys.v1.Target
-	1,  // 4: skeys.v1.ListSSHConfigEntriesResponse.entries:type_name -> skeys.v1.SSHConfigEntry
-	41, // 5: skeys.v1.GetSSHConfigEntryRequest.target:type_name -> skeys.v1.Target
-	41, // 6: skeys.v1.CreateSSHConfigEntryRequest.target:type_name -> skeys.v1.Target
-	1,  // 7: skeys.v1.CreateSSHConfigEntryRequest.entry:type_name -> skeys.v1.SSHConfigEntry
-	41, // 8: skeys.v1.UpdateSSHConfigEntryRequest.target:type_name -> skeys.v1.Target
-	1,  // 9: skeys.v1.UpdateSSHConfigEntryRequest.entry:type_name -> skeys.v1.SSHConfigEntry
-	41, // 10: skeys.v1.DeleteSSHConfigEntryRequest.target:type_name -> skeys.v1.Target
-	41, // 11: skeys.v1.ReorderSSHConfigEntriesRequest.target:type_name -> skeys.v1.Target
-	40, // 12: skeys.v1.HostConfig.extra_options:type_name -> skeys.v1.HostConfig.ExtraOptionsEntry
-	41, // 13: skeys.v1.ListHostConfigsRequest.target:type_name -> skeys.v1.Target
-	10, // 14: skeys.v1.ListHostConfigsResponse.hosts:type_name -> skeys.v1.HostConfig
-	41, // 15: skeys.v1.GetHostConfigRequest.target:type_name -> skeys.v1.Target
-	41, // 16: skeys.v1.CreateHostConfigRequest.target:type_name -> skeys.v1.Target
-	10, // 17: skeys.v1.CreateHostConfigRequest.config:type_name -> skeys.v1.HostConfig
-	41, // 18: skeys.v1.UpdateHostConfigRequest.target:type_name -> skeys.v1.Target
-	10, // 19: skeys.v1.UpdateHostConfigRequest.config:type_name -> skeys.v1.HostConfig
-	41, // 20: skeys.v1.DeleteHostConfigRequest.target:type_name -> skeys.v1.Target
-	41, // 21: skeys.v1.TestConnectionRequest.target:type_name -> skeys.v1.Target
-	20, // 22: skeys.v1.ServerConfig.directives:type_name -> skeys.v1.ServerConfigDirective
-	41, // 23: skeys.v1.GetServerConfigRequest.target:type_name -> skeys.v1.Target
-	41, // 24: skeys.v1.UpdateServerConfigRequest.target:type_name -> skeys.v1.Target
-	23, // 25: skeys.v1.UpdateServerConfigRequest.updates:type_name -> skeys.v1.ServerConfigUpdate
-	41, // 26: skeys.v1.ValidateServerConfigRequest.target:type_name -> skeys.v1.Target
-	41, // 27: skeys.v1.RestartSSHServiceRequest.target:type_name -> skeys.v1.Target
-	41, // 28: skeys.v1.ListGlobalDirectivesRequest.target:type_name -> skeys.v1.Target
-	34, // 29: skeys.v1.ListGlobalDirectivesResponse.directives:type_name -> skeys.v1.GlobalDirective
-	41, // 30: skeys.v1.SetGlobalDirectiveRequest.target:type_name -> skeys.v1.Target
-	41, // 31: skeys.v1.DeleteGlobalDirectiveRequest.target:type_name -> skeys.v1.Target
-	3,  // 32: skeys.v1.ConfigService.ListSSHConfigEntries:input_type -> skeys.v1.ListSSHConfigEntriesRequest
-	5,  // 33: skeys.v1.ConfigService.GetSSHConfigEntry:input_type -> skeys.v1.GetSSHConfigEntryRequest
-	6,  // 34: skeys.v1.ConfigService.CreateSSHConfigEntry:input_type -> skeys.v1.CreateSSHConfigEntryRequest
-	7,  // 35: skeys.v1.ConfigService.UpdateSSHConfigEntry:input_type -> skeys.v1.UpdateSSHConfigEntryRequest
-	8,  // 36: skeys.v1.ConfigService.DeleteSSHConfigEntry:input_type -> skeys.v1.DeleteSSHConfigEntryRequest
-	9,  // 37: skeys.v1.ConfigService.ReorderSSHConfigEntries:input_type -> skeys.v1.ReorderSSHConfigEntriesRequest
-	35, // 38: skeys.v1.ConfigService.ListGlobalDirectives:input_type -> skeys.v1.ListGlobalDirectivesRequest
-	37, // 39: skeys.v1.ConfigService.SetGlobalDirective:input_type -> skeys.v1.SetGlobalDirectiveRequest
-	38, // 40: skeys.v1.ConfigService.DeleteGlobalDirective:input_type -> skeys.v1.DeleteGlobalDirectiveRequest
-	11, // 41: skeys.v1.ConfigService.ListHostConfigs:input_type -> skeys.v1.ListHostConfigsRequest
-	13, // 42: skeys.v1.ConfigService.GetHostConfig:input_type -> skeys.v1.GetHostConfigRequest
-	14, // 43: skeys.v1.ConfigService.CreateHostConfig:input_type -> skeys.v1.CreateHostConfigRequest
-	15, // 44: skeys.v1.ConfigService.UpdateHostConfig:input_type -> skeys.v1.UpdateHostConfigRequest
-	16, // 45: skeys.v1.ConfigService.DeleteHostConfig:input_type -> skeys.v1.DeleteHostConfigRequest
-	17, // 46: skeys.v1.ConfigService.TestConnection:input_type -> skeys.v1.TestConnectionRequest
-	28, // 47: skeys.v1.ConfigService.GetSshConfigStatus:input_type -> skeys.v1.GetSshConfigStatusRequest
-	30, // 48: skeys.v1.ConfigService.EnableSshConfig:input_type -> skeys.v1.EnableSshConfigRequest
-	32, // 49: skeys.v1.ConfigService.DisableSshConfig:input_type -> skeys.v1.DisableSshConfigRequest
-	21, // 50: skeys.v1.ConfigService.GetServerConfig:input_type -> skeys.v1.GetServerConfigRequest
-	22, // 51: skeys.v1.ConfigService.UpdateServerConfig:input_type -> skeys.v1.UpdateServerConfigRequest
-	24, // 52: skeys.v1.ConfigService.ValidateServerConfig:input_type -> skeys.v1.ValidateServerConfigRequest
-	26, // 53: skeys.v1.ConfigService.RestartSSHService:input_type -> skeys.v1.RestartSSHServiceRequest
-	4,  // 54: skeys.v1.ConfigService.ListSSHConfigEntries:output_type -> skeys.v1.ListSSHConfigEntriesResponse
-	1,  // 55: skeys.v1.ConfigService.GetSSHConfigEntry:output_type -> skeys.v1.SSHConfigEntry
-	1,  // 56: skeys.v1.ConfigService.CreateSSHConfigEntry:output_type -> skeys.v1.SSHConfigEntry
-	1,  // 57: skeys.v1.ConfigService.UpdateSSHConfigEntry:output_type -> skeys.v1.SSHConfigEntry
-	42, // 58: skeys.v1.ConfigService.DeleteSSHConfigEntry:output_type -> google.protobuf.Empty
-	4,  // 59: skeys.v1.ConfigService.ReorderSSHConfigEntries:output_type -> skeys.v1.ListSSHConfigEntriesResponse
-	36, // 60: skeys.v1.ConfigService.ListGlobalDirectives:output_type -> skeys.v1.ListGlobalDirectivesResponse
-	34, // 61: skeys.v1.ConfigService.SetGlobalDirective:output_type -> skeys.v1.GlobalDirective
-	42, // 62: skeys.v1.ConfigService.DeleteGlobalDirective:output_type -> google.protobuf.Empty
-	12, // 63: skeys.v1.ConfigService.ListHostConfigs:output_type -> skeys.v1.ListHostConfigsResponse
-	10, // 64: skeys.v1.ConfigService.GetHostConfig:output_type -> skeys.v1.HostConfig
-	10, // 65: skeys.v1.ConfigService.CreateHostConfig:output_type -> skeys.v1.HostConfig
-	10, // 66: skeys.v1.ConfigService.UpdateHostConfig:output_type -> skeys.v1.HostConfig
-	42, // 67: skeys.v1.ConfigService.DeleteHostConfig:output_type -> google.protobuf.Empty
-	18, // 68: skeys.v1.ConfigService.TestConnection:output_type -> skeys.v1.TestConnectionResponse
-	29, // 69: skeys.v1.ConfigService.GetSshConfigStatus:output_type -> skeys.v1.GetSshConfigStatusResponse
-	31, // 70: skeys.v1.ConfigService.EnableSshConfig:output_type -> skeys.v1.EnableSshConfigResponse
-	33, // 71: skeys.v1.ConfigService.DisableSshConfig:output_type -> skeys.v1.DisableSshConfigResponse
-	19, // 72: skeys.v1.ConfigService.GetServerConfig:output_type -> skeys.v1.ServerConfig
-	19, // 73: skeys.v1.ConfigService.UpdateServerConfig:output_type -> skeys.v1.ServerConfig
-	25, // 74: skeys.v1.ConfigService.ValidateServerConfig:output_type -> skeys.v1.ValidateServerConfigResponse
-	27, // 75: skeys.v1.ConfigService.RestartSSHService:output_type -> skeys.v1.RestartSSHServiceResponse
-	54, // [54:76] is the sub-list for method output_type
-	32, // [32:54] is the sub-list for method input_type
-	32, // [32:32] is the sub-list for extension type_name
-	32, // [32:32] is the sub-list for extension extendee
-	0,  // [0:32] is the sub-list for field type_name
+	3,  // 1: skeys.v1.SSHConfigEntry.options:type_name -> skeys.v1.SSHOptions
+	43, // 2: skeys.v1.SSHOptions.extra_options:type_name -> skeys.v1.SSHOptions.ExtraOptionsEntry
+	45, // 3: skeys.v1.ListSSHConfigEntriesRequest.target:type_name -> skeys.v1.Target
+	2,  // 4: skeys.v1.ListSSHConfigEntriesResponse.entries:type_name -> skeys.v1.SSHConfigEntry
+	45, // 5: skeys.v1.GetSSHConfigEntryRequest.target:type_name -> skeys.v1.Target
+	45, // 6: skeys.v1.CreateSSHConfigEntryRequest.target:type_name -> skeys.v1.Target
+	2,  // 7: skeys.v1.CreateSSHConfigEntryRequest.entry:type_name -> skeys.v1.SSHConfigEntry
+	45, // 8: skeys.v1.UpdateSSHConfigEntryRequest.target:type_name -> skeys.v1.Target
+	2,  // 9: skeys.v1.UpdateSSHConfigEntryRequest.entry:type_name -> skeys.v1.SSHConfigEntry
+	45, // 10: skeys.v1.DeleteSSHConfigEntryRequest.target:type_name -> skeys.v1.Target
+	45, // 11: skeys.v1.ReorderSSHConfigEntriesRequest.target:type_name -> skeys.v1.Target
+	44, // 12: skeys.v1.HostConfig.extra_options:type_name -> skeys.v1.HostConfig.ExtraOptionsEntry
+	45, // 13: skeys.v1.ListHostConfigsRequest.target:type_name -> skeys.v1.Target
+	11, // 14: skeys.v1.ListHostConfigsResponse.hosts:type_name -> skeys.v1.HostConfig
+	45, // 15: skeys.v1.GetHostConfigRequest.target:type_name -> skeys.v1.Target
+	45, // 16: skeys.v1.CreateHostConfigRequest.target:type_name -> skeys.v1.Target
+	11, // 17: skeys.v1.CreateHostConfigRequest.config:type_name -> skeys.v1.HostConfig
+	45, // 18: skeys.v1.UpdateHostConfigRequest.target:type_name -> skeys.v1.Target
+	11, // 19: skeys.v1.UpdateHostConfigRequest.config:type_name -> skeys.v1.HostConfig
+	45, // 20: skeys.v1.DeleteHostConfigRequest.target:type_name -> skeys.v1.Target
+	45, // 21: skeys.v1.TestConnectionRequest.target:type_name -> skeys.v1.Target
+	21, // 22: skeys.v1.ServerConfig.directives:type_name -> skeys.v1.ServerConfigDirective
+	45, // 23: skeys.v1.GetServerConfigRequest.target:type_name -> skeys.v1.Target
+	45, // 24: skeys.v1.UpdateServerConfigRequest.target:type_name -> skeys.v1.Target
+	24, // 25: skeys.v1.UpdateServerConfigRequest.updates:type_name -> skeys.v1.ServerConfigUpdate
+	45, // 26: skeys.v1.ValidateServerConfigRequest.target:type_name -> skeys.v1.Target
+	45, // 27: skeys.v1.RestartSSHServiceRequest.target:type_name -> skeys.v1.Target
+	45, // 28: skeys.v1.ListGlobalDirectivesRequest.target:type_name -> skeys.v1.Target
+	35, // 29: skeys.v1.ListGlobalDirectivesResponse.directives:type_name -> skeys.v1.GlobalDirective
+	45, // 30: skeys.v1.SetGlobalDirectiveRequest.target:type_name -> skeys.v1.Target
+	45, // 31: skeys.v1.DeleteGlobalDirectiveRequest.target:type_name -> skeys.v1.Target
+	45, // 32: skeys.v1.DiscoverConfigPathsRequest.target:type_name -> skeys.v1.Target
+	42, // 33: skeys.v1.DiscoverConfigPathsResponse.client_system_config:type_name -> skeys.v1.ConfigPathInfo
+	42, // 34: skeys.v1.DiscoverConfigPathsResponse.client_user_config:type_name -> skeys.v1.ConfigPathInfo
+	42, // 35: skeys.v1.DiscoverConfigPathsResponse.server_config:type_name -> skeys.v1.ConfigPathInfo
+	1,  // 36: skeys.v1.ConfigPathInfo.discovery_method:type_name -> skeys.v1.DiscoveryMethod
+	4,  // 37: skeys.v1.ConfigService.ListSSHConfigEntries:input_type -> skeys.v1.ListSSHConfigEntriesRequest
+	6,  // 38: skeys.v1.ConfigService.GetSSHConfigEntry:input_type -> skeys.v1.GetSSHConfigEntryRequest
+	7,  // 39: skeys.v1.ConfigService.CreateSSHConfigEntry:input_type -> skeys.v1.CreateSSHConfigEntryRequest
+	8,  // 40: skeys.v1.ConfigService.UpdateSSHConfigEntry:input_type -> skeys.v1.UpdateSSHConfigEntryRequest
+	9,  // 41: skeys.v1.ConfigService.DeleteSSHConfigEntry:input_type -> skeys.v1.DeleteSSHConfigEntryRequest
+	10, // 42: skeys.v1.ConfigService.ReorderSSHConfigEntries:input_type -> skeys.v1.ReorderSSHConfigEntriesRequest
+	36, // 43: skeys.v1.ConfigService.ListGlobalDirectives:input_type -> skeys.v1.ListGlobalDirectivesRequest
+	38, // 44: skeys.v1.ConfigService.SetGlobalDirective:input_type -> skeys.v1.SetGlobalDirectiveRequest
+	39, // 45: skeys.v1.ConfigService.DeleteGlobalDirective:input_type -> skeys.v1.DeleteGlobalDirectiveRequest
+	12, // 46: skeys.v1.ConfigService.ListHostConfigs:input_type -> skeys.v1.ListHostConfigsRequest
+	14, // 47: skeys.v1.ConfigService.GetHostConfig:input_type -> skeys.v1.GetHostConfigRequest
+	15, // 48: skeys.v1.ConfigService.CreateHostConfig:input_type -> skeys.v1.CreateHostConfigRequest
+	16, // 49: skeys.v1.ConfigService.UpdateHostConfig:input_type -> skeys.v1.UpdateHostConfigRequest
+	17, // 50: skeys.v1.ConfigService.DeleteHostConfig:input_type -> skeys.v1.DeleteHostConfigRequest
+	18, // 51: skeys.v1.ConfigService.TestConnection:input_type -> skeys.v1.TestConnectionRequest
+	29, // 52: skeys.v1.ConfigService.GetSshConfigStatus:input_type -> skeys.v1.GetSshConfigStatusRequest
+	31, // 53: skeys.v1.ConfigService.EnableSshConfig:input_type -> skeys.v1.EnableSshConfigRequest
+	33, // 54: skeys.v1.ConfigService.DisableSshConfig:input_type -> skeys.v1.DisableSshConfigRequest
+	22, // 55: skeys.v1.ConfigService.GetServerConfig:input_type -> skeys.v1.GetServerConfigRequest
+	23, // 56: skeys.v1.ConfigService.UpdateServerConfig:input_type -> skeys.v1.UpdateServerConfigRequest
+	25, // 57: skeys.v1.ConfigService.ValidateServerConfig:input_type -> skeys.v1.ValidateServerConfigRequest
+	27, // 58: skeys.v1.ConfigService.RestartSSHService:input_type -> skeys.v1.RestartSSHServiceRequest
+	40, // 59: skeys.v1.ConfigService.DiscoverConfigPaths:input_type -> skeys.v1.DiscoverConfigPathsRequest
+	5,  // 60: skeys.v1.ConfigService.ListSSHConfigEntries:output_type -> skeys.v1.ListSSHConfigEntriesResponse
+	2,  // 61: skeys.v1.ConfigService.GetSSHConfigEntry:output_type -> skeys.v1.SSHConfigEntry
+	2,  // 62: skeys.v1.ConfigService.CreateSSHConfigEntry:output_type -> skeys.v1.SSHConfigEntry
+	2,  // 63: skeys.v1.ConfigService.UpdateSSHConfigEntry:output_type -> skeys.v1.SSHConfigEntry
+	46, // 64: skeys.v1.ConfigService.DeleteSSHConfigEntry:output_type -> google.protobuf.Empty
+	5,  // 65: skeys.v1.ConfigService.ReorderSSHConfigEntries:output_type -> skeys.v1.ListSSHConfigEntriesResponse
+	37, // 66: skeys.v1.ConfigService.ListGlobalDirectives:output_type -> skeys.v1.ListGlobalDirectivesResponse
+	35, // 67: skeys.v1.ConfigService.SetGlobalDirective:output_type -> skeys.v1.GlobalDirective
+	46, // 68: skeys.v1.ConfigService.DeleteGlobalDirective:output_type -> google.protobuf.Empty
+	13, // 69: skeys.v1.ConfigService.ListHostConfigs:output_type -> skeys.v1.ListHostConfigsResponse
+	11, // 70: skeys.v1.ConfigService.GetHostConfig:output_type -> skeys.v1.HostConfig
+	11, // 71: skeys.v1.ConfigService.CreateHostConfig:output_type -> skeys.v1.HostConfig
+	11, // 72: skeys.v1.ConfigService.UpdateHostConfig:output_type -> skeys.v1.HostConfig
+	46, // 73: skeys.v1.ConfigService.DeleteHostConfig:output_type -> google.protobuf.Empty
+	19, // 74: skeys.v1.ConfigService.TestConnection:output_type -> skeys.v1.TestConnectionResponse
+	30, // 75: skeys.v1.ConfigService.GetSshConfigStatus:output_type -> skeys.v1.GetSshConfigStatusResponse
+	32, // 76: skeys.v1.ConfigService.EnableSshConfig:output_type -> skeys.v1.EnableSshConfigResponse
+	34, // 77: skeys.v1.ConfigService.DisableSshConfig:output_type -> skeys.v1.DisableSshConfigResponse
+	20, // 78: skeys.v1.ConfigService.GetServerConfig:output_type -> skeys.v1.ServerConfig
+	20, // 79: skeys.v1.ConfigService.UpdateServerConfig:output_type -> skeys.v1.ServerConfig
+	26, // 80: skeys.v1.ConfigService.ValidateServerConfig:output_type -> skeys.v1.ValidateServerConfigResponse
+	28, // 81: skeys.v1.ConfigService.RestartSSHService:output_type -> skeys.v1.RestartSSHServiceResponse
+	41, // 82: skeys.v1.ConfigService.DiscoverConfigPaths:output_type -> skeys.v1.DiscoverConfigPathsResponse
+	60, // [60:83] is the sub-list for method output_type
+	37, // [37:60] is the sub-list for method input_type
+	37, // [37:37] is the sub-list for extension type_name
+	37, // [37:37] is the sub-list for extension extendee
+	0,  // [0:37] is the sub-list for field type_name
 }
 
 func init() { file_skeys_v1_config_proto_init() }
@@ -2601,8 +2907,8 @@ func file_skeys_v1_config_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skeys_v1_config_proto_rawDesc), len(file_skeys_v1_config_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   40,
+			NumEnums:      2,
+			NumMessages:   43,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

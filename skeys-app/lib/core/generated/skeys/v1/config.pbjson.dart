@@ -31,6 +31,25 @@ final $typed_data.Uint8List sSHConfigEntryTypeDescriptor = $convert.base64Decode
     'VEEAASHgoaU1NIX0NPTkZJR19FTlRSWV9UWVBFX0hPU1QQARIfChtTU0hfQ09ORklHX0VOVFJZ'
     'X1RZUEVfTUFUQ0gQAg==');
 
+@$core.Deprecated('Use discoveryMethodDescriptor instead')
+const DiscoveryMethod$json = {
+  '1': 'DiscoveryMethod',
+  '2': [
+    {'1': 'DISCOVERY_METHOD_UNSPECIFIED', '2': 0},
+    {'1': 'DISCOVERY_METHOD_COMMAND', '2': 1},
+    {'1': 'DISCOVERY_METHOD_PACKAGE_MANAGER', '2': 2},
+    {'1': 'DISCOVERY_METHOD_COMMON_PATH', '2': 3},
+    {'1': 'DISCOVERY_METHOD_USER_SPECIFIED', '2': 4},
+  ],
+};
+
+/// Descriptor for `DiscoveryMethod`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List discoveryMethodDescriptor = $convert.base64Decode(
+    'Cg9EaXNjb3ZlcnlNZXRob2QSIAocRElTQ09WRVJZX01FVEhPRF9VTlNQRUNJRklFRBAAEhwKGE'
+    'RJU0NPVkVSWV9NRVRIT0RfQ09NTUFORBABEiQKIERJU0NPVkVSWV9NRVRIT0RfUEFDS0FHRV9N'
+    'QU5BR0VSEAISIAocRElTQ09WRVJZX01FVEhPRF9DT01NT05fUEFUSBADEiMKH0RJU0NPVkVSWV'
+    '9NRVRIT0RfVVNFUl9TUEVDSUZJRUQQBA==');
+
 @$core.Deprecated('Use sSHConfigEntryDescriptor instead')
 const SSHConfigEntry$json = {
   '1': 'SSHConfigEntry',
@@ -911,3 +930,107 @@ final $typed_data.Uint8List deleteGlobalDirectiveRequestDescriptor =
     $convert.base64Decode(
         'ChxEZWxldGVHbG9iYWxEaXJlY3RpdmVSZXF1ZXN0EigKBnRhcmdldBgBIAEoCzIQLnNrZXlzLn'
         'YxLlRhcmdldFIGdGFyZ2V0EhAKA2tleRgCIAEoCVIDa2V5');
+
+@$core.Deprecated('Use discoverConfigPathsRequestDescriptor instead')
+const DiscoverConfigPathsRequest$json = {
+  '1': 'DiscoverConfigPathsRequest',
+  '2': [
+    {
+      '1': 'target',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.Target',
+      '10': 'target'
+    },
+  ],
+};
+
+/// Descriptor for `DiscoverConfigPathsRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List discoverConfigPathsRequestDescriptor =
+    $convert.base64Decode(
+        'ChpEaXNjb3ZlckNvbmZpZ1BhdGhzUmVxdWVzdBIoCgZ0YXJnZXQYASABKAsyEC5za2V5cy52MS'
+        '5UYXJnZXRSBnRhcmdldA==');
+
+@$core.Deprecated('Use discoverConfigPathsResponseDescriptor instead')
+const DiscoverConfigPathsResponse$json = {
+  '1': 'DiscoverConfigPathsResponse',
+  '2': [
+    {
+      '1': 'client_system_config',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.ConfigPathInfo',
+      '10': 'clientSystemConfig'
+    },
+    {
+      '1': 'client_user_config',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.ConfigPathInfo',
+      '10': 'clientUserConfig'
+    },
+    {
+      '1': 'server_config',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.skeys.v1.ConfigPathInfo',
+      '10': 'serverConfig'
+    },
+    {'1': 'distribution', '3': 4, '4': 1, '5': 9, '10': 'distribution'},
+    {
+      '1': 'ssh_client_installed',
+      '3': 5,
+      '4': 1,
+      '5': 8,
+      '10': 'sshClientInstalled'
+    },
+    {
+      '1': 'ssh_server_installed',
+      '3': 6,
+      '4': 1,
+      '5': 8,
+      '10': 'sshServerInstalled'
+    },
+  ],
+};
+
+/// Descriptor for `DiscoverConfigPathsResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List discoverConfigPathsResponseDescriptor = $convert.base64Decode(
+    'ChtEaXNjb3ZlckNvbmZpZ1BhdGhzUmVzcG9uc2USSgoUY2xpZW50X3N5c3RlbV9jb25maWcYAS'
+    'ABKAsyGC5za2V5cy52MS5Db25maWdQYXRoSW5mb1ISY2xpZW50U3lzdGVtQ29uZmlnEkYKEmNs'
+    'aWVudF91c2VyX2NvbmZpZxgCIAEoCzIYLnNrZXlzLnYxLkNvbmZpZ1BhdGhJbmZvUhBjbGllbn'
+    'RVc2VyQ29uZmlnEj0KDXNlcnZlcl9jb25maWcYAyABKAsyGC5za2V5cy52MS5Db25maWdQYXRo'
+    'SW5mb1IMc2VydmVyQ29uZmlnEiIKDGRpc3RyaWJ1dGlvbhgEIAEoCVIMZGlzdHJpYnV0aW9uEj'
+    'AKFHNzaF9jbGllbnRfaW5zdGFsbGVkGAUgASgIUhJzc2hDbGllbnRJbnN0YWxsZWQSMAoUc3No'
+    'X3NlcnZlcl9pbnN0YWxsZWQYBiABKAhSEnNzaFNlcnZlckluc3RhbGxlZA==');
+
+@$core.Deprecated('Use configPathInfoDescriptor instead')
+const ConfigPathInfo$json = {
+  '1': 'ConfigPathInfo',
+  '2': [
+    {'1': 'path', '3': 1, '4': 1, '5': 9, '10': 'path'},
+    {'1': 'exists', '3': 2, '4': 1, '5': 8, '10': 'exists'},
+    {'1': 'readable', '3': 3, '4': 1, '5': 8, '10': 'readable'},
+    {'1': 'writable', '3': 4, '4': 1, '5': 8, '10': 'writable'},
+    {'1': 'include_dir', '3': 5, '4': 1, '5': 9, '10': 'includeDir'},
+    {
+      '1': 'discovery_method',
+      '3': 6,
+      '4': 1,
+      '5': 14,
+      '6': '.skeys.v1.DiscoveryMethod',
+      '10': 'discoveryMethod'
+    },
+  ],
+};
+
+/// Descriptor for `ConfigPathInfo`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List configPathInfoDescriptor = $convert.base64Decode(
+    'Cg5Db25maWdQYXRoSW5mbxISCgRwYXRoGAEgASgJUgRwYXRoEhYKBmV4aXN0cxgCIAEoCFIGZX'
+    'hpc3RzEhoKCHJlYWRhYmxlGAMgASgIUghyZWFkYWJsZRIaCgh3cml0YWJsZRgEIAEoCFIId3Jp'
+    'dGFibGUSHwoLaW5jbHVkZV9kaXIYBSABKAlSCmluY2x1ZGVEaXISRAoQZGlzY292ZXJ5X21ldG'
+    'hvZBgGIAEoDjIZLnNrZXlzLnYxLkRpc2NvdmVyeU1ldGhvZFIPZGlzY292ZXJ5TWV0aG9k');

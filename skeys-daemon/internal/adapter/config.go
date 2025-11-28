@@ -16,17 +16,19 @@ import (
 // ConfigServiceAdapter adapts the config services to the gRPC ConfigService interface.
 type ConfigServiceAdapter struct {
 	pb.UnimplementedConfigServiceServer
-	clientConfig    *config.ClientConfig
-	serverConfig    *config.ServerConfigManager
-	sshConfigMgr    *sshconfig.Manager
+	clientConfig     *config.ClientConfig
+	serverConfig     *config.ServerConfigManager
+	sshConfigMgr     *sshconfig.Manager
+	configDiscoverer *config.ConfigDiscoverer
 }
 
 // NewConfigServiceAdapter creates a new config service adapter
 func NewConfigServiceAdapter(client *config.ClientConfig, server *config.ServerConfigManager, sshMgr *sshconfig.Manager) *ConfigServiceAdapter {
 	return &ConfigServiceAdapter{
-		clientConfig:    client,
-		serverConfig:    server,
-		sshConfigMgr:    sshMgr,
+		clientConfig:     client,
+		serverConfig:     server,
+		sshConfigMgr:     sshMgr,
+		configDiscoverer: config.NewConfigDiscoverer(),
 	}
 }
 
@@ -335,6 +337,55 @@ func (a *ConfigServiceAdapter) DisableSshConfig(ctx context.Context, req *pb.Dis
 		Success: true,
 		Message: "SSH config integration disabled successfully",
 	}, nil
+}
+
+// ============================================================
+// Config Path Discovery
+// ============================================================
+
+// DiscoverConfigPaths auto-detects SSH config file locations
+func (a *ConfigServiceAdapter) DiscoverConfigPaths(ctx context.Context, req *pb.DiscoverConfigPathsRequest) (*pb.DiscoverConfigPathsResponse, error) {
+	discovered, err := a.configDiscoverer.Discover(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to discover config paths: %v", err)
+	}
+
+	return &pb.DiscoverConfigPathsResponse{
+		ClientSystemConfig: toProtoConfigPathInfo(&discovered.ClientSystemConfig),
+		ClientUserConfig:   toProtoConfigPathInfo(&discovered.ClientUserConfig),
+		ServerConfig:       toProtoConfigPathInfo(&discovered.ServerConfig),
+		Distribution:       discovered.Distribution,
+		SshClientInstalled: discovered.SSHClientInstalled,
+		SshServerInstalled: discovered.SSHServerInstalled,
+	}, nil
+}
+
+// toProtoConfigPathInfo converts a core ConfigPathInfo to a proto ConfigPathInfo
+func toProtoConfigPathInfo(info *config.ConfigPathInfo) *pb.ConfigPathInfo {
+	return &pb.ConfigPathInfo{
+		Path:            info.Path,
+		Exists:          info.Exists,
+		Readable:        info.Readable,
+		Writable:        info.Writable,
+		IncludeDir:      info.IncludeDir,
+		DiscoveryMethod: toProtoDiscoveryMethod(info.DiscoveryMethod),
+	}
+}
+
+// toProtoDiscoveryMethod converts a core DiscoveryMethod to a proto DiscoveryMethod
+func toProtoDiscoveryMethod(m config.DiscoveryMethod) pb.DiscoveryMethod {
+	switch m {
+	case config.DiscoveryMethodCommand:
+		return pb.DiscoveryMethod_DISCOVERY_METHOD_COMMAND
+	case config.DiscoveryMethodPackageManager:
+		return pb.DiscoveryMethod_DISCOVERY_METHOD_PACKAGE_MANAGER
+	case config.DiscoveryMethodCommonPath:
+		return pb.DiscoveryMethod_DISCOVERY_METHOD_COMMON_PATH
+	case config.DiscoveryMethodUserSpecified:
+		return pb.DiscoveryMethod_DISCOVERY_METHOD_USER_SPECIFIED
+	default:
+		return pb.DiscoveryMethod_DISCOVERY_METHOD_UNSPECIFIED
+	}
 }
 
 // toProtoHostConfig converts a core HostEntry to a proto HostConfig

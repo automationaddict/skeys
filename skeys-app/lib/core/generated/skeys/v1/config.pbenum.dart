@@ -40,5 +40,35 @@ class SSHConfigEntryType extends $pb.ProtobufEnum {
   const SSHConfigEntryType._(super.value, super.name);
 }
 
+class DiscoveryMethod extends $pb.ProtobufEnum {
+  static const DiscoveryMethod DISCOVERY_METHOD_UNSPECIFIED = DiscoveryMethod._(
+      0, _omitEnumNames ? '' : 'DISCOVERY_METHOD_UNSPECIFIED');
+  static const DiscoveryMethod DISCOVERY_METHOD_COMMAND =
+      DiscoveryMethod._(1, _omitEnumNames ? '' : 'DISCOVERY_METHOD_COMMAND');
+  static const DiscoveryMethod DISCOVERY_METHOD_PACKAGE_MANAGER =
+      DiscoveryMethod._(
+          2, _omitEnumNames ? '' : 'DISCOVERY_METHOD_PACKAGE_MANAGER');
+  static const DiscoveryMethod DISCOVERY_METHOD_COMMON_PATH = DiscoveryMethod._(
+      3, _omitEnumNames ? '' : 'DISCOVERY_METHOD_COMMON_PATH');
+  static const DiscoveryMethod DISCOVERY_METHOD_USER_SPECIFIED =
+      DiscoveryMethod._(
+          4, _omitEnumNames ? '' : 'DISCOVERY_METHOD_USER_SPECIFIED');
+
+  static const $core.List<DiscoveryMethod> values = <DiscoveryMethod>[
+    DISCOVERY_METHOD_UNSPECIFIED,
+    DISCOVERY_METHOD_COMMAND,
+    DISCOVERY_METHOD_PACKAGE_MANAGER,
+    DISCOVERY_METHOD_COMMON_PATH,
+    DISCOVERY_METHOD_USER_SPECIFIED,
+  ];
+
+  static final $core.List<DiscoveryMethod?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 4);
+  static DiscoveryMethod? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const DiscoveryMethod._(super.value, super.name);
+}
+
 const $core.bool _omitEnumNames =
     $core.bool.fromEnvironment('protobuf.omit_enum_names');

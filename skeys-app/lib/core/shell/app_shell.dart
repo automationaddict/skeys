@@ -174,6 +174,11 @@ class _AppShellState extends State<AppShell> {
                 ),
                 destinations: const [
                   NavigationRailDestination(
+                    icon: Icon(Icons.dns_outlined),
+                    selectedIcon: Icon(Icons.dns),
+                    label: Text('Server'),
+                  ),
+                  NavigationRailDestination(
                     icon: Icon(Icons.key_outlined),
                     selectedIcon: Icon(Icons.key),
                     label: Text('Keys'),
@@ -184,8 +189,8 @@ class _AppShellState extends State<AppShell> {
                     label: Text('Config'),
                   ),
                   NavigationRailDestination(
-                    icon: Icon(Icons.dns_outlined),
-                    selectedIcon: Icon(Icons.dns),
+                    icon: Icon(Icons.checklist_outlined),
+                    selectedIcon: Icon(Icons.checklist),
                     label: Text('Hosts'),
                   ),
                   NavigationRailDestination(
@@ -218,29 +223,33 @@ class _AppShellState extends State<AppShell> {
 
   int _calculateSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
-    if (location.startsWith('/keys')) return 0;
-    if (location.startsWith('/config')) return 1;
-    if (location.startsWith('/hosts')) return 2;
-    if (location.startsWith('/agent')) return 3;
-    if (location.startsWith('/remotes')) return 4;
+    if (location.startsWith('/server')) return 0;
+    if (location.startsWith('/keys')) return 1;
+    if (location.startsWith('/config')) return 2;
+    if (location.startsWith('/hosts')) return 3;
+    if (location.startsWith('/agent')) return 4;
+    if (location.startsWith('/remotes')) return 5;
     return 0;
   }
 
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0:
-        context.goNamed('keys');
+        context.goNamed('server');
         break;
       case 1:
-        context.goNamed('config');
+        context.goNamed('keys');
         break;
       case 2:
-        context.goNamed('hosts');
+        context.goNamed('config');
         break;
       case 3:
-        context.goNamed('agent');
+        context.goNamed('hosts');
         break;
       case 4:
+        context.goNamed('agent');
+        break;
+      case 5:
         context.goNamed('remotes');
         break;
     }

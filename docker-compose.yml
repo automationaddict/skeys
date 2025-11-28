@@ -17,4 +17,5 @@ services:
       - /run/user/${UID:-1000}:/run/user/${UID:-1000}
       - ${HOME}/.ssh:${HOME}/.ssh
       - ${HOME}/.local/share/skeys:${HOME}/.local/share/skeys
+      - /tmp/sshd_config_test:/etc/ssh/sshd_config
     command: ["--socket", "/tmp/skeys-dev.sock", "--log-pretty"]

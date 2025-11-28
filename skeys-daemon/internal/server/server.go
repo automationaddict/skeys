@@ -49,6 +49,7 @@ type Server struct {
 	remoteAdapter   *adapter.RemoteServiceAdapter
 	metadataAdapter *adapter.MetadataServiceAdapter
 	versionAdapter  *adapter.VersionServiceAdapter
+	systemAdapter   *adapter.SystemServiceAdapter
 }
 
 // ServerOption is a functional option for configuring the Server
@@ -184,6 +185,7 @@ func New(opts ...ServerOption) (*Server, error) {
 	s.remoteAdapter = adapter.NewRemoteServiceAdapter(connectionPool, agentSocketPath)
 	s.metadataAdapter = adapter.NewMetadataServiceAdapter(metadataStore)
 	s.versionAdapter = adapter.NewVersionServiceAdapter(s.version, s.commit)
+	s.systemAdapter = adapter.NewSystemServiceAdapter()
 
 	// Register gRPC services
 	pb.RegisterKeyServiceServer(grpcServer, s.keyAdapter)
@@ -193,6 +195,7 @@ func New(opts ...ServerOption) (*Server, error) {
 	pb.RegisterRemoteServiceServer(grpcServer, s.remoteAdapter)
 	pb.RegisterMetadataServiceServer(grpcServer, s.metadataAdapter)
 	pb.RegisterVersionServiceServer(grpcServer, s.versionAdapter)
+	pb.RegisterSystemServiceServer(grpcServer, s.systemAdapter)
 
 	// Enable reflection for debugging
 	reflection.Register(grpcServer)

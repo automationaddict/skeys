@@ -22,22 +22,104 @@ class _GlobalDirectiveDialogState extends State<GlobalDirectiveDialog> {
   late TextEditingController _keyController;
   late TextEditingController _valueController;
   String? _selectedPreset;
+  String? _selectedDropdownValue;
+
+  // SSH directives with constrained value options
+  // Reference: https://man.openbsd.org/ssh_config
+  static const _directiveValueOptions = <String, List<String>>{
+    // Boolean directives (yes/no)
+    'BatchMode': ['yes', 'no'],
+    'CheckHostIP': ['yes', 'no'],
+    'ClearAllForwardings': ['yes', 'no'],
+    'Compression': ['yes', 'no'],
+    'EnableEscapeCommandline': ['yes', 'no'],
+    'EnableSSHKeysign': ['yes', 'no'],
+    'ExitOnForwardFailure': ['yes', 'no'],
+    'ForkAfterAuthentication': ['yes', 'no'],
+    'ForwardX11': ['yes', 'no'],
+    'ForwardX11Trusted': ['yes', 'no'],
+    'GatewayPorts': ['yes', 'no'],
+    'GSSAPIAuthentication': ['yes', 'no'],
+    'GSSAPIDelegateCredentials': ['yes', 'no'],
+    'GSSAPIKeyExchange': ['yes', 'no'],
+    'GSSAPIRenewalForcesRekey': ['yes', 'no'],
+    'GSSAPIServerIdentity': ['yes', 'no'],
+    'GSSAPITrustDns': ['yes', 'no'],
+    'HashKnownHosts': ['yes', 'no'],
+    'HostbasedAuthentication': ['yes', 'no'],
+    'IdentitiesOnly': ['yes', 'no'],
+    'KbdInteractiveAuthentication': ['yes', 'no'],
+    'NoHostAuthenticationForLocalhost': ['yes', 'no'],
+    'PasswordAuthentication': ['yes', 'no'],
+    'PermitLocalCommand': ['yes', 'no'],
+    'ProxyUseFdpass': ['yes', 'no'],
+    'StdinNull': ['yes', 'no'],
+    'StreamLocalBindUnlink': ['yes', 'no'],
+    'TCPKeepAlive': ['yes', 'no'],
+    'UseKeychain': ['yes', 'no'],
+    'VisualHostKey': ['yes', 'no'],
+    // Deprecated but still in use
+    'ChallengeResponseAuthentication': ['yes', 'no'],
+
+    // Multi-value directives
+    'AddKeysToAgent': ['yes', 'no', 'ask', 'confirm'],
+    'AddressFamily': ['any', 'inet', 'inet6'],
+    'CanonicalizeHostname': ['yes', 'no', 'always', 'none'],
+    'ControlMaster': ['yes', 'no', 'ask', 'auto', 'autoask'],
+    'FingerprintHash': ['md5', 'sha256'],
+    'ForwardAgent': ['yes', 'no'],
+    'IPQoS': ['af11', 'af12', 'af13', 'af21', 'af22', 'af23', 'af31', 'af32', 'af33', 'af41', 'af42', 'af43', 'cs0', 'cs1', 'cs2', 'cs3', 'cs4', 'cs5', 'cs6', 'cs7', 'ef', 'le', 'lowdelay', 'throughput', 'reliability', 'none'],
+    'LogLevel': ['QUIET', 'FATAL', 'ERROR', 'INFO', 'VERBOSE', 'DEBUG', 'DEBUG1', 'DEBUG2', 'DEBUG3'],
+    'ObscureKeystrokeTiming': ['yes', 'no'],
+    'PubkeyAuthentication': ['yes', 'no', 'unbound', 'host-bound'],
+    'RequestTTY': ['no', 'yes', 'force', 'auto'],
+    'SessionType': ['none', 'subsystem', 'default'],
+    'StrictHostKeyChecking': ['yes', 'no', 'ask', 'accept-new', 'off'],
+    'Tunnel': ['yes', 'no', 'point-to-point', 'ethernet'],
+    'UpdateHostKeys': ['yes', 'no', 'ask'],
+    'VerifyHostKeyDNS': ['yes', 'no', 'ask'],
+    'WarnWeakCrypto': ['yes', 'no'],
+  };
 
   // Common SSH global directives for quick selection
   static const _commonDirectives = [
-    _DirectivePreset('HashKnownHosts', 'yes', 'Hash hostnames in known_hosts file for privacy'),
-    _DirectivePreset('AddKeysToAgent', 'yes', 'Automatically add keys to ssh-agent'),
-    _DirectivePreset('IdentitiesOnly', 'yes', 'Only use explicitly configured identity files'),
+    // Connection & keepalive
     _DirectivePreset('ServerAliveInterval', '60', 'Send keepalive every N seconds'),
     _DirectivePreset('ServerAliveCountMax', '3', 'Max keepalive failures before disconnect'),
-    _DirectivePreset('Compression', 'yes', 'Enable compression for slow networks'),
+    _DirectivePreset('ConnectTimeout', '30', 'Connection timeout in seconds'),
     _DirectivePreset('TCPKeepAlive', 'yes', 'Enable TCP keepalive messages'),
+    _DirectivePreset('Compression', 'yes', 'Enable compression for slow networks'),
+    // Security & authentication
+    _DirectivePreset('HashKnownHosts', 'yes', 'Hash hostnames in known_hosts file for privacy'),
     _DirectivePreset('StrictHostKeyChecking', 'ask', 'Behavior for unknown host keys'),
-    _DirectivePreset('UserKnownHostsFile', '~/.ssh/known_hosts', 'Path to known hosts file'),
-    _DirectivePreset('VisualHostKey', 'no', 'Display visual ASCII art host key'),
-    _DirectivePreset('BatchMode', 'no', 'Disable prompts for batch/script mode'),
+    _DirectivePreset('VerifyHostKeyDNS', 'ask', 'Verify host keys using DNS SSHFP records'),
+    _DirectivePreset('UpdateHostKeys', 'ask', 'Accept updated host keys from server'),
+    _DirectivePreset('CheckHostIP', 'yes', 'Check host IP against known_hosts'),
+    _DirectivePreset('PasswordAuthentication', 'yes', 'Allow password authentication'),
+    _DirectivePreset('PubkeyAuthentication', 'yes', 'Enable public key authentication'),
+    // Agent & keys
+    _DirectivePreset('AddKeysToAgent', 'yes', 'Automatically add keys to ssh-agent'),
+    _DirectivePreset('IdentitiesOnly', 'yes', 'Only use explicitly configured identity files'),
     _DirectivePreset('ForwardAgent', 'no', 'Forward SSH agent to remote hosts'),
+    // Files & paths
+    _DirectivePreset('UserKnownHostsFile', '~/.ssh/known_hosts', 'Path to known hosts file'),
+    _DirectivePreset('IdentityFile', '~/.ssh/id_ed25519', 'Path to private key file'),
+    _DirectivePreset('ControlPath', '~/.ssh/sockets/%r@%h-%p', 'Path for control socket'),
+    // Multiplexing
+    _DirectivePreset('ControlMaster', 'auto', 'Enable connection sharing'),
+    _DirectivePreset('ControlPersist', '600', 'Keep master connection open (seconds)'),
+    // Forwarding
     _DirectivePreset('ForwardX11', 'no', 'Enable X11 forwarding'),
+    _DirectivePreset('ForwardX11Trusted', 'no', 'Trust remote X11 clients'),
+    _DirectivePreset('GatewayPorts', 'no', 'Allow remote hosts to connect to local forwards'),
+    // Misc
+    _DirectivePreset('AddressFamily', 'any', 'IPv4/IPv6 preference'),
+    _DirectivePreset('BatchMode', 'no', 'Disable prompts for batch/script mode'),
+    _DirectivePreset('VisualHostKey', 'no', 'Display visual ASCII art host key'),
+    _DirectivePreset('LogLevel', 'INFO', 'Logging verbosity level'),
+    // GSSAPI (Kerberos)
+    _DirectivePreset('GSSAPIAuthentication', 'yes', 'Enable GSSAPI authentication'),
+    _DirectivePreset('GSSAPIDelegateCredentials', 'no', 'Delegate GSSAPI credentials'),
   ];
 
   bool get _isEditing => widget.directive != null;
@@ -47,6 +129,19 @@ class _GlobalDirectiveDialogState extends State<GlobalDirectiveDialog> {
     super.initState();
     _keyController = TextEditingController(text: widget.directive?.key ?? '');
     _valueController = TextEditingController(text: widget.directive?.value ?? '');
+    // Initialize dropdown value if this directive has constrained options
+    if (widget.directive != null) {
+      final options = _directiveValueOptions[widget.directive!.key];
+      if (options != null && options.contains(widget.directive!.value)) {
+        _selectedDropdownValue = widget.directive!.value;
+      }
+    }
+  }
+
+  /// Returns the allowed values for the current directive, or null if free-form
+  List<String>? get _currentValueOptions {
+    final key = _keyController.text;
+    return _directiveValueOptions[key];
   }
 
   @override
@@ -61,6 +156,13 @@ class _GlobalDirectiveDialogState extends State<GlobalDirectiveDialog> {
       _selectedPreset = preset.key;
       _keyController.text = preset.key;
       _valueController.text = preset.defaultValue;
+      // Set dropdown value if this directive has constrained options
+      final options = _directiveValueOptions[preset.key];
+      if (options != null && options.contains(preset.defaultValue)) {
+        _selectedDropdownValue = preset.defaultValue;
+      } else {
+        _selectedDropdownValue = null;
+      }
     });
   }
 
@@ -171,22 +273,8 @@ class _GlobalDirectiveDialogState extends State<GlobalDirectiveDialog> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      // Value field
-                      TextFormField(
-                        controller: _valueController,
-                        decoration: InputDecoration(
-                          labelText: 'Value',
-                          hintText: 'e.g., yes, no, or a path',
-                          prefixIcon: const Icon(Icons.text_fields),
-                          helperText: _getValueHelperText(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a value';
-                          }
-                          return null;
-                        },
-                      ),
+                      // Value field - dropdown for constrained options, text field otherwise
+                      _buildValueField(theme, colorScheme),
                       const SizedBox(height: 16),
                       // Info box
                       Container(
@@ -248,6 +336,56 @@ class _GlobalDirectiveDialogState extends State<GlobalDirectiveDialog> {
     );
   }
 
+  Widget _buildValueField(ThemeData theme, ColorScheme colorScheme) {
+    final options = _currentValueOptions;
+
+    // If directive has constrained options, show dropdown
+    if (options != null) {
+      return DropdownButtonFormField<String>(
+        initialValue: _selectedDropdownValue,
+        decoration: const InputDecoration(
+          labelText: 'Value',
+          prefixIcon: Icon(Icons.list),
+        ),
+        items: options.map((option) {
+          return DropdownMenuItem<String>(
+            value: option,
+            child: Text(option),
+          );
+        }).toList(),
+        onChanged: (value) {
+          setState(() {
+            _selectedDropdownValue = value;
+            _valueController.text = value ?? '';
+          });
+        },
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please select a value';
+          }
+          return null;
+        },
+      );
+    }
+
+    // Otherwise show free-form text field
+    return TextFormField(
+      controller: _valueController,
+      decoration: InputDecoration(
+        labelText: 'Value',
+        hintText: 'e.g., yes, no, or a path',
+        prefixIcon: const Icon(Icons.text_fields),
+        helperText: _getValueHelperText(),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter a value';
+        }
+        return null;
+      },
+    );
+  }
+
   String? _getValueHelperText() {
     final key = _keyController.text.toLowerCase();
     if (key.contains('interval') || key.contains('timeout') || key.contains('count')) {
@@ -256,21 +394,16 @@ class _GlobalDirectiveDialogState extends State<GlobalDirectiveDialog> {
     if (key.contains('file') || key.contains('path')) {
       return 'Enter a file path';
     }
-    if (key.contains('forwarding') || key.contains('agent') ||
-        key.contains('compression') || key == 'hashknownhosts' ||
-        key == 'tcpkeepalive' || key == 'visualhostkey' ||
-        key == 'batchmode' || key == 'identitiesonly') {
-      return 'Common values: yes, no';
-    }
-    if (key == 'stricthostkeychecking') {
-      return 'Common values: yes, no, ask, accept-new';
-    }
     return null;
   }
 
   void _save() {
     if (_formKey.currentState?.validate() ?? false) {
-      widget.onSave(_keyController.text.trim(), _valueController.text.trim());
+      // Use dropdown value if available, otherwise text controller
+      final value = _currentValueOptions != null
+          ? (_selectedDropdownValue ?? '')
+          : _valueController.text.trim();
+      widget.onSave(_keyController.text.trim(), value);
       Navigator.of(context).pop();
     }
   }

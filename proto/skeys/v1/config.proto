@@ -40,6 +40,10 @@ service ConfigService {
   rpc UpdateServerConfig(UpdateServerConfigRequest) returns (ServerConfig);
   rpc ValidateServerConfig(ValidateServerConfigRequest) returns (ValidateServerConfigResponse);
   rpc RestartSSHService(RestartSSHServiceRequest) returns (RestartSSHServiceResponse);
+
+  // Config Path Discovery
+  // Auto-detect SSH config file locations across different Linux distributions
+  rpc DiscoverConfigPaths(DiscoverConfigPathsRequest) returns (DiscoverConfigPathsResponse);
 }
 
 // New unified SSH config entry supporting both Host and Match blocks
@@ -263,4 +267,40 @@ message SetGlobalDirectiveRequest {
 message DeleteGlobalDirectiveRequest {
   Target target = 1;
   string key = 2;
+}
+
+// Config Path Discovery messages
+message DiscoverConfigPathsRequest {
+  Target target = 1;
+}
+
+message DiscoverConfigPathsResponse {
+  // Client config paths
+  ConfigPathInfo client_system_config = 1;   // System-wide client config (e.g., /etc/ssh/ssh_config)
+  ConfigPathInfo client_user_config = 2;     // User client config (~/.ssh/config)
+
+  // Server config paths
+  ConfigPathInfo server_config = 3;          // Server config (e.g., /etc/ssh/sshd_config)
+
+  // Additional info
+  string distribution = 4;                   // Detected Linux distribution (e.g., "ubuntu", "fedora", "arch")
+  bool ssh_client_installed = 5;             // Whether SSH client is installed
+  bool ssh_server_installed = 6;             // Whether SSH server is installed
+}
+
+message ConfigPathInfo {
+  string path = 1;                           // Discovered path
+  bool exists = 2;                           // Whether the file exists
+  bool readable = 3;                         // Whether the file is readable
+  bool writable = 4;                         // Whether the file is writable (may require sudo)
+  string include_dir = 5;                    // Associated .d directory for drop-in configs (if any)
+  DiscoveryMethod discovery_method = 6;      // How this path was discovered
+}
+
+enum DiscoveryMethod {
+  DISCOVERY_METHOD_UNSPECIFIED = 0;
+  DISCOVERY_METHOD_COMMAND = 1;              // Discovered via command (ssh -G, sshd -T)
+  DISCOVERY_METHOD_PACKAGE_MANAGER = 2;      // Discovered via package manager (dpkg, rpm, pacman)
+  DISCOVERY_METHOD_COMMON_PATH = 3;          // Found at common/standard path
+  DISCOVERY_METHOD_USER_SPECIFIED = 4;       // User-provided path
 }
