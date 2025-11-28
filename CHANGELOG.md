@@ -27,3 +27,9 @@ All notable changes to this project will be documented in this file.
 - Expand pre-commit checks and fix IPv6 address format
 - Add TOML linting to pre-commit hook
 - Add YAML and Markdown linting to pre-commit hook
+- Bump build number to 0.0.4+2
+
+### Testing
+
+- Add CI workflow, Codecov, and keys package tests
+- Add comprehensive unit tests for skeys-core packages

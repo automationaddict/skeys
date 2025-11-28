@@ -1,4 +1,8 @@
-# SKeys
+<p align="center">
+  <img src="assets/skeys.png" alt="SKeys Logo" width="200">
+</p>
+
+<h1 align="center">SKeys</h1>
 
 <p align="center">
   <strong>SSH Key Management for Linux Desktop</strong>
@@ -189,13 +193,14 @@ just run-app
 
 ```
 skeys-core/              # Go library
-├── keys/                # Key generation, parsing, operations
-├── config/              # SSH config management
-├── hosts/               # known_hosts, authorized_keys
 ├── agent/               # SSH agent, managed agent
+├── config/              # SSH config management
+├── executor/            # Safe command execution
+├── hosts/               # known_hosts, authorized_keys
+├── keys/                # Key generation, parsing, operations
 ├── remote/              # Connection pool, SFTP
 ├── storage/             # Key metadata persistence
-└── executor/            # Safe command execution
+└── update/              # Application update management
 
 skeys-daemon/            # gRPC server
 ├── cmd/skeys-daemon/    # Entry point
@@ -264,13 +269,11 @@ skeys-app/               # Flutter application
 
 ## Contributing
 
-Contributions welcome! Please:
+Contributions welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-1. Fork the repository
-2. Create a feature branch
-3. Follow existing code style
-4. Add tests for new functionality
-5. Submit a pull request
+## Security
+
+For security concerns, please see [SECURITY.md](SECURITY.md).
 
 ## License
 

@@ -1,0 +1,53 @@
+version: 2
+updates:
+  # Go modules - skeys-core
+  - package-ecosystem: "gomod"
+    directory: "/skeys-core"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "deps(go)"
+    labels:
+      - "dependencies"
+      - "go"
+    open-pull-requests-limit: 5
+
+  # Go modules - skeys-daemon
+  - package-ecosystem: "gomod"
+    directory: "/skeys-daemon"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "deps(go)"
+    labels:
+      - "dependencies"
+      - "go"
+    open-pull-requests-limit: 5
+
+  # Flutter/Dart packages
+  - package-ecosystem: "pub"
+    directory: "/skeys-app"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "deps(dart)"
+    labels:
+      - "dependencies"
+      - "dart"
+    open-pull-requests-limit: 5
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "deps(ci)"
+    labels:
+      - "dependencies"
+      - "ci"
+    open-pull-requests-limit: 3
