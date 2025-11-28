@@ -79,16 +79,24 @@ stop_services() {
 install_files() {
     local tarball="$1"
 
-    # Create directories
-    mkdir -p "$INSTALL_DIR" "$BIN_DIR" "$SYSTEMD_DIR" "$APPLICATIONS_DIR"
+    # Create parent directories
+    mkdir -p "$BIN_DIR" "$SYSTEMD_DIR" "$APPLICATIONS_DIR"
 
-    # Backup existing installation
-    if [[ -d "$INSTALL_DIR" && -f "${INSTALL_DIR}/skeys-app" ]]; then
-        info "Backing up existing installation..."
-        rm -rf "${INSTALL_DIR}.backup"
-        mv "$INSTALL_DIR" "${INSTALL_DIR}.backup"
-        mkdir -p "$INSTALL_DIR"
+    # Handle existing installation directory
+    if [[ -d "$INSTALL_DIR" ]]; then
+        if [[ -f "${INSTALL_DIR}/skeys-app" ]]; then
+            info "Backing up existing installation..."
+            rm -rf "${INSTALL_DIR}.backup"
+            mv "$INSTALL_DIR" "${INSTALL_DIR}.backup"
+        else
+            # Partial/failed install - just remove it
+            info "Removing incomplete installation..."
+            rm -rf "$INSTALL_DIR"
+        fi
     fi
+
+    # Create fresh install directory
+    mkdir -p "$INSTALL_DIR"
 
     # Extract tarball
     info "Extracting files..."
