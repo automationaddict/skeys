@@ -20,15 +20,39 @@
 
 part of 'remote_bloc.dart';
 
-enum RemoteBlocStatus { initial, loading, success, failure }
+/// Status of the RemoteBloc operations.
+enum RemoteBlocStatus {
+  /// Initial state before any operation.
+  initial,
 
+  /// An operation is in progress.
+  loading,
+
+  /// The operation completed successfully.
+  success,
+
+  /// The operation failed with an error.
+  failure,
+}
+
+/// State for the remote feature.
 final class RemoteState extends Equatable {
+  /// The current status of BLoC operations.
   final RemoteBlocStatus status;
+
+  /// List of remote server configurations.
   final List<RemoteEntity> remotes;
+
+  /// List of active connections.
   final List<ConnectionEntity> connections;
+
+  /// Result of the last executed command.
   final CommandResult? lastCommandResult;
+
+  /// Error message if the last operation failed.
   final String? errorMessage;
 
+  /// Creates a RemoteState with the given parameters.
   const RemoteState({
     this.status = RemoteBlocStatus.initial,
     this.remotes = const [],
@@ -37,6 +61,7 @@ final class RemoteState extends Equatable {
     this.errorMessage,
   });
 
+  /// Creates a copy of this state with the given fields replaced.
   RemoteState copyWith({
     RemoteBlocStatus? status,
     List<RemoteEntity>? remotes,

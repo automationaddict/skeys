@@ -21,16 +21,44 @@
 import 'package:equatable/equatable.dart';
 
 /// Service state for SSH server.
-enum ServiceState { unspecified, running, stopped, failed, notFound, unknown }
+enum ServiceState {
+  /// Service state not specified.
+  unspecified,
+
+  /// Service is running.
+  running,
+
+  /// Service is stopped.
+  stopped,
+
+  /// Service has failed.
+  failed,
+
+  /// Service not found on system.
+  notFound,
+
+  /// Service state is unknown.
+  unknown,
+}
 
 /// Config file information.
 class ConfigPathInfo extends Equatable {
+  /// The file path.
   final String path;
+
+  /// Whether the file exists.
   final bool exists;
+
+  /// Whether the file is readable.
   final bool readable;
+
+  /// Whether the file is writable.
   final bool writable;
+
+  /// The include directory path.
   final String includeDir;
 
+  /// Creates a ConfigPathInfo with the given parameters.
   const ConfigPathInfo({
     required this.path,
     required this.exists,
@@ -45,15 +73,31 @@ class ConfigPathInfo extends Equatable {
 
 /// SSH service status.
 class ServiceStatus extends Equatable {
+  /// The current service state.
   final ServiceState state;
+
+  /// Whether the service is enabled for auto-start.
   final bool enabled;
+
+  /// The systemd active state.
   final String activeState;
+
+  /// The systemd sub state.
   final String subState;
+
+  /// The systemd load state.
   final String loadState;
+
+  /// The process ID of the service.
   final int pid;
+
+  /// When the service was started.
   final String startedAt;
+
+  /// The name of the service.
   final String serviceName;
 
+  /// Creates a ServiceStatus with the given parameters.
   const ServiceStatus({
     required this.state,
     required this.enabled,
@@ -80,12 +124,22 @@ class ServiceStatus extends Equatable {
 
 /// SSH client status.
 class SSHClientStatus extends Equatable {
+  /// Whether the SSH client is installed.
   final bool installed;
+
+  /// The SSH client version.
   final String version;
+
+  /// Path to the SSH binary.
   final String binaryPath;
+
+  /// System-wide SSH config information.
   final ConfigPathInfo systemConfig;
+
+  /// User SSH config information.
   final ConfigPathInfo userConfig;
 
+  /// Creates an SSHClientStatus with the given parameters.
   const SSHClientStatus({
     required this.installed,
     required this.version,
@@ -106,12 +160,22 @@ class SSHClientStatus extends Equatable {
 
 /// SSH server status.
 class SSHServerStatus extends Equatable {
+  /// Whether the SSH server (sshd) is installed.
   final bool installed;
+
+  /// The SSH server version.
   final String version;
+
+  /// Path to the sshd binary.
   final String binaryPath;
+
+  /// The service status information.
   final ServiceStatus service;
+
+  /// Server config file information.
   final ConfigPathInfo config;
 
+  /// Creates an SSHServerStatus with the given parameters.
   const SSHServerStatus({
     required this.installed,
     required this.version,
@@ -125,14 +189,35 @@ class SSHServerStatus extends Equatable {
 }
 
 /// Firewall type.
-enum FirewallType { unspecified, ufw, firewalld, iptables, none }
+enum FirewallType {
+  /// Firewall type not specified.
+  unspecified,
+
+  /// UFW (Uncomplicated Firewall).
+  ufw,
+
+  /// firewalld.
+  firewalld,
+
+  /// iptables.
+  iptables,
+
+  /// No firewall detected.
+  none,
+}
 
 /// Network information for SSH.
 class NetworkInfo extends Equatable {
+  /// The system hostname.
   final String hostname;
+
+  /// List of IP addresses on the system.
   final List<String> ipAddresses;
+
+  /// The SSH listening port.
   final int sshPort;
 
+  /// Creates a NetworkInfo with the given parameters.
   const NetworkInfo({
     required this.hostname,
     required this.ipAddresses,
@@ -145,11 +230,19 @@ class NetworkInfo extends Equatable {
 
 /// Firewall status.
 class FirewallStatus extends Equatable {
+  /// The firewall type.
   final FirewallType type;
+
+  /// Whether the firewall is active.
   final bool active;
+
+  /// Whether SSH connections are allowed.
   final bool sshAllowed;
+
+  /// Human-readable status text.
   final String statusText;
 
+  /// Creates a FirewallStatus with the given parameters.
   const FirewallStatus({
     required this.type,
     required this.active,
@@ -163,13 +256,25 @@ class FirewallStatus extends Equatable {
 
 /// Complete SSH system status.
 class SSHSystemStatus extends Equatable {
+  /// The Linux distribution name.
   final String distribution;
+
+  /// The distribution version.
   final String distributionVersion;
+
+  /// SSH client status information.
   final SSHClientStatus client;
+
+  /// SSH server status information.
   final SSHServerStatus server;
+
+  /// Network information if available.
   final NetworkInfo? network;
+
+  /// Firewall status if available.
   final FirewallStatus? firewall;
 
+  /// Creates an SSHSystemStatus with the given parameters.
   const SSHSystemStatus({
     required this.distribution,
     required this.distributionVersion,

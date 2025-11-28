@@ -21,21 +21,53 @@
 import 'package:equatable/equatable.dart';
 
 /// Remote connection status.
-enum RemoteStatus { disconnected, connecting, connected, error }
+enum RemoteStatus {
+  /// Not connected to the remote.
+  disconnected,
+
+  /// Connection is being established.
+  connecting,
+
+  /// Successfully connected.
+  connected,
+
+  /// Connection error occurred.
+  error,
+}
 
 /// Remote server configuration.
 class RemoteEntity extends Equatable {
+  /// Unique identifier for the remote.
   final String id;
+
+  /// Display name for the remote.
   final String name;
+
+  /// Hostname or IP address.
   final String host;
+
+  /// SSH port number.
   final int port;
+
+  /// Username for authentication.
   final String user;
+
+  /// Optional path to identity file.
   final String? identityFile;
+
+  /// Optional SSH config alias.
   final String? sshConfigAlias;
+
+  /// When the remote was created.
   final DateTime createdAt;
+
+  /// When the remote was last connected to.
   final DateTime? lastConnectedAt;
+
+  /// Current connection status.
   final RemoteStatus status;
 
+  /// Creates a RemoteEntity with the given parameters.
   const RemoteEntity({
     required this.id,
     required this.name,
@@ -66,15 +98,31 @@ class RemoteEntity extends Equatable {
 
 /// Active SSH connection.
 class ConnectionEntity extends Equatable {
+  /// Unique identifier for the connection.
   final String id;
+
+  /// The remote configuration ID this connection uses.
   final String remoteId;
+
+  /// Hostname or IP address.
   final String host;
+
+  /// SSH port number.
   final int port;
+
+  /// Username for the connection.
   final String user;
+
+  /// SSH server version string.
   final String serverVersion;
+
+  /// When the connection was established.
   final DateTime connectedAt;
+
+  /// When the last activity occurred.
   final DateTime lastActivityAt;
 
+  /// Creates a ConnectionEntity with the given parameters.
   const ConnectionEntity({
     required this.id,
     required this.remoteId,
@@ -101,16 +149,23 @@ class ConnectionEntity extends Equatable {
 
 /// Command execution result.
 class CommandResult extends Equatable {
+  /// The exit code of the command.
   final int exitCode;
+
+  /// Standard output from the command.
   final String stdout;
+
+  /// Standard error output from the command.
   final String stderr;
 
+  /// Creates a CommandResult with the given parameters.
   const CommandResult({
     required this.exitCode,
     required this.stdout,
     required this.stderr,
   });
 
+  /// Whether the command completed successfully.
   bool get isSuccess => exitCode == 0;
 
   @override
@@ -137,12 +192,22 @@ enum HostKeyVerificationStatus {
 
 /// Information about a host key.
 class HostKeyInfo extends Equatable {
+  /// The hostname this key belongs to.
   final String hostname;
+
+  /// The SSH port.
   final int port;
+
+  /// The key algorithm (e.g., ssh-ed25519).
   final String keyType;
+
+  /// The SHA256 fingerprint of the key.
   final String fingerprint;
+
+  /// The public key data.
   final String publicKey;
 
+  /// Creates a HostKeyInfo with the given parameters.
   const HostKeyInfo({
     required this.hostname,
     required this.port,
@@ -157,13 +222,25 @@ class HostKeyInfo extends Equatable {
 
 /// Result of testing an SSH connection.
 class TestConnectionResult extends Equatable {
+  /// Whether the connection test succeeded.
   final bool success;
+
+  /// Status message describing the result.
   final String message;
+
+  /// The SSH server version string if available.
   final String? serverVersion;
+
+  /// Connection latency in milliseconds.
   final int? latencyMs;
+
+  /// The status of host key verification.
   final HostKeyVerificationStatus hostKeyStatus;
+
+  /// Information about the host key if available.
   final HostKeyInfo? hostKeyInfo;
 
+  /// Creates a TestConnectionResult with the given parameters.
   const TestConnectionResult({
     required this.success,
     required this.message,

@@ -38,6 +38,7 @@ import 'features/agent/bloc/agent_bloc.dart';
 import 'features/remote/bloc/remote_bloc.dart';
 import 'features/server/bloc/server_bloc.dart';
 
+/// Application entry point.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -101,7 +102,9 @@ Level _parseLogLevel(String level) {
   }
 }
 
+/// The main SKeys application widget.
 class SKeysApp extends StatefulWidget {
+  /// Creates an SKeysApp widget.
   const SKeysApp({super.key});
 
   @override
@@ -194,10 +197,12 @@ class _SKeysAppState extends State<SKeysApp> {
   }
 }
 
-/// Error app shown when initialization fails
+/// Error app shown when initialization fails.
 class ErrorApp extends StatelessWidget {
+  /// The error message to display.
   final String error;
 
+  /// Creates an ErrorApp widget with the given error message.
   const ErrorApp({super.key, required this.error});
 
   @override

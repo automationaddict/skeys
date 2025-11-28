@@ -24,9 +24,16 @@ import '../../../core/generated/skeys/v1/metadata.pb.dart' as pb;
 
 /// Abstract repository for key metadata management.
 abstract class MetadataRepository {
+  /// Gets metadata for a specific key by path.
   Future<KeyMetadataEntity?> getKeyMetadata(String keyPath);
+
+  /// Sets or updates metadata for a key.
   Future<void> setKeyMetadata(KeyMetadataEntity metadata);
+
+  /// Deletes metadata for a key.
   Future<void> deleteKeyMetadata(String keyPath);
+
+  /// Lists all key metadata entries.
   Future<List<KeyMetadataEntity>> listKeyMetadata();
 }
 
@@ -34,6 +41,7 @@ abstract class MetadataRepository {
 class MetadataRepositoryImpl implements MetadataRepository {
   final GrpcClient _client;
 
+  /// Creates a MetadataRepositoryImpl with the given gRPC client.
   MetadataRepositoryImpl(this._client);
 
   @override

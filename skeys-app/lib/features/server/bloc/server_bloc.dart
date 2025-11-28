@@ -33,6 +33,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
   final ServerRepository _repository;
   final AppLogger _log = AppLogger('bloc.server');
 
+  /// Creates a ServerBloc with the given repository.
   ServerBloc(this._repository) : super(const ServerState()) {
     on<ServerWatchRequested>(_onWatchRequested);
     on<ServerStartRequested>(_onStartRequested);

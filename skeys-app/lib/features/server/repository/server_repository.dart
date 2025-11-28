@@ -25,17 +25,35 @@ import '../../../core/grpc/grpc_client.dart';
 import '../domain/server_entity.dart';
 
 /// SSH Component type for install instructions.
-enum SSHComponent { client, server }
+enum SSHComponent {
+  /// SSH client component.
+  client,
+
+  /// SSH server component.
+  server,
+}
 
 /// Install instructions response.
 class InstallInstructions {
+  /// The Linux distribution name.
   final String distribution;
+
+  /// The SSH component type.
   final SSHComponent component;
+
+  /// The package name to install.
   final String packageName;
+
+  /// The install command for the distribution.
   final String installCommand;
+
+  /// URL to official documentation.
   final String documentationUrl;
+
+  /// Step-by-step installation instructions.
   final List<String> steps;
 
+  /// Creates an InstallInstructions with the given parameters.
   const InstallInstructions({
     required this.distribution,
     required this.component,
@@ -48,10 +66,16 @@ class InstallInstructions {
 
 /// Service control response.
 class ServiceControlResult {
+  /// Whether the operation succeeded.
   final bool success;
+
+  /// Message describing the result.
   final String message;
+
+  /// The service status after the operation.
   final ServiceStatus? status;
 
+  /// Creates a ServiceControlResult with the given parameters.
   const ServiceControlResult({
     required this.success,
     required this.message,
@@ -90,6 +114,7 @@ abstract class ServerRepository {
 class ServerRepositoryImpl implements ServerRepository {
   final GrpcClient _client;
 
+  /// Creates a ServerRepositoryImpl with the given gRPC client.
   ServerRepositoryImpl(this._client);
 
   @override

@@ -21,24 +21,50 @@
 part of 'server_bloc.dart';
 
 /// Status of server operations.
-enum ServerStatus { initial, loading, success, failure }
+enum ServerStatus {
+  /// Initial state before any operation.
+  initial,
+
+  /// An operation is in progress.
+  loading,
+
+  /// The operation completed successfully.
+  success,
+
+  /// The operation failed with an error.
+  failure,
+}
 
 /// Result of a service control action.
 class ActionResult {
+  /// Whether the action succeeded.
   final bool success;
+
+  /// Message describing the result.
   final String message;
 
+  /// Creates an ActionResult with the given parameters.
   const ActionResult({required this.success, required this.message});
 }
 
 /// State for the server feature.
 final class ServerState extends Equatable {
+  /// The current status of BLoC operations.
   final ServerStatus status;
+
+  /// The SSH system status information.
   final SSHSystemStatus? sshStatus;
+
+  /// Error message if the last operation failed.
   final String? errorMessage;
+
+  /// Whether a service control action is in progress.
   final bool actionInProgress;
+
+  /// Result of the last service control action.
   final ActionResult? actionResult;
 
+  /// Creates a ServerState with the given parameters.
   const ServerState({
     this.status = ServerStatus.initial,
     this.sshStatus,
@@ -47,6 +73,7 @@ final class ServerState extends Equatable {
     this.actionResult,
   });
 
+  /// Creates a copy of this state with the given fields replaced.
   ServerState copyWith({
     ServerStatus? status,
     SSHSystemStatus? sshStatus,

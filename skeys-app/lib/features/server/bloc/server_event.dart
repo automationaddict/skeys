@@ -22,6 +22,7 @@ part of 'server_bloc.dart';
 
 /// Base class for all server events.
 sealed class ServerEvent extends Equatable {
+  /// Creates a ServerEvent.
   const ServerEvent();
 
   @override
@@ -30,35 +31,42 @@ sealed class ServerEvent extends Equatable {
 
 /// Subscribe to SSH status updates via streaming.
 final class ServerWatchRequested extends ServerEvent {
+  /// Creates a ServerWatchRequested event.
   const ServerWatchRequested();
 }
 
 /// Start the SSH server service.
 final class ServerStartRequested extends ServerEvent {
+  /// Creates a ServerStartRequested event.
   const ServerStartRequested();
 }
 
 /// Stop the SSH server service.
 final class ServerStopRequested extends ServerEvent {
+  /// Creates a ServerStopRequested event.
   const ServerStopRequested();
 }
 
 /// Restart the SSH server service.
 final class ServerRestartRequested extends ServerEvent {
+  /// Creates a ServerRestartRequested event.
   const ServerRestartRequested();
 }
 
 /// Enable SSH service auto-start on boot.
 final class ServerEnableRequested extends ServerEvent {
+  /// Creates a ServerEnableRequested event.
   const ServerEnableRequested();
 }
 
 /// Disable SSH service auto-start on boot.
 final class ServerDisableRequested extends ServerEvent {
+  /// Creates a ServerDisableRequested event.
   const ServerDisableRequested();
 }
 
 /// Clear the action result (after showing toast).
 final class ServerActionResultCleared extends ServerEvent {
+  /// Creates a ServerActionResultCleared event.
   const ServerActionResultCleared();
 }

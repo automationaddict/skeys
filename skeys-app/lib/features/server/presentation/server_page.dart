@@ -31,6 +31,7 @@ import '../repository/server_repository.dart';
 
 /// Server status page showing SSH client/server installation and service status.
 class ServerPage extends StatefulWidget {
+  /// Creates a ServerPage widget.
   const ServerPage({super.key});
 
   @override

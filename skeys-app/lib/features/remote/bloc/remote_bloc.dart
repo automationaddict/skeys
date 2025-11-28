@@ -33,6 +33,7 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
   final RemoteRepository _repository;
   final AppLogger _log = AppLogger('bloc.remote');
 
+  /// Creates a RemoteBloc with the given repository.
   RemoteBloc(this._repository) : super(const RemoteState()) {
     on<RemoteLoadRequested>(_onLoadRequested);
     on<RemoteAddRequested>(_onAddRequested);

@@ -20,12 +20,22 @@
 
 /// Domain entity for key metadata.
 class KeyMetadataEntity {
+  /// The path to the SSH key file.
   final String keyPath;
+
+  /// The name of the service this key was verified with (e.g., GitHub).
   final String? verifiedService;
+
+  /// The host this key was verified with.
   final String? verifiedHost;
+
+  /// The port this key was verified with.
   final int? verifiedPort;
+
+  /// The user this key was verified with.
   final String? verifiedUser;
 
+  /// Creates a KeyMetadataEntity with the given parameters.
   KeyMetadataEntity({
     required this.keyPath,
     this.verifiedService,

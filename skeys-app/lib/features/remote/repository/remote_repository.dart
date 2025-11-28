@@ -24,8 +24,13 @@ import '../../../core/generated/skeys/v1/remote.pb.dart' as pb;
 
 /// Abstract repository for remote server management.
 abstract class RemoteRepository {
+  /// Lists all configured remote servers.
   Future<List<RemoteEntity>> listRemotes();
+
+  /// Gets a specific remote by ID.
   Future<RemoteEntity> getRemote(String id);
+
+  /// Adds a new remote server configuration.
   Future<RemoteEntity> addRemote({
     required String name,
     required String host,
@@ -34,17 +39,33 @@ abstract class RemoteRepository {
     String? identityFile,
     String? sshConfigAlias,
   });
+
+  /// Updates an existing remote configuration.
   Future<RemoteEntity> updateRemote(RemoteEntity remote);
+
+  /// Deletes a remote configuration by ID.
   Future<void> deleteRemote(String id);
+
+  /// Connects to a remote server.
   Future<ConnectionEntity> connect(String remoteId, {String? passphrase});
+
+  /// Disconnects from a remote server.
   Future<void> disconnect(String connectionId);
+
+  /// Lists all active connections.
   Future<List<ConnectionEntity>> listConnections();
+
+  /// Watches connections for changes.
   Stream<List<ConnectionEntity>> watchConnections();
+
+  /// Executes a command on a remote server.
   Future<CommandResult> executeCommand(
     String connectionId,
     String command, {
     int? timeout,
   });
+
+  /// Tests an SSH connection without establishing a full connection.
   Future<TestConnectionResult> testConnection({
     required String host,
     required int port,
@@ -60,6 +81,7 @@ abstract class RemoteRepository {
 class RemoteRepositoryImpl implements RemoteRepository {
   final GrpcClient _client;
 
+  /// Creates a RemoteRepositoryImpl with the given gRPC client.
   RemoteRepositoryImpl(this._client);
 
   @override

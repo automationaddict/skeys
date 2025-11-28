@@ -26,6 +26,7 @@ import '../domain/remote_entity.dart';
 
 /// Page for remote server management.
 class RemotePage extends StatefulWidget {
+  /// Creates a RemotePage widget.
   const RemotePage({super.key});
 
   @override

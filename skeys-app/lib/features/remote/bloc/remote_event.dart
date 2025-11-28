@@ -20,25 +20,42 @@
 
 part of 'remote_bloc.dart';
 
+/// Base class for all remote-related events.
 sealed class RemoteEvent extends Equatable {
+  /// Creates a RemoteEvent.
   const RemoteEvent();
 
   @override
   List<Object?> get props => [];
 }
 
+/// Event to request loading all remote configurations.
 final class RemoteLoadRequested extends RemoteEvent {
+  /// Creates a RemoteLoadRequested event.
   const RemoteLoadRequested();
 }
 
+/// Event to request adding a new remote configuration.
 final class RemoteAddRequested extends RemoteEvent {
+  /// The display name for the remote.
   final String name;
+
+  /// The hostname or IP address.
   final String host;
+
+  /// The SSH port.
   final int port;
+
+  /// The username for authentication.
   final String user;
+
+  /// Optional path to identity file.
   final String? identityFile;
+
+  /// Optional SSH config alias to use.
   final String? sshConfigAlias;
 
+  /// Creates a RemoteAddRequested event.
   const RemoteAddRequested({
     required this.name,
     required this.host,
@@ -59,47 +76,69 @@ final class RemoteAddRequested extends RemoteEvent {
   ];
 }
 
+/// Event to request deleting a remote configuration.
 final class RemoteDeleteRequested extends RemoteEvent {
+  /// The ID of the remote to delete.
   final String id;
 
+  /// Creates a RemoteDeleteRequested event.
   const RemoteDeleteRequested(this.id);
 
   @override
   List<Object?> get props => [id];
 }
 
+/// Event to request connecting to a remote server.
 final class RemoteConnectRequested extends RemoteEvent {
+  /// The ID of the remote to connect to.
   final String remoteId;
+
+  /// Optional passphrase if key is encrypted.
   final String? passphrase;
 
+  /// Creates a RemoteConnectRequested event.
   const RemoteConnectRequested({required this.remoteId, this.passphrase});
 
   @override
   List<Object?> get props => [remoteId, passphrase];
 }
 
+/// Event to request disconnecting from a remote server.
 final class RemoteDisconnectRequested extends RemoteEvent {
+  /// The ID of the connection to close.
   final String connectionId;
 
+  /// Creates a RemoteDisconnectRequested event.
   const RemoteDisconnectRequested(this.connectionId);
 
   @override
   List<Object?> get props => [connectionId];
 }
 
+/// Event to request loading active connections.
 final class RemoteLoadConnectionsRequested extends RemoteEvent {
+  /// Creates a RemoteLoadConnectionsRequested event.
   const RemoteLoadConnectionsRequested();
 }
 
+/// Event to start watching connections for changes.
 final class RemoteWatchConnectionsRequested extends RemoteEvent {
+  /// Creates a RemoteWatchConnectionsRequested event.
   const RemoteWatchConnectionsRequested();
 }
 
+/// Event to request executing a command on a remote server.
 final class RemoteExecuteCommandRequested extends RemoteEvent {
+  /// The ID of the connection to use.
   final String connectionId;
+
+  /// The command to execute.
   final String command;
+
+  /// Optional timeout in seconds.
   final int? timeout;
 
+  /// Creates a RemoteExecuteCommandRequested event.
   const RemoteExecuteCommandRequested({
     required this.connectionId,
     required this.command,
