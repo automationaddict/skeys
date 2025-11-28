@@ -278,6 +278,10 @@ func (s *Server) ManagedAgentSocketPath() string {
 
 // getManagedAgentSocketPath returns the socket path for the managed SSH agent
 func getManagedAgentSocketPath() string {
+	// Allow override via environment variable (useful for dev environments)
+	if agentSocket := os.Getenv("SKEYS_AGENT_SOCKET"); agentSocket != "" {
+		return agentSocket
+	}
 	// Use XDG_RUNTIME_DIR if available (typical on Linux)
 	// Put in skeys/ subdirectory to match systemd service ReadWritePaths
 	if runtimeDir := os.Getenv("XDG_RUNTIME_DIR"); runtimeDir != "" {

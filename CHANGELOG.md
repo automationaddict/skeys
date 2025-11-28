@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Add include patches toggle for update settings
+- Separate dev and prod SSH agent sockets
+
+### Build
+
+- Automate version and build number in CI
 
 ### Documentation
 
@@ -25,6 +30,9 @@ All notable changes to this project will be documented in this file.
 
 - Prevent dialog freeze when network unavailable in add key to agent
 - Remove unused imports in Flutter test files
+- Improve gRPC connection resilience for long-running sessions
+- Correct Go module paths from johnnelson to automationaddict
+- Resolve UI freeze when adding keys to SSH agent
 
 ### Miscellaneous
 

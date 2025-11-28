@@ -132,17 +132,32 @@ clean: proto-clean
 # ============================================================
 
 # Start the full dev environment (daemon container + Flutter app)
-# Builds the daemon image if source files have changed
+# Kills prod app/daemon, switches SSH config to dev socket
 tilt-up:
-    @echo "Building daemon image..."
+    #!/bin/bash
+    set -e
+    echo "Stopping any production instances..."
+    # Kill prod app and daemon
+    pkill -f "skeys-app" 2>/dev/null || true
+    pkill -f "skeys-daemon" 2>/dev/null || true
+    systemctl --user stop skeys-daemon.service 2>/dev/null || true
+    # Clean up sockets
+    rm -f /tmp/skeys-dev.sock
+    rm -f /tmp/skeys-dev-agent.sock
+    # Switch SSH config to dev socket
+    echo "Switching SSH config to dev socket..."
+    sed -i 's|IdentityAgent .*|IdentityAgent /tmp/skeys-dev-agent.sock|' ~/.ssh/config
+    # Build and start
+    echo "Building daemon image..."
     COMMIT=$(git rev-parse --short HEAD) docker compose build daemon
-    @echo "Starting Tilt..."
+    echo "Starting Tilt..."
     COMMIT=$(git rev-parse --short HEAD) tilt up
 
 # Stop the dev environment
 tilt-down:
     tilt down
     rm -f /tmp/skeys-dev.sock
+    rm -f /tmp/skeys-dev-agent.sock
 
 # Kill any orphaned dev processes/containers
 tilt-kill:
@@ -151,7 +166,32 @@ tilt-kill:
     -docker rm skeys-daemon-dev 2>/dev/null || true
     -docker stop $$(docker ps -q --filter ancestor=skeys-daemon-dev) 2>/dev/null || true
     rm -f /tmp/skeys-dev.sock
+    rm -f /tmp/skeys-dev-agent.sock
     @echo "Cleanup complete"
+
+# Start production app and daemon
+prod:
+    #!/bin/bash
+    set -e
+    echo "Stopping any existing instances..."
+    # Kill everything - dev and prod
+    pkill -f "skeys-app" 2>/dev/null || true
+    pkill -f "skeys-daemon" 2>/dev/null || true
+    tilt down 2>/dev/null || true
+    docker stop skeys-daemon-dev 2>/dev/null || true
+    # Clean up sockets
+    rm -f /tmp/skeys-dev.sock
+    rm -f /tmp/skeys-dev-agent.sock
+    # Switch SSH config to prod socket
+    echo "Switching SSH config to prod socket..."
+    sed -i 's|IdentityAgent .*|IdentityAgent /run/user/1000/skeys/skeys-agent.sock|' ~/.ssh/config
+    # Start prod daemon via systemd
+    echo "Starting production daemon..."
+    systemctl --user start skeys-daemon.service
+    # Start prod app
+    echo "Starting production app..."
+    ~/.local/share/skeys/skeys-app &
+    echo "Production environment started"
 
 # Install development dependencies
 setup:

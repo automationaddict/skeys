@@ -12,6 +12,7 @@ services:
     environment:
       - HOME=${HOME}
       - XDG_RUNTIME_DIR=/run/user/${UID:-1000}
+      - SKEYS_AGENT_SOCKET=/tmp/skeys-dev-agent.sock
     volumes:
       - /tmp:/tmp
       - /run/user/${UID:-1000}:/run/user/${UID:-1000}
