@@ -104,7 +104,11 @@ func New(opts ...ServerOption) (*Server, error) {
 	})
 
 	// Initialize agent service pointing to our managed agent
-	agentService := agent.NewService(agent.WithSocketPath(agentSocketPath), agent.WithLogger(agentLog))
+	agentService, err := agent.NewService(agent.WithSocketPath(agentSocketPath), agent.WithLogger(agentLog))
+	if err != nil {
+		s.log.Err(err, "failed to initialize agent service")
+		return nil, err
+	}
 	s.agentService = agentService
 	s.log.Debug("agent service initialized")
 
@@ -130,7 +134,11 @@ func New(opts ...ServerOption) (*Server, error) {
 	s.clientConfig = clientConfig
 	s.log.Debug("client config initialized")
 
-	serverConfig := config.NewServerConfigManager(config.WithServerLogger(configLog))
+	serverConfig, err := config.NewServerConfigManager(config.WithServerLogger(configLog))
+	if err != nil {
+		s.log.Err(err, "failed to initialize server config")
+		return nil, err
+	}
 	s.serverConfig = serverConfig
 	s.log.Debug("server config initialized")
 

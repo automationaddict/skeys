@@ -23,11 +23,12 @@ type LocalExecutor struct {
 func NewLocalExecutor() *LocalExecutor {
 	return &LocalExecutor{
 		allowedCommands: map[string]bool{
-			"ssh-keygen": true,
-			"ssh-add":    true,
-			"ssh-agent":  true,
-			"ssh":        true,
-			"sshd":       true,
+			"ssh-keygen":  true,
+			"ssh-add":     true,
+			"ssh-agent":   true,
+			"ssh":         true,
+			"sshd":        true,
+			"ssh-keyscan": true,
 		},
 	}
 }

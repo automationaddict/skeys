@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/johnnelson/skeys-core/executor"
 	"github.com/johnnelson/skeys-core/logging"
 )
 
@@ -27,15 +28,10 @@ type KnownHost struct {
 	LineNumber  int
 }
 
-// Executor interface for running commands
-type Executor interface {
-	Run(ctx context.Context, name string, args ...string) ([]byte, error)
-}
-
 // KnownHostsManager manages the known_hosts file
 type KnownHostsManager struct {
 	path     string
-	executor Executor
+	executor executor.Executor
 	log      *logging.Logger
 }
 
@@ -50,7 +46,7 @@ func WithKnownHostsPath(path string) KnownHostsOption {
 }
 
 // WithKnownHostsExecutor sets a custom executor
-func WithKnownHostsExecutor(exec Executor) KnownHostsOption {
+func WithKnownHostsExecutor(exec executor.Executor) KnownHostsOption {
 	return func(m *KnownHostsManager) {
 		m.executor = exec
 	}

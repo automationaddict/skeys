@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/johnnelson/skeys-core/executor"
 	"github.com/johnnelson/skeys-core/logging"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
@@ -56,7 +57,7 @@ func WithLogger(log *logging.Logger) ServiceOption {
 }
 
 // NewService creates a new agent service
-func NewService(opts ...ServiceOption) *Service {
+func NewService(opts ...ServiceOption) (*Service, error) {
 	s := &Service{
 		socketPath: os.Getenv("SSH_AUTH_SOCK"),
 		log:        logging.Nop(),
@@ -70,7 +71,7 @@ func NewService(opts ...ServiceOption) *Service {
 		"socket_path": s.socketPath,
 	})
 
-	return s
+	return s, nil
 }
 
 // Status returns the agent status
@@ -398,20 +399,15 @@ func getBits(key *agent.Key) int {
 
 // CLIExecutor wraps ssh-add commands for operations that need passphrase prompts
 type CLIExecutor struct {
-	executor CommandExecutor
-	log      *logging.Logger
-}
-
-// CommandExecutor is the interface for running commands
-type CommandExecutor interface {
-	Run(ctx context.Context, name string, args ...string) ([]byte, error)
+	exec executor.Executor
+	log  *logging.Logger
 }
 
 // NewCLIExecutor creates a new CLI executor
-func NewCLIExecutor(exec CommandExecutor, opts ...func(*CLIExecutor)) *CLIExecutor {
+func NewCLIExecutor(exec executor.Executor, opts ...func(*CLIExecutor)) *CLIExecutor {
 	e := &CLIExecutor{
-		executor: exec,
-		log:      logging.Nop(),
+		exec: exec,
+		log:  logging.Nop(),
 	}
 	for _, opt := range opts {
 		opt(e)
@@ -439,7 +435,7 @@ func (e *CLIExecutor) AddKeyFromFile(ctx context.Context, keyPath string, lifeti
 	}
 	args = append(args, keyPath)
 
-	_, err := e.executor.Run(ctx, "ssh-add", args...)
+	_, err := e.exec.Run(ctx, "ssh-add", args...)
 	if err != nil {
 		e.log.ErrWithFields(err, "ssh-add failed", map[string]interface{}{
 			"key_path": keyPath,
@@ -457,7 +453,7 @@ func (e *CLIExecutor) RemoveKeyFromFile(ctx context.Context, keyPath string) err
 		"key_path": keyPath,
 	})
 
-	_, err := e.executor.Run(ctx, "ssh-add", "-d", keyPath)
+	_, err := e.exec.Run(ctx, "ssh-add", "-d", keyPath)
 	if err != nil {
 		e.log.ErrWithFields(err, "ssh-add -d failed", map[string]interface{}{
 			"key_path": keyPath,
@@ -473,7 +469,7 @@ func (e *CLIExecutor) RemoveKeyFromFile(ctx context.Context, keyPath string) err
 func (e *CLIExecutor) RemoveAllKeys(ctx context.Context) error {
 	e.log.Info("removing all keys via ssh-add -D")
 
-	_, err := e.executor.Run(ctx, "ssh-add", "-D")
+	_, err := e.exec.Run(ctx, "ssh-add", "-D")
 	if err != nil {
 		e.log.Err(err, "ssh-add -D failed")
 		return err
@@ -487,7 +483,7 @@ func (e *CLIExecutor) RemoveAllKeys(ctx context.Context) error {
 func (e *CLIExecutor) ListKeys(ctx context.Context) ([]string, error) {
 	e.log.Debug("listing keys via ssh-add -l")
 
-	output, err := e.executor.Run(ctx, "ssh-add", "-l")
+	output, err := e.exec.Run(ctx, "ssh-add", "-l")
 	if err != nil {
 		// Exit code 1 means no identities
 		if strings.Contains(string(output), "no identities") {

@@ -67,7 +67,7 @@ func WithServerLogger(log *logging.Logger) ServerConfigOption {
 }
 
 // NewServerConfigManager creates a new sshd_config manager
-func NewServerConfigManager(opts ...ServerConfigOption) *ServerConfigManager {
+func NewServerConfigManager(opts ...ServerConfigOption) (*ServerConfigManager, error) {
 	m := &ServerConfigManager{
 		path: "/etc/ssh/sshd_config",
 		log:  logging.Nop(),
@@ -81,7 +81,7 @@ func NewServerConfigManager(opts ...ServerConfigOption) *ServerConfigManager {
 		"config_path": m.path,
 	})
 
-	return m
+	return m, nil
 }
 
 // Read parses the sshd_config file
