@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -144,10 +164,7 @@ class _ImportDialogState extends State<ImportDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Backup File:',
-          style: theme.textTheme.titleSmall,
-        ),
+        Text('Backup File:', style: theme.textTheme.titleSmall),
         const SizedBox(height: 8),
         InkWell(
           onTap: _selectFile,
@@ -177,10 +194,7 @@ class _ImportDialogState extends State<ImportDialog> {
                     ),
                   ),
                 ),
-                Icon(
-                  Icons.chevron_right,
-                  color: colorScheme.onSurfaceVariant,
-                ),
+                Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
               ],
             ),
           ),
@@ -193,10 +207,7 @@ class _ImportDialogState extends State<ImportDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Passphrase:',
-          style: theme.textTheme.titleSmall,
-        ),
+        Text('Passphrase:', style: theme.textTheme.titleSmall),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -213,8 +224,9 @@ class _ImportDialogState extends State<ImportDialog> {
                           ? Icons.visibility_outlined
                           : Icons.visibility_off_outlined,
                     ),
-                    onPressed: () =>
-                        setState(() => _obscurePassphrase = !_obscurePassphrase),
+                    onPressed: () => setState(
+                      () => _obscurePassphrase = !_obscurePassphrase,
+                    ),
                   ),
                   border: const OutlineInputBorder(),
                 ),
@@ -281,10 +293,7 @@ class _ImportDialogState extends State<ImportDialog> {
         const SizedBox(height: 16),
 
         // Contents summary
-        Text(
-          'Contents:',
-          style: theme.textTheme.titleSmall,
-        ),
+        Text('Contents:', style: theme.textTheme.titleSmall),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -336,10 +345,7 @@ class _ImportDialogState extends State<ImportDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Restore options:',
-          style: theme.textTheme.titleSmall,
-        ),
+        Text('Restore options:', style: theme.textTheme.titleSmall),
         const SizedBox(height: 8),
 
         if (contents.keyCount > 0)
@@ -390,7 +396,8 @@ class _ImportDialogState extends State<ImportDialog> {
         if (contents.hasAuthorizedKeys)
           CheckboxListTile(
             value: _restoreAuthorizedKeys,
-            onChanged: (v) => setState(() => _restoreAuthorizedKeys = v ?? true),
+            onChanged: (v) =>
+                setState(() => _restoreAuthorizedKeys = v ?? true),
             title: const Row(
               children: [
                 Icon(Icons.verified_user, size: 20),

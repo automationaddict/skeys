@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -36,13 +56,10 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
             slivers: [
               // Expandable category sections
               SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final category = sshdDirectiveCategories[index];
-                    return _buildCategorySection(context, category);
-                  },
-                  childCount: sshdDirectiveCategories.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final category = sshdDirectiveCategories[index];
+                  return _buildCategorySection(context, category);
+                }, childCount: sshdDirectiveCategories.length),
               ),
               // Bottom padding
               const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
@@ -90,7 +107,9 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
           const SizedBox(height: 24),
           FilledButton.icon(
             onPressed: () {
-              context.read<ConfigBloc>().add(const ConfigLoadServerConfigRequested());
+              context.read<ConfigBloc>().add(
+                const ConfigLoadServerConfigRequested(),
+              );
             },
             icon: const Icon(Icons.download),
             label: const Text('Load Server Config'),
@@ -134,7 +153,8 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
                         ),
                       ),
                       Text(
-                        widget.state.serverConfig?.path ?? '/etc/ssh/sshd_config',
+                        widget.state.serverConfig?.path ??
+                            '/etc/ssh/sshd_config',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                           fontFamily: 'monospace',
@@ -182,7 +202,9 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
                   Icon(
                     pendingRestart ? Icons.warning_amber : Icons.info_outline,
                     size: 18,
-                    color: pendingRestart ? colorScheme.error : colorScheme.primary,
+                    color: pendingRestart
+                        ? colorScheme.error
+                        : colorScheme.primary,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -191,7 +213,9 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
                           ? 'Configuration changed. Restart the SSH service to apply changes.'
                           : 'Changes require restarting the SSH service to take effect.',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: pendingRestart ? colorScheme.error : colorScheme.onSurface,
+                        color: pendingRestart
+                            ? colorScheme.error
+                            : colorScheme.onSurface,
                         fontWeight: pendingRestart ? FontWeight.w500 : null,
                       ),
                     ),
@@ -222,7 +246,9 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
           FilledButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              context.read<ConfigBloc>().add(const ConfigRestartSSHServerRequested());
+              context.read<ConfigBloc>().add(
+                const ConfigRestartSSHServerRequested(),
+              );
               AppToast.success(context, message: 'SSH service restarting...');
             },
             child: const Text('Restart'),
@@ -232,7 +258,10 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
     );
   }
 
-  Widget _buildCategorySection(BuildContext context, SshdDirectiveCategory category) {
+  Widget _buildCategorySection(
+    BuildContext context,
+    SshdDirectiveCategory category,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isExpanded = _expandedSections.contains(category.id);
@@ -245,7 +274,10 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
     if (visibleDirectives.isEmpty) return const SizedBox.shrink();
 
     // Count configured directives in this category (only visible ones)
-    final configuredCount = _getConfiguredDirectivesInCategory(category, visibleDirectives);
+    final configuredCount = _getConfiguredDirectivesInCategory(
+      category,
+      visibleDirectives,
+    );
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -291,7 +323,10 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: configuredCount > 0
                           ? colorScheme.primaryContainer
@@ -401,18 +436,21 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
         color: colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Icon(
-        iconData,
-        color: colorScheme.onPrimaryContainer,
-        size: 20,
-      ),
+      child: Icon(iconData, color: colorScheme.onPrimaryContainer, size: 20),
     );
   }
 
-  int _getConfiguredDirectivesInCategory(SshdDirectiveCategory category, List<SshdDirectiveDefinition> visibleDirectives) {
+  int _getConfiguredDirectivesInCategory(
+    SshdDirectiveCategory category,
+    List<SshdDirectiveDefinition> visibleDirectives,
+  ) {
     if (widget.state.serverConfig == null) return 0;
-    final configuredKeys = widget.state.serverConfig!.options.map((o) => o.key).toSet();
-    return visibleDirectives.where((d) => configuredKeys.contains(d.key)).length;
+    final configuredKeys = widget.state.serverConfig!.options
+        .map((o) => o.key)
+        .toSet();
+    return visibleDirectives
+        .where((d) => configuredKeys.contains(d.key))
+        .length;
   }
 
   String? _getCurrentValue(String key) {
@@ -426,7 +464,10 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
     }
   }
 
-  void _showEditDirectiveDialog(BuildContext context, SshdDirectiveDefinition directive) {
+  void _showEditDirectiveDialog(
+    BuildContext context,
+    SshdDirectiveDefinition directive,
+  ) {
     final currentValue = _getCurrentValue(directive.key);
     showDialog(
       context: context,
@@ -435,10 +476,7 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
         currentValue: currentValue,
         onSave: (value) {
           context.read<ConfigBloc>().add(
-            ConfigUpdateServerOptionRequested(
-              key: directive.key,
-              value: value,
-            ),
+            ConfigUpdateServerOptionRequested(key: directive.key, value: value),
           );
         },
       ),
@@ -464,7 +502,8 @@ class _ServerDirectiveListTile extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final isConfigured = currentValue != null;
     final displayValue = currentValue ?? directive.defaultValue;
-    final isDefault = currentValue == null || currentValue == directive.defaultValue;
+    final isDefault =
+        currentValue == null || currentValue == directive.defaultValue;
 
     return InkWell(
       onTap: onEdit,
@@ -478,7 +517,9 @@ class _ServerDirectiveListTile extends StatelessWidget {
               height: 8,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isConfigured ? colorScheme.primary : colorScheme.outline.withValues(alpha: 0.3),
+                color: isConfigured
+                    ? colorScheme.primary
+                    : colorScheme.outline.withValues(alpha: 0.3),
               ),
             ),
             const SizedBox(width: 12),
@@ -498,7 +539,10 @@ class _ServerDirectiveListTile extends StatelessWidget {
                       if (directive.isAdvanced) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: colorScheme.tertiaryContainer,
                             borderRadius: BorderRadius.circular(4),
@@ -535,13 +579,17 @@ class _ServerDirectiveListTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 border: isDefault
                     ? null
-                    : Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
+                    : Border.all(
+                        color: colorScheme.primary.withValues(alpha: 0.3),
+                      ),
               ),
               child: Text(
                 _formatDisplayValue(displayValue),
                 style: theme.textTheme.bodySmall?.copyWith(
                   fontFamily: 'monospace',
-                  color: isDefault ? colorScheme.onSurfaceVariant : colorScheme.primary,
+                  color: isDefault
+                      ? colorScheme.onSurfaceVariant
+                      : colorScheme.primary,
                   fontWeight: isDefault ? FontWeight.normal : FontWeight.w500,
                 ),
               ),

@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'dart:async';
 import 'dart:io';
 import 'package:path/path.dart' as path;
@@ -44,9 +64,7 @@ class BackendLauncher {
       return;
     }
 
-    _log.info('starting backend launcher', {
-      'dev_mode': isDevMode,
-    });
+    _log.info('starting backend launcher', {'dev_mode': isDevMode});
 
     // Use appropriate socket path for mode
     _socketPath = defaultSocketPath;
@@ -91,10 +109,12 @@ class BackendLauncher {
 
     try {
       // Start daemon in a new session to prevent terminal state issues
-      _process = await Process.start(
-        'setsid',
-        ['-f', daemonPath, '--socket', _socketPath!],
-      );
+      _process = await Process.start('setsid', [
+        '-f',
+        daemonPath,
+        '--socket',
+        _socketPath!,
+      ]);
       _log.debug('daemon process started via setsid', {'pid': _process!.pid});
     } catch (e) {
       _log.error('failed to start daemon process', e);
@@ -134,7 +154,10 @@ class BackendLauncher {
 
     // Find and kill the daemon process by name since we used setsid
     try {
-      await Process.run('pkill', ['-f', 'skeys-daemon.*--socket.*$_socketPath']);
+      await Process.run('pkill', [
+        '-f',
+        'skeys-daemon.*--socket.*$_socketPath',
+      ]);
       _log.info('sent SIGTERM to daemon');
 
       // Give it time to shut down gracefully
@@ -190,13 +213,20 @@ class BackendLauncher {
     // Only search installed locations - dev mode uses containerized daemon
     final locations = [
       // Installed: user local bin
-      path.join(Platform.environment['HOME'] ?? '', '.local', 'bin', 'skeys-daemon'),
+      path.join(
+        Platform.environment['HOME'] ?? '',
+        '.local',
+        'bin',
+        'skeys-daemon',
+      ),
       // Installed: system bin
       '/usr/local/bin/skeys-daemon',
       '/usr/bin/skeys-daemon',
     ];
 
-    _log.debug('searching for daemon executable', {'locations': locations.length});
+    _log.debug('searching for daemon executable', {
+      'locations': locations.length,
+    });
 
     for (final location in locations) {
       final file = File(location);
@@ -236,13 +266,21 @@ class BackendLauncher {
       await socket.close();
       return true;
     } on TimeoutException {
-      _log.debug('socket connection timed out (stale socket)', {'path': socketPath});
+      _log.debug('socket connection timed out (stale socket)', {
+        'path': socketPath,
+      });
       return false;
     } on SocketException catch (e) {
-      _log.debug('socket connection failed', {'path': socketPath, 'error': e.message});
+      _log.debug('socket connection failed', {
+        'path': socketPath,
+        'error': e.message,
+      });
       return false;
     } catch (e) {
-      _log.debug('socket connection test failed', {'path': socketPath, 'error': e});
+      _log.debug('socket connection test failed', {
+        'path': socketPath,
+        'error': e,
+      });
       return false;
     }
   }
@@ -265,8 +303,6 @@ class BackendLauncher {
       await Future.delayed(delay);
     }
 
-    throw StateError(
-      'Timeout waiting for skeys-daemon socket at $_socketPath',
-    );
+    throw StateError('Timeout waiting for skeys-daemon socket at $_socketPath');
   }
 }

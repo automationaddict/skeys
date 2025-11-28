@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -70,7 +90,9 @@ class _ExportDialogState extends State<ExportDialog> {
                   decoration: BoxDecoration(
                     color: colorScheme.errorContainer.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: colorScheme.error.withValues(alpha: 0.5)),
+                    border: Border.all(
+                      color: colorScheme.error.withValues(alpha: 0.5),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -91,10 +113,7 @@ class _ExportDialogState extends State<ExportDialog> {
                 const SizedBox(height: 24),
 
                 // Include options
-                Text(
-                  'Include in backup:',
-                  style: theme.textTheme.titleSmall,
-                ),
+                Text('Include in backup:', style: theme.textTheme.titleSmall),
                 const SizedBox(height: 8),
                 _buildCheckbox(
                   'SSH Keys',
@@ -155,8 +174,9 @@ class _ExportDialogState extends State<ExportDialog> {
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
                       ),
-                      onPressed: () =>
-                          setState(() => _obscurePassphrase = !_obscurePassphrase),
+                      onPressed: () => setState(
+                        () => _obscurePassphrase = !_obscurePassphrase,
+                      ),
                     ),
                     border: const OutlineInputBorder(),
                   ),
@@ -203,7 +223,9 @@ class _ExportDialogState extends State<ExportDialog> {
                         Expanded(
                           child: Text(
                             _error!,
-                            style: TextStyle(color: colorScheme.onErrorContainer),
+                            style: TextStyle(
+                              color: colorScheme.onErrorContainer,
+                            ),
                           ),
                         ),
                       ],
@@ -240,7 +262,10 @@ class _ExportDialogState extends State<ExportDialog> {
   }
 
   bool get _hasSelection =>
-      _includeKeys || _includeConfig || _includeKnownHosts || _includeAuthorizedKeys;
+      _includeKeys ||
+      _includeConfig ||
+      _includeKnownHosts ||
+      _includeAuthorizedKeys;
 
   Widget _buildCheckbox(
     String title,
@@ -253,11 +278,7 @@ class _ExportDialogState extends State<ExportDialog> {
       value: value,
       onChanged: onChanged,
       title: Row(
-        children: [
-          Icon(icon, size: 20),
-          const SizedBox(width: 8),
-          Text(title),
-        ],
+        children: [Icon(icon, size: 20), const SizedBox(width: 8), Text(title)],
       ),
       subtitle: Text(subtitle),
       dense: true,
@@ -288,7 +309,11 @@ class _ExportDialogState extends State<ExportDialog> {
       );
 
       // Pick save location
-      final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-').split('.').first;
+      final timestamp = DateTime.now()
+          .toIso8601String()
+          .replaceAll(':', '-')
+          .split('.')
+          .first;
       final defaultName = 'skeys-backup-$timestamp.skbak';
 
       final savePath = await FilePicker.platform.saveFile(
@@ -304,13 +329,18 @@ class _ExportDialogState extends State<ExportDialog> {
       }
 
       // Ensure .skbak extension
-      final finalPath = savePath.endsWith('.skbak') ? savePath : '$savePath.skbak';
+      final finalPath = savePath.endsWith('.skbak')
+          ? savePath
+          : '$savePath.skbak';
 
       await File(finalPath).writeAsBytes(data);
 
       if (mounted) {
         Navigator.of(context).pop();
-        AppToast.success(context, message: 'Backup saved to ${p.basename(finalPath)}');
+        AppToast.success(
+          context,
+          message: 'Backup saved to ${p.basename(finalPath)}',
+        );
       }
     } catch (e) {
       setState(() {

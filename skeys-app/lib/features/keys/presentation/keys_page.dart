@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,16 +44,18 @@ class _KeysPageState extends State<KeysPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SSH Keys'),
-      ),
+      appBar: AppBar(title: const Text('SSH Keys')),
       body: BlocConsumer<KeysBloc, KeysState>(
         listener: (context, state) {
           if (state.copiedPublicKey != null) {
             Clipboard.setData(ClipboardData(text: state.copiedPublicKey!));
-            AppToast.success(context, message: 'Public key copied to clipboard');
+            AppToast.success(
+              context,
+              message: 'Public key copied to clipboard',
+            );
           }
-          if (state.status == KeysStatus.failure && state.errorMessage != null) {
+          if (state.status == KeysStatus.failure &&
+              state.errorMessage != null) {
             AppToast.error(context, message: state.errorMessage!);
           }
           // Handle test connection result from immediate tests
@@ -78,8 +100,8 @@ class _KeysPageState extends State<KeysPage> {
                   Text(
                     'Generate a new key to get started',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                   ),
                 ],
               ),
@@ -94,12 +116,16 @@ class _KeysPageState extends State<KeysPage> {
               return KeyListTile(
                 keyEntity: key,
                 onCopyPublicKey: () {
-                  context.read<KeysBloc>().add(KeysCopyPublicKeyRequested(key.path));
+                  context.read<KeysBloc>().add(
+                    KeysCopyPublicKeyRequested(key.path),
+                  );
                 },
                 onDelete: () => _confirmDelete(context, key),
                 onAddToAgent: () => _addToAgent(context, key),
                 // Only show Test Connection when key is in agent
-                onTestConnection: key.isInAgent ? () => _testConnection(context, key) : null,
+                onTestConnection: key.isInAgent
+                    ? () => _testConnection(context, key)
+                    : null,
               );
             },
           );
@@ -128,7 +154,9 @@ class _KeysPageState extends State<KeysPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Key'),
-        content: Text('Are you sure you want to delete "${key.name}"? This action cannot be undone.'),
+        content: Text(
+          'Are you sure you want to delete "${key.name}"? This action cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
@@ -173,7 +201,8 @@ class _KeysPageState extends State<KeysPage> {
     if (metadata == null || metadata.verifiedHost == null) {
       AppToast.error(
         context,
-        message: 'No verified service found for this key. Re-add to agent to set up.',
+        message:
+            'No verified service found for this key. Re-add to agent to set up.',
       );
       return;
     }
@@ -181,16 +210,19 @@ class _KeysPageState extends State<KeysPage> {
     // Show testing toast
     AppToast.info(
       context,
-      message: 'Testing connection to ${metadata.verifiedService ?? metadata.verifiedHost}...',
+      message:
+          'Testing connection to ${metadata.verifiedService ?? metadata.verifiedHost}...',
     );
 
     // Test the connection
-    context.read<KeysBloc>().add(KeysTestConnectionRequested(
-      keyPath: key.path,
-      host: metadata.verifiedHost!,
-      port: metadata.verifiedPort ?? 22,
-      user: metadata.verifiedUser ?? 'git',
-      // No passphrase needed - key is already in agent
-    ));
+    context.read<KeysBloc>().add(
+      KeysTestConnectionRequested(
+        keyPath: key.path,
+        host: metadata.verifiedHost!,
+        port: metadata.verifiedPort ?? 22,
+        user: metadata.verifiedUser ?? 'git',
+        // No passphrase needed - key is already in agent
+      ),
+    );
   }
 }

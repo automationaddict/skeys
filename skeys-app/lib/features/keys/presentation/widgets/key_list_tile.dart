@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -57,14 +77,19 @@ class _KeyListTileState extends State<KeyListTile>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final settings = getIt<SettingsService>();
-    final expirationStatus = settings.getKeyExpirationStatus(widget.keyEntity.createdAt);
+    final expirationStatus = settings.getKeyExpirationStatus(
+      widget.keyEntity.createdAt,
+    );
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
           ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
             leading: _buildKeyIcon(context),
             title: Text(
               widget.keyEntity.name,
@@ -82,9 +107,9 @@ class _KeyListTileState extends State<KeyListTile>
                 Text(
                   widget.keyEntity.fingerprint,
                   style: theme.textTheme.bodySmall?.copyWith(
-                        fontFamily: 'monospace',
-                        color: colorScheme.outline,
-                      ),
+                    fontFamily: 'monospace',
+                    color: colorScheme.outline,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -109,7 +134,9 @@ class _KeyListTileState extends State<KeyListTile>
                   child: Padding(
                     padding: const EdgeInsets.only(left: 8),
                     child: Icon(
-                      widget.keyEntity.hasPassphrase ? Icons.lock : Icons.lock_open,
+                      widget.keyEntity.hasPassphrase
+                          ? Icons.lock
+                          : Icons.lock_open,
                       size: 20,
                       color: widget.keyEntity.hasPassphrase
                           ? Colors.green
@@ -153,7 +180,8 @@ class _KeyListTileState extends State<KeyListTile>
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
-                    if (!widget.keyEntity.isInAgent && widget.onAddToAgent != null)
+                    if (!widget.keyEntity.isInAgent &&
+                        widget.onAddToAgent != null)
                       const PopupMenuItem(
                         value: 'add_to_agent',
                         child: ListTile(
@@ -175,7 +203,10 @@ class _KeyListTileState extends State<KeyListTile>
                       value: 'delete',
                       child: ListTile(
                         leading: Icon(Icons.delete, color: Colors.red),
-                        title: Text('Delete', style: TextStyle(color: Colors.red)),
+                        title: Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.red),
+                        ),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
@@ -258,7 +289,8 @@ class _KeyListTileState extends State<KeyListTile>
 
     if (status == KeyExpirationStatus.critical) {
       return Tooltip(
-        message: 'Key is $keyAge days old - rotation strongly recommended!\n'
+        message:
+            'Key is $keyAge days old - rotation strongly recommended!\n'
             '(Critical threshold: ${settings.keyExpirationCriticalDays} days)',
         child: Padding(
           padding: const EdgeInsets.only(right: 8),
@@ -267,11 +299,7 @@ class _KeyListTileState extends State<KeyListTile>
             builder: (context, child) {
               return Opacity(
                 opacity: _pulseAnimation.value,
-                child: const Icon(
-                  Icons.error,
-                  size: 20,
-                  color: Colors.red,
-                ),
+                child: const Icon(Icons.error, size: 20, color: Colors.red),
               );
             },
           ),
@@ -281,7 +309,8 @@ class _KeyListTileState extends State<KeyListTile>
 
     // Warning status
     return Tooltip(
-      message: 'Key is $keyAge days old - consider rotating\n'
+      message:
+          'Key is $keyAge days old - consider rotating\n'
           '(Warning threshold: ${settings.keyExpirationWarningDays} days)',
       child: Padding(
         padding: const EdgeInsets.only(right: 8),
@@ -302,10 +331,7 @@ class _KeyListTileState extends State<KeyListTile>
         color: Theme.of(context).colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Icon(
-        Icons.key,
-        color: Theme.of(context).colorScheme.primary,
-      ),
+      child: Icon(Icons.key, color: Theme.of(context).colorScheme.primary),
     );
   }
 

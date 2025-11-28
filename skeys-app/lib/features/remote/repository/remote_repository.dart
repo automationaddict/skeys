@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import '../domain/remote_entity.dart';
 import '../../../core/grpc/grpc_client.dart';
 import '../../../core/generated/skeys/v1/remote.pb.dart' as pb;
@@ -20,7 +40,11 @@ abstract class RemoteRepository {
   Future<void> disconnect(String connectionId);
   Future<List<ConnectionEntity>> listConnections();
   Stream<List<ConnectionEntity>> watchConnections();
-  Future<CommandResult> executeCommand(String connectionId, String command, {int? timeout});
+  Future<CommandResult> executeCommand(
+    String connectionId,
+    String command, {
+    int? timeout,
+  });
   Future<TestConnectionResult> testConnection({
     required String host,
     required int port,
@@ -82,8 +106,12 @@ class RemoteRepositoryImpl implements RemoteRepository {
       ..port = remote.port
       ..user = remote.user;
 
-    if (remote.identityFile != null) request.identityFile = remote.identityFile!;
-    if (remote.sshConfigAlias != null) request.sshConfigAlias = remote.sshConfigAlias!;
+    if (remote.identityFile != null) {
+      request.identityFile = remote.identityFile!;
+    }
+    if (remote.sshConfigAlias != null) {
+      request.sshConfigAlias = remote.sshConfigAlias!;
+    }
 
     final response = await _client.remote.updateRemote(request);
     return _mapRemote(response);
@@ -96,7 +124,10 @@ class RemoteRepositoryImpl implements RemoteRepository {
   }
 
   @override
-  Future<ConnectionEntity> connect(String remoteId, {String? passphrase}) async {
+  Future<ConnectionEntity> connect(
+    String remoteId, {
+    String? passphrase,
+  }) async {
     final request = pb.ConnectRequest()..remoteId = remoteId;
     if (passphrase != null) request.passphrase = passphrase;
 
@@ -112,20 +143,26 @@ class RemoteRepositoryImpl implements RemoteRepository {
 
   @override
   Future<List<ConnectionEntity>> listConnections() async {
-    final response = await _client.remote.listConnections(pb.ListConnectionsRequest());
+    final response = await _client.remote.listConnections(
+      pb.ListConnectionsRequest(),
+    );
     return response.connections.map(_mapConnection).toList();
   }
 
   @override
   Stream<List<ConnectionEntity>> watchConnections() {
     final request = pb.WatchConnectionsRequest();
-    return _client.remote.watchConnections(request).map(
-      (response) => response.connections.map(_mapConnection).toList()
-    );
+    return _client.remote
+        .watchConnections(request)
+        .map((response) => response.connections.map(_mapConnection).toList());
   }
 
   @override
-  Future<CommandResult> executeCommand(String connectionId, String command, {int? timeout}) async {
+  Future<CommandResult> executeCommand(
+    String connectionId,
+    String command, {
+    int? timeout,
+  }) async {
     final request = pb.ExecuteCommandRequest()
       ..connectionId = connectionId
       ..command = command;
@@ -164,10 +201,14 @@ class RemoteRepositoryImpl implements RemoteRepository {
     return TestConnectionResult(
       success: response.success,
       message: response.message,
-      serverVersion: response.serverVersion.isEmpty ? null : response.serverVersion,
+      serverVersion: response.serverVersion.isEmpty
+          ? null
+          : response.serverVersion,
       latencyMs: response.latencyMs > 0 ? response.latencyMs : null,
       hostKeyStatus: _mapHostKeyStatus(response.hostKeyStatus),
-      hostKeyInfo: response.hasHostKeyInfo() ? _mapHostKeyInfo(response.hostKeyInfo) : null,
+      hostKeyInfo: response.hasHostKeyInfo()
+          ? _mapHostKeyInfo(response.hostKeyInfo)
+          : null,
     );
   }
 
@@ -204,9 +245,13 @@ class RemoteRepositoryImpl implements RemoteRepository {
       port: remote.port,
       user: remote.user,
       identityFile: remote.identityFile.isEmpty ? null : remote.identityFile,
-      sshConfigAlias: remote.sshConfigAlias.isEmpty ? null : remote.sshConfigAlias,
+      sshConfigAlias: remote.sshConfigAlias.isEmpty
+          ? null
+          : remote.sshConfigAlias,
       createdAt: remote.createdAt.toDateTime(),
-      lastConnectedAt: remote.hasLastConnectedAt() ? remote.lastConnectedAt.toDateTime() : null,
+      lastConnectedAt: remote.hasLastConnectedAt()
+          ? remote.lastConnectedAt.toDateTime()
+          : null,
       status: _mapStatus(remote.status),
     );
   }

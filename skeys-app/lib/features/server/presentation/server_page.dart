@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,9 +50,7 @@ class _ServerPageState extends State<ServerPage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SSH Server Status'),
-      ),
+      appBar: AppBar(title: const Text('SSH Server Status')),
       body: BlocConsumer<ServerBloc, ServerState>(
         listener: (context, state) {
           // Handle action results
@@ -45,7 +63,8 @@ class _ServerPageState extends State<ServerPage> {
             // Clear the action result
             context.read<ServerBloc>().add(const ServerActionResultCleared());
           }
-          if (state.status == ServerStatus.failure && state.errorMessage != null) {
+          if (state.status == ServerStatus.failure &&
+              state.errorMessage != null) {
             AppToast.error(context, message: state.errorMessage!);
           }
         },
@@ -90,7 +109,11 @@ class _ServerPageState extends State<ServerPage> {
     );
   }
 
-  Widget _buildContent(ThemeData theme, ColorScheme colorScheme, ServerState state) {
+  Widget _buildContent(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    ServerState state,
+  ) {
     final status = state.sshStatus!;
 
     return SingleChildScrollView(
@@ -105,13 +128,22 @@ class _ServerPageState extends State<ServerPage> {
           _buildClientCard(theme, colorScheme, status.client),
           const SizedBox(height: 16),
           // SSH Server Card
-          _buildServerCard(theme, colorScheme, status.server, state.actionInProgress),
+          _buildServerCard(
+            theme,
+            colorScheme,
+            status.server,
+            state.actionInProgress,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSystemInfoCard(ThemeData theme, ColorScheme colorScheme, SSHSystemStatus status) {
+  Widget _buildSystemInfoCard(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    SSHSystemStatus status,
+  ) {
     final daemonStatusService = getIt<DaemonStatusService>();
 
     return Card(
@@ -131,20 +163,42 @@ class _ServerPageState extends State<ServerPage> {
                   ),
                 ),
                 const Spacer(),
-                _buildBackendConnectionStatus(theme, colorScheme, daemonStatusService),
+                _buildBackendConnectionStatus(
+                  theme,
+                  colorScheme,
+                  daemonStatusService,
+                ),
               ],
             ),
             const Divider(height: 24),
-            _buildInfoRow('Distribution', _formatDistribution(status.distribution), theme),
+            _buildInfoRow(
+              'Distribution',
+              _formatDistribution(status.distribution),
+              theme,
+            ),
             if (status.distributionVersion.isNotEmpty)
               _buildInfoRow('Version', status.distributionVersion, theme),
             // Network information
             if (status.network != null) ...[
               if (status.network!.hostname.isNotEmpty)
-                _buildInfoRow('Hostname', status.network!.hostname, theme, copyable: true),
+                _buildInfoRow(
+                  'Hostname',
+                  status.network!.hostname,
+                  theme,
+                  copyable: true,
+                ),
               if (status.network!.ipAddresses.isNotEmpty)
-                _buildInfoRow('IP Address', status.network!.ipAddresses.join(', '), theme, copyable: true),
-              _buildInfoRow('SSH Port', status.network!.sshPort.toString(), theme),
+                _buildInfoRow(
+                  'IP Address',
+                  status.network!.ipAddresses.join(', '),
+                  theme,
+                  copyable: true,
+                ),
+              _buildInfoRow(
+                'SSH Port',
+                status.network!.sshPort.toString(),
+                theme,
+              ),
             ],
             // Firewall status
             if (status.firewall != null)
@@ -155,7 +209,11 @@ class _ServerPageState extends State<ServerPage> {
     );
   }
 
-  Widget _buildFirewallRow(ThemeData theme, ColorScheme colorScheme, FirewallStatus firewall) {
+  Widget _buildFirewallRow(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    FirewallStatus firewall,
+  ) {
     String firewallName;
     switch (firewall.type) {
       case FirewallType.ufw:
@@ -173,8 +231,8 @@ class _ServerPageState extends State<ServerPage> {
     final statusText = firewall.type == FirewallType.none
         ? 'No firewall detected'
         : firewall.active
-            ? '$firewallName (active)'
-            : '$firewallName (inactive)';
+        ? '$firewallName (active)'
+        : '$firewallName (inactive)';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -283,11 +341,16 @@ class _ServerPageState extends State<ServerPage> {
   void _showBackendConnectionDialog(DaemonStatusService statusService) {
     showDialog(
       context: context,
-      builder: (context) => _BackendConnectionDialog(statusService: statusService),
+      builder: (context) =>
+          _BackendConnectionDialog(statusService: statusService),
     );
   }
 
-  Widget _buildClientCard(ThemeData theme, ColorScheme colorScheme, SSHClientStatus client) {
+  Widget _buildClientCard(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    SSHClientStatus client,
+  ) {
     final installed = client.installed;
 
     return Card(
@@ -313,7 +376,9 @@ class _ServerPageState extends State<ServerPage> {
                       Text(
                         installed ? 'Installed' : 'Not Installed',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: installed ? colorScheme.primary : colorScheme.error,
+                          color: installed
+                              ? colorScheme.primary
+                              : colorScheme.error,
                         ),
                       ),
                     ],
@@ -321,7 +386,8 @@ class _ServerPageState extends State<ServerPage> {
                 ),
                 if (!installed)
                   FilledButton.tonalIcon(
-                    onPressed: () => _showInstallInstructions(SSHComponent.client),
+                    onPressed: () =>
+                        _showInstallInstructions(SSHComponent.client),
                     icon: const Icon(Icons.help_outline),
                     label: const Text('How to Install'),
                   ),
@@ -332,11 +398,26 @@ class _ServerPageState extends State<ServerPage> {
               if (client.version.isNotEmpty)
                 _buildInfoRow('Version', client.version, theme),
               if (client.binaryPath.isNotEmpty)
-                _buildInfoRow('Binary', client.binaryPath, theme, copyable: true),
+                _buildInfoRow(
+                  'Binary',
+                  client.binaryPath,
+                  theme,
+                  copyable: true,
+                ),
               if (client.systemConfig.path.isNotEmpty)
-                _buildConfigPathRow('System Config', client.systemConfig, theme, colorScheme),
+                _buildConfigPathRow(
+                  'System Config',
+                  client.systemConfig,
+                  theme,
+                  colorScheme,
+                ),
               if (client.userConfig.path.isNotEmpty)
-                _buildConfigPathRow('User Config', client.userConfig, theme, colorScheme),
+                _buildConfigPathRow(
+                  'User Config',
+                  client.userConfig,
+                  theme,
+                  colorScheme,
+                ),
             ],
           ],
         ),
@@ -364,9 +445,12 @@ class _ServerPageState extends State<ServerPage> {
           children: [
             Row(
               children: [
-                _buildStatusIcon(installed && isRunning, colorScheme,
-                    warning: installed && !isRunning && !isFailed,
-                    error: isFailed),
+                _buildStatusIcon(
+                  installed && isRunning,
+                  colorScheme,
+                  warning: installed && !isRunning && !isFailed,
+                  error: isFailed,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -381,7 +465,11 @@ class _ServerPageState extends State<ServerPage> {
                       Text(
                         _getServerStatusText(installed, service),
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: _getServerStatusColor(installed, service, colorScheme),
+                          color: _getServerStatusColor(
+                            installed,
+                            service,
+                            colorScheme,
+                          ),
                         ),
                       ),
                     ],
@@ -389,7 +477,8 @@ class _ServerPageState extends State<ServerPage> {
                 ),
                 if (!installed)
                   FilledButton.tonalIcon(
-                    onPressed: () => _showInstallInstructions(SSHComponent.server),
+                    onPressed: () =>
+                        _showInstallInstructions(SSHComponent.server),
                     icon: const Icon(Icons.help_outline),
                     label: const Text('How to Install'),
                   ),
@@ -404,7 +493,9 @@ class _ServerPageState extends State<ServerPage> {
                     FilledButton.icon(
                       onPressed: actionInProgress
                           ? null
-                          : () => context.read<ServerBloc>().add(const ServerStartRequested()),
+                          : () => context.read<ServerBloc>().add(
+                              const ServerStartRequested(),
+                            ),
                       icon: actionInProgress
                           ? const SizedBox(
                               width: 16,
@@ -418,7 +509,9 @@ class _ServerPageState extends State<ServerPage> {
                     FilledButton.tonalIcon(
                       onPressed: actionInProgress
                           ? null
-                          : () => context.read<ServerBloc>().add(const ServerRestartRequested()),
+                          : () => context.read<ServerBloc>().add(
+                              const ServerRestartRequested(),
+                            ),
                       icon: actionInProgress
                           ? const SizedBox(
                               width: 16,
@@ -432,7 +525,9 @@ class _ServerPageState extends State<ServerPage> {
                     OutlinedButton.icon(
                       onPressed: actionInProgress
                           ? null
-                          : () => context.read<ServerBloc>().add(const ServerStopRequested()),
+                          : () => context.read<ServerBloc>().add(
+                              const ServerStopRequested(),
+                            ),
                       icon: const Icon(Icons.stop),
                       label: const Text('Stop'),
                     ),
@@ -444,7 +539,12 @@ class _ServerPageState extends State<ServerPage> {
               if (server.version.isNotEmpty)
                 _buildInfoRow('Version', server.version, theme),
               if (server.binaryPath.isNotEmpty)
-                _buildInfoRow('Binary', server.binaryPath, theme, copyable: true),
+                _buildInfoRow(
+                  'Binary',
+                  server.binaryPath,
+                  theme,
+                  copyable: true,
+                ),
               if (service.serviceName.isNotEmpty)
                 _buildInfoRow('Service', service.serviceName, theme),
               _buildAutoStartRow(theme, colorScheme, service, actionInProgress),
@@ -453,7 +553,12 @@ class _ServerPageState extends State<ServerPage> {
               if (service.startedAt.isNotEmpty)
                 _buildInfoRow('Started', service.startedAt, theme),
               if (server.config.path.isNotEmpty)
-                _buildConfigPathRow('Config', server.config, theme, colorScheme),
+                _buildConfigPathRow(
+                  'Config',
+                  server.config,
+                  theme,
+                  colorScheme,
+                ),
             ],
           ],
         ),
@@ -461,7 +566,12 @@ class _ServerPageState extends State<ServerPage> {
     );
   }
 
-  Widget _buildStatusIcon(bool ok, ColorScheme colorScheme, {bool warning = false, bool error = false}) {
+  Widget _buildStatusIcon(
+    bool ok,
+    ColorScheme colorScheme, {
+    bool warning = false,
+    bool error = false,
+  }) {
     IconData icon;
     Color color;
 
@@ -489,7 +599,12 @@ class _ServerPageState extends State<ServerPage> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, ThemeData theme, {bool copyable = false}) {
+  Widget _buildInfoRow(
+    String label,
+    String value,
+    ThemeData theme, {
+    bool copyable = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -529,10 +644,7 @@ class _ServerPageState extends State<ServerPage> {
                       ],
                     ),
                   )
-                : Text(
-                    value,
-                    style: theme.textTheme.bodyMedium,
-                  ),
+                : Text(value, style: theme.textTheme.bodyMedium),
           ),
         ],
       ),
@@ -567,9 +679,13 @@ class _ServerPageState extends State<ServerPage> {
                       ? null
                       : (value) {
                           if (value) {
-                            context.read<ServerBloc>().add(const ServerEnableRequested());
+                            context.read<ServerBloc>().add(
+                              const ServerEnableRequested(),
+                            );
                           } else {
-                            context.read<ServerBloc>().add(const ServerDisableRequested());
+                            context.read<ServerBloc>().add(
+                              const ServerDisableRequested(),
+                            );
                           }
                         },
                 ),
@@ -624,10 +740,18 @@ class _ServerPageState extends State<ServerPage> {
                 const SizedBox(height: 2),
                 Row(
                   children: [
-                    _buildStatusChip(exists ? 'Exists' : 'Missing', exists, colorScheme),
+                    _buildStatusChip(
+                      exists ? 'Exists' : 'Missing',
+                      exists,
+                      colorScheme,
+                    ),
                     const SizedBox(width: 4),
                     if (exists)
-                      _buildStatusChip(readable ? 'Readable' : 'Not Readable', readable, colorScheme),
+                      _buildStatusChip(
+                        readable ? 'Readable' : 'Not Readable',
+                        readable,
+                        colorScheme,
+                      ),
                   ],
                 ),
               ],
@@ -692,7 +816,11 @@ class _ServerPageState extends State<ServerPage> {
     }
   }
 
-  Color _getServerStatusColor(bool installed, ServiceStatus service, ColorScheme colorScheme) {
+  Color _getServerStatusColor(
+    bool installed,
+    ServiceStatus service,
+    ColorScheme colorScheme,
+  ) {
     if (!installed) return colorScheme.error;
 
     switch (service.state) {
@@ -716,7 +844,8 @@ class _ServerPageState extends State<ServerPage> {
 
       showDialog(
         context: context,
-        builder: (context) => _InstallInstructionsDialog(instructions: instructions),
+        builder: (context) =>
+            _InstallInstructionsDialog(instructions: instructions),
       );
     } catch (e) {
       AppToast.error(context, message: 'Failed to load instructions: $e');
@@ -787,9 +916,13 @@ class _InstallInstructionsDialog extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.copy, size: 18),
                         onPressed: () {
-                          Clipboard.setData(ClipboardData(text: instructions.installCommand));
+                          Clipboard.setData(
+                            ClipboardData(text: instructions.installCommand),
+                          );
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Copied to clipboard')),
+                            const SnackBar(
+                              content: Text('Copied to clipboard'),
+                            ),
                           );
                         },
                       ),
@@ -876,10 +1009,7 @@ class _BackendConnectionDialog extends StatelessWidget {
         return AlertDialog(
           title: Row(
             children: [
-              Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.orange,
-              ),
+              Icon(Icons.warning_amber_rounded, color: Colors.orange),
               const SizedBox(width: 12),
               const Text('Backend Disconnected'),
             ],
@@ -948,7 +1078,10 @@ class _BackendConnectionDialog extends StatelessWidget {
                   final success = await statusService.reconnect();
                   if (success && context.mounted) {
                     Navigator.of(context).pop();
-                    AppToast.success(context, message: 'Reconnected to backend');
+                    AppToast.success(
+                      context,
+                      message: 'Reconnected to backend',
+                    );
                   }
                 },
                 icon: const Icon(Icons.refresh),
@@ -974,20 +1107,14 @@ class _CommandTile extends StatelessWidget {
   final String label;
   final String command;
 
-  const _CommandTile({
-    required this.label,
-    required this.command,
-  });
+  const _CommandTile({required this.label, required this.command});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelSmall,
-        ),
+        Text(label, style: Theme.of(context).textTheme.labelSmall),
         const SizedBox(height: 4),
         Container(
           width: double.infinity,
@@ -1001,10 +1128,7 @@ class _CommandTile extends StatelessWidget {
               Expanded(
                 child: Text(
                   command,
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
                 ),
               ),
               IconButton(
@@ -1012,13 +1136,14 @@ class _CommandTile extends StatelessWidget {
                 tooltip: 'Copy to clipboard',
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: command));
-                  AppToast.info(context, message: 'Copied: $command', duration: const Duration(seconds: 1));
+                  AppToast.info(
+                    context,
+                    message: 'Copied: $command',
+                    duration: const Duration(seconds: 1),
+                  );
                 },
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(
-                  minWidth: 24,
-                  minHeight: 24,
-                ),
+                constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
               ),
             ],
           ),

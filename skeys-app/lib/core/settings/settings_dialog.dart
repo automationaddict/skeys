@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -42,7 +62,8 @@ class SettingsDialog extends StatefulWidget {
   State<SettingsDialog> createState() => _SettingsDialogState();
 }
 
-class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProviderStateMixin {
+class _SettingsDialogState extends State<SettingsDialog>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -85,10 +106,7 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
   Widget build(BuildContext context) {
     return Dialog(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: 600,
-          maxHeight: 500,
-        ),
+        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 500),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -132,30 +150,12 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
               isScrollable: true,
               tabAlignment: TabAlignment.center,
               tabs: const [
-                Tab(
-                  icon: Icon(Icons.text_fields_outlined),
-                  text: 'Display',
-                ),
-                Tab(
-                  icon: Icon(Icons.shield_outlined),
-                  text: 'Security',
-                ),
-                Tab(
-                  icon: Icon(Icons.backup_outlined),
-                  text: 'Backup',
-                ),
-                Tab(
-                  icon: Icon(Icons.article_outlined),
-                  text: 'Logging',
-                ),
-                Tab(
-                  icon: Icon(Icons.system_update_outlined),
-                  text: 'Update',
-                ),
-                Tab(
-                  icon: Icon(Icons.info_outline),
-                  text: 'About',
-                ),
+                Tab(icon: Icon(Icons.text_fields_outlined), text: 'Display'),
+                Tab(icon: Icon(Icons.shield_outlined), text: 'Security'),
+                Tab(icon: Icon(Icons.backup_outlined), text: 'Backup'),
+                Tab(icon: Icon(Icons.article_outlined), text: 'Logging'),
+                Tab(icon: Icon(Icons.system_update_outlined), text: 'Update'),
+                Tab(icon: Icon(Icons.info_outline), text: 'About'),
               ],
             ),
             // Tab content
@@ -209,10 +209,7 @@ class _DisplayTabState extends State<_DisplayTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Theme section
-          Text(
-            'Theme',
-            style: theme.textTheme.titleMedium,
-          ),
+          Text('Theme', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
             'Choose your preferred color theme.',
@@ -228,10 +225,7 @@ class _DisplayTabState extends State<_DisplayTab> {
           const SizedBox(height: 32),
 
           // Text size section
-          Text(
-            'Text Size',
-            style: theme.textTheme.titleMedium,
-          ),
+          Text('Text Size', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
             'Adjust the text size throughout the application for better readability.',
@@ -242,10 +236,12 @@ class _DisplayTabState extends State<_DisplayTab> {
           const SizedBox(height: 16),
 
           // Text scale options as styled cards
-          ...TextScale.values.map((scale) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: _buildTextScaleCard(context, scale),
-          )),
+          ...TextScale.values.map(
+            (scale) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _buildTextScaleCard(context, scale),
+            ),
+          ),
 
           const SizedBox(height: 16),
 
@@ -253,7 +249,9 @@ class _DisplayTabState extends State<_DisplayTab> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
+              border: Border.all(
+                color: colorScheme.outline.withValues(alpha: 0.5),
+              ),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -343,7 +341,9 @@ class _DisplayTabState extends State<_DisplayTab> {
                   'Aa',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontSize: 14 * scale.scale,
-                    color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+                    color: isSelected
+                        ? colorScheme.primary
+                        : colorScheme.onSurface,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -533,7 +533,10 @@ class _SecurityTabState extends State<_SecurityTab> {
           });
           if (mounted) {
             setState(() => _sshConfigLoading = false);
-            AppToast.error(context, message: 'Failed to enable: ${response.message}');
+            AppToast.error(
+              context,
+              message: 'Failed to enable: ${response.message}',
+            );
           }
         }
       } else {
@@ -554,7 +557,10 @@ class _SecurityTabState extends State<_SecurityTab> {
           });
           if (mounted) {
             setState(() => _sshConfigLoading = false);
-            AppToast.error(context, message: 'Failed to disable: ${response.message}');
+            AppToast.error(
+              context,
+              message: 'Failed to disable: ${response.message}',
+            );
           }
         }
       }
@@ -577,10 +583,7 @@ class _SecurityTabState extends State<_SecurityTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Key Rotation Reminders',
-            style: theme.textTheme.titleMedium,
-          ),
+          Text('Key Rotation Reminders', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
             'Get notified when your SSH keys are due for rotation. '
@@ -595,7 +598,8 @@ class _SecurityTabState extends State<_SecurityTab> {
           _buildThresholdSetting(
             context: context,
             title: 'Warning Threshold',
-            description: 'Show a warning icon when key age exceeds this many days',
+            description:
+                'Show a warning icon when key age exceeds this many days',
             icon: Icons.warning_amber_rounded,
             iconColor: Colors.orange,
             value: _warningDays,
@@ -611,13 +615,16 @@ class _SecurityTabState extends State<_SecurityTab> {
           _buildThresholdSetting(
             context: context,
             title: 'Critical Threshold',
-            description: 'Show a critical alert when key age exceeds this many days',
+            description:
+                'Show a critical alert when key age exceeds this many days',
             icon: Icons.error_rounded,
             iconColor: Colors.red,
             value: _criticalDays,
             onChanged: (value) async {
               setState(() => _criticalDays = value);
-              await getIt<SettingsService>().setKeyExpirationCriticalDays(value);
+              await getIt<SettingsService>().setKeyExpirationCriticalDays(
+                value,
+              );
             },
           ),
 
@@ -633,11 +640,7 @@ class _SecurityTabState extends State<_SecurityTab> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.info_outline,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.info_outline, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -655,10 +658,7 @@ class _SecurityTabState extends State<_SecurityTab> {
           const SizedBox(height: 32),
 
           // Agent timeout section
-          Text(
-            'SSH Agent Timeout',
-            style: theme.textTheme.titleMedium,
-          ),
+          Text('SSH Agent Timeout', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
             'Automatically remove keys from the agent after a specified time for security.',
@@ -674,10 +674,7 @@ class _SecurityTabState extends State<_SecurityTab> {
           const SizedBox(height: 32),
 
           // SSH Config Integration section
-          Text(
-            'SSH Config Integration',
-            style: theme.textTheme.titleMedium,
-          ),
+          Text('SSH Config Integration', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
             'Configure your system to use skeys for all SSH connections.',
@@ -738,9 +735,12 @@ class _SecurityTabState extends State<_SecurityTab> {
                   max: 480, // 8 hours max
                   divisions: 48, // 10 minute increments
                   onChanged: (v) async {
-                    final rounded = (v / 10).round() * 10; // Round to nearest 10
+                    final rounded =
+                        (v / 10).round() * 10; // Round to nearest 10
                     setState(() => _agentTimeoutMinutes = rounded);
-                    await getIt<SettingsService>().setAgentKeyTimeoutMinutes(rounded);
+                    await getIt<SettingsService>().setAgentKeyTimeoutMinutes(
+                      rounded,
+                    );
                   },
                 ),
               ),
@@ -750,8 +750,8 @@ class _SecurityTabState extends State<_SecurityTab> {
                   _agentTimeoutMinutes == 0
                       ? 'No timeout'
                       : _agentTimeoutMinutes >= 60
-                          ? '${_agentTimeoutMinutes ~/ 60}h ${_agentTimeoutMinutes % 60}m'
-                          : '$_agentTimeoutMinutes min',
+                      ? '${_agentTimeoutMinutes ~/ 60}h ${_agentTimeoutMinutes % 60}m'
+                      : '$_agentTimeoutMinutes min',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
@@ -786,7 +786,10 @@ class _SecurityTabState extends State<_SecurityTab> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Use skeys for SSH', style: theme.textTheme.titleSmall),
+                    Text(
+                      'Use skeys for SSH',
+                      style: theme.textTheme.titleSmall,
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       'Add IdentityAgent directive to ~/.ssh/config',
@@ -804,10 +807,7 @@ class _SecurityTabState extends State<_SecurityTab> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               else
-                Switch(
-                  value: _sshConfigEnabled,
-                  onChanged: _toggleSshConfig,
-                ),
+                Switch(value: _sshConfigEnabled, onChanged: _toggleSshConfig),
             ],
           ),
           const SizedBox(height: 12),
@@ -950,10 +950,7 @@ class _LoggingTabState extends State<_LoggingTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Log Level',
-            style: theme.textTheme.titleMedium,
-          ),
+          Text('Log Level', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
             'Controls the verbosity of application logs. Higher levels show more detail.',
@@ -965,11 +962,15 @@ class _LoggingTabState extends State<_LoggingTab> {
 
           // Log level options as styled cards
           ...Level.values
-              .where((l) => l != Level.off && l != Level.all && l != Level.fatal)
-              .map((level) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _buildLogLevelCard(context, level),
-              )),
+              .where(
+                (l) => l != Level.off && l != Level.all && l != Level.fatal,
+              )
+              .map(
+                (level) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _buildLogLevelCard(context, level),
+                ),
+              ),
 
           const SizedBox(height: 16),
 
@@ -983,11 +984,7 @@ class _LoggingTabState extends State<_LoggingTab> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.info_outline,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.info_outline, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -1202,8 +1199,13 @@ class _UpdateTabState extends State<_UpdateTab> {
           _status = status;
           _checking = false;
         });
-        if (status.hasAvailableUpdate() && status.availableUpdate.updateAvailable) {
-          AppToast.success(context, message: 'Update available: ${status.availableUpdate.latestVersion}');
+        if (status.hasAvailableUpdate() &&
+            status.availableUpdate.updateAvailable) {
+          AppToast.success(
+            context,
+            message:
+                'Update available: ${status.availableUpdate.latestVersion}',
+          );
         } else {
           AppToast.info(context, message: 'You are running the latest version');
         }
@@ -1217,7 +1219,8 @@ class _UpdateTabState extends State<_UpdateTab> {
         String message;
         if (errorStr.contains('no releases found')) {
           message = 'No releases available yet';
-        } else if (errorStr.contains('network') || errorStr.contains('socket')) {
+        } else if (errorStr.contains('network') ||
+            errorStr.contains('socket')) {
           message = 'Network error - check your connection';
         } else {
           message = 'Failed to check for updates';
@@ -1316,11 +1319,7 @@ class _UpdateTabState extends State<_UpdateTab> {
     _log.info('launching new app instance', {'path': appPath});
 
     // Start the new app process detached
-    await Process.start(
-      appPath,
-      [],
-      mode: ProcessStartMode.detached,
-    );
+    await Process.start(appPath, [], mode: ProcessStartMode.detached);
 
     // Exit the current app
     exit(0);
@@ -1360,10 +1359,7 @@ class _UpdateTabState extends State<_UpdateTab> {
           const SizedBox(height: 24),
 
           // Update settings
-          Text(
-            'Automatic Updates',
-            style: theme.textTheme.titleMedium,
-          ),
+          Text('Automatic Updates', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
             'Configure how updates are checked and applied.',
@@ -1456,10 +1452,11 @@ class _UpdateTabState extends State<_UpdateTab> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final hasUpdate = _status?.hasAvailableUpdate() == true &&
+    final hasUpdate =
+        _status?.hasAvailableUpdate() == true &&
         _status!.availableUpdate.updateAvailable;
-    final isDownloading = _downloading ||
-        _status?.state == UpdateState.UPDATE_STATE_DOWNLOADING;
+    final isDownloading =
+        _downloading || _status?.state == UpdateState.UPDATE_STATE_DOWNLOADING;
     final isReady = _status?.state == UpdateState.UPDATE_STATE_READY_TO_APPLY;
 
     return Container(
@@ -1482,9 +1479,7 @@ class _UpdateTabState extends State<_UpdateTab> {
           Row(
             children: [
               Icon(
-                hasUpdate
-                    ? Icons.system_update
-                    : Icons.check_circle_outline,
+                hasUpdate ? Icons.system_update : Icons.check_circle_outline,
                 color: hasUpdate ? colorScheme.primary : Colors.green,
                 size: 24,
               ),
@@ -1494,9 +1489,7 @@ class _UpdateTabState extends State<_UpdateTab> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      hasUpdate
-                          ? 'Update Available'
-                          : 'Up to Date',
+                      hasUpdate ? 'Update Available' : 'Up to Date',
                       style: theme.textTheme.titleSmall,
                     ),
                     if (hasUpdate)
@@ -1543,7 +1536,7 @@ class _UpdateTabState extends State<_UpdateTab> {
             LinearProgressIndicator(
               value: _status!.downloadProgress.totalBytes.toInt() > 0
                   ? _status!.downloadProgress.bytesDownloaded.toInt() /
-                      _status!.downloadProgress.totalBytes.toInt()
+                        _status!.downloadProgress.totalBytes.toInt()
                   : null,
             ),
             const SizedBox(height: 4),
@@ -1735,7 +1728,10 @@ class _AboutTabState extends State<_AboutTab> {
             rows: _backendVersion != null
                 ? [
                     _VersionRow('Version', _backendVersion!.coreVersion),
-                    _VersionRow('Commit', _formatCommit(_backendVersion!.coreCommit)),
+                    _VersionRow(
+                      'Commit',
+                      _formatCommit(_backendVersion!.coreCommit),
+                    ),
                   ]
                 : [],
           ),
@@ -1752,7 +1748,10 @@ class _AboutTabState extends State<_AboutTab> {
             rows: _backendVersion != null
                 ? [
                     _VersionRow('Version', _backendVersion!.daemonVersion),
-                    _VersionRow('Commit', _formatCommit(_backendVersion!.daemonCommit)),
+                    _VersionRow(
+                      'Commit',
+                      _formatCommit(_backendVersion!.daemonCommit),
+                    ),
                     _VersionRow('Go', _backendVersion!.goVersion),
                   ]
                 : [],
@@ -1831,30 +1830,32 @@ class _AboutTabState extends State<_AboutTab> {
               ),
             )
           else
-            ...rows.map((row) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 70,
-                        child: Text(
-                          row.label,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+            ...rows.map(
+              (row) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 70,
+                      child: Text(
+                        row.label,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      Expanded(
-                        child: Text(
-                          row.value,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontFamily: 'monospace',
-                          ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        row.value,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontFamily: 'monospace',
                         ),
                       ),
-                    ],
-                  ),
-                )),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -1897,10 +1898,7 @@ class _BackupTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Backup & Restore',
-            style: theme.textTheme.titleMedium,
-          ),
+          Text('Backup & Restore', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
             'Export your SSH keys and configuration to transfer to another computer, or restore from a previous backup.',
@@ -1915,7 +1913,8 @@ class _BackupTab extends StatelessWidget {
             context: context,
             icon: Icons.upload_file,
             title: 'Export Backup',
-            description: 'Create an encrypted backup of your SSH keys, config, and known hosts.',
+            description:
+                'Create an encrypted backup of your SSH keys, config, and known hosts.',
             buttonLabel: 'Export',
             onPressed: () {
               Navigator.of(context).pop();
@@ -1930,7 +1929,8 @@ class _BackupTab extends StatelessWidget {
             context: context,
             icon: Icons.download,
             title: 'Import Backup',
-            description: 'Restore SSH keys and configuration from a backup file.',
+            description:
+                'Restore SSH keys and configuration from a backup file.',
             buttonLabel: 'Import',
             onPressed: () {
               Navigator.of(context).pop();
@@ -2003,10 +2003,7 @@ class _BackupTab extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleSmall,
-                ),
+                Text(title, style: theme.textTheme.titleSmall),
                 const SizedBox(height: 4),
                 Text(
                   description,
@@ -2018,10 +2015,7 @@ class _BackupTab extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          FilledButton.tonal(
-            onPressed: onPressed,
-            child: Text(buttonLabel),
-          ),
+          FilledButton.tonal(onPressed: onPressed, child: Text(buttonLabel)),
         ],
       ),
     );

@@ -1,0 +1,48 @@
+#!/bin/bash
+# Conventional Commits validation hook
+# See: https://www.conventionalcommits.org/
+
+commit_msg_file="$1"
+commit_msg=$(cat "$commit_msg_file")
+
+# Skip merge commits
+if echo "$commit_msg" | grep -qE "^Merge "; then
+    exit 0
+fi
+
+# Conventional commit pattern
+# type(scope)?: description
+# Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore
+pattern="^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([a-zA-Z0-9_-]+\))?(!)?: .{1,}"
+
+if ! echo "$commit_msg" | head -1 | grep -qE "$pattern"; then
+    echo ""
+    echo "ERROR: Commit message does not follow Conventional Commits format."
+    echo ""
+    echo "Expected format: <type>(<scope>): <description>"
+    echo ""
+    echo "Types:"
+    echo "  feat     - A new feature"
+    echo "  fix      - A bug fix"
+    echo "  docs     - Documentation changes"
+    echo "  style    - Code style changes (formatting, etc.)"
+    echo "  refactor - Code refactoring"
+    echo "  perf     - Performance improvements"
+    echo "  test     - Adding or updating tests"
+    echo "  build    - Build system or dependencies"
+    echo "  ci       - CI/CD changes"
+    echo "  chore    - Other changes (maintenance, etc.)"
+    echo ""
+    echo "Examples:"
+    echo "  feat(keys): add SSH key rotation reminder"
+    echo "  fix: resolve nil pointer in update check"
+    echo "  docs: update README with install instructions"
+    echo "  feat!: breaking change to API"
+    echo ""
+    echo "Your commit message:"
+    echo "  $commit_msg"
+    echo ""
+    exit 1
+fi
+
+exit 0

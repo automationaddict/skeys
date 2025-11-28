@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -65,24 +85,25 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
         'success': result.success,
         'message': result.message,
       });
-      emit(state.copyWith(
-        actionInProgress: false,
-        actionResult: ActionResult(
-          success: result.success,
-          message: result.success
-              ? 'SSH service started successfully'
-              : 'Failed to start SSH service: ${result.message}',
+      emit(
+        state.copyWith(
+          actionInProgress: false,
+          actionResult: ActionResult(
+            success: result.success,
+            message: result.success
+                ? 'SSH service started successfully'
+                : 'Failed to start SSH service: ${result.message}',
+          ),
         ),
-      ));
+      );
     } catch (e, st) {
       _log.error('failed to start SSH service', e, st);
-      emit(state.copyWith(
-        actionInProgress: false,
-        actionResult: ActionResult(
-          success: false,
-          message: 'Error: $e',
+      emit(
+        state.copyWith(
+          actionInProgress: false,
+          actionResult: ActionResult(success: false, message: 'Error: $e'),
         ),
-      ));
+      );
     }
   }
 
@@ -99,24 +120,25 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
         'success': result.success,
         'message': result.message,
       });
-      emit(state.copyWith(
-        actionInProgress: false,
-        actionResult: ActionResult(
-          success: result.success,
-          message: result.success
-              ? 'SSH service stopped successfully'
-              : 'Failed to stop SSH service: ${result.message}',
+      emit(
+        state.copyWith(
+          actionInProgress: false,
+          actionResult: ActionResult(
+            success: result.success,
+            message: result.success
+                ? 'SSH service stopped successfully'
+                : 'Failed to stop SSH service: ${result.message}',
+          ),
         ),
-      ));
+      );
     } catch (e, st) {
       _log.error('failed to stop SSH service', e, st);
-      emit(state.copyWith(
-        actionInProgress: false,
-        actionResult: ActionResult(
-          success: false,
-          message: 'Error: $e',
+      emit(
+        state.copyWith(
+          actionInProgress: false,
+          actionResult: ActionResult(success: false, message: 'Error: $e'),
         ),
-      ));
+      );
     }
   }
 
@@ -133,24 +155,25 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
         'success': result.success,
         'message': result.message,
       });
-      emit(state.copyWith(
-        actionInProgress: false,
-        actionResult: ActionResult(
-          success: result.success,
-          message: result.success
-              ? 'SSH service restarted successfully'
-              : 'Failed to restart SSH service: ${result.message}',
+      emit(
+        state.copyWith(
+          actionInProgress: false,
+          actionResult: ActionResult(
+            success: result.success,
+            message: result.success
+                ? 'SSH service restarted successfully'
+                : 'Failed to restart SSH service: ${result.message}',
+          ),
         ),
-      ));
+      );
     } catch (e, st) {
       _log.error('failed to restart SSH service', e, st);
-      emit(state.copyWith(
-        actionInProgress: false,
-        actionResult: ActionResult(
-          success: false,
-          message: 'Error: $e',
+      emit(
+        state.copyWith(
+          actionInProgress: false,
+          actionResult: ActionResult(success: false, message: 'Error: $e'),
         ),
-      ));
+      );
     }
   }
 
@@ -167,24 +190,25 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
         'success': result.success,
         'message': result.message,
       });
-      emit(state.copyWith(
-        actionInProgress: false,
-        actionResult: ActionResult(
-          success: result.success,
-          message: result.success
-              ? 'SSH service will start automatically on boot'
-              : 'Failed to enable SSH service: ${result.message}',
+      emit(
+        state.copyWith(
+          actionInProgress: false,
+          actionResult: ActionResult(
+            success: result.success,
+            message: result.success
+                ? 'SSH service will start automatically on boot'
+                : 'Failed to enable SSH service: ${result.message}',
+          ),
         ),
-      ));
+      );
     } catch (e, st) {
       _log.error('failed to enable SSH service', e, st);
-      emit(state.copyWith(
-        actionInProgress: false,
-        actionResult: ActionResult(
-          success: false,
-          message: 'Error: $e',
+      emit(
+        state.copyWith(
+          actionInProgress: false,
+          actionResult: ActionResult(success: false, message: 'Error: $e'),
         ),
-      ));
+      );
     }
   }
 
@@ -201,24 +225,25 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
         'success': result.success,
         'message': result.message,
       });
-      emit(state.copyWith(
-        actionInProgress: false,
-        actionResult: ActionResult(
-          success: result.success,
-          message: result.success
-              ? 'SSH service will not start automatically on boot'
-              : 'Failed to disable SSH service: ${result.message}',
+      emit(
+        state.copyWith(
+          actionInProgress: false,
+          actionResult: ActionResult(
+            success: result.success,
+            message: result.success
+                ? 'SSH service will not start automatically on boot'
+                : 'Failed to disable SSH service: ${result.message}',
+          ),
         ),
-      ));
+      );
     } catch (e, st) {
       _log.error('failed to disable SSH service', e, st);
-      emit(state.copyWith(
-        actionInProgress: false,
-        actionResult: ActionResult(
-          success: false,
-          message: 'Error: $e',
+      emit(
+        state.copyWith(
+          actionInProgress: false,
+          actionResult: ActionResult(success: false, message: 'Error: $e'),
         ),
-      ));
+      );
     }
   }
 

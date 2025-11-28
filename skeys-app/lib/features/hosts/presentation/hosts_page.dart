@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,7 +36,8 @@ class HostsPage extends StatefulWidget {
   State<HostsPage> createState() => _HostsPageState();
 }
 
-class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMixin {
+class _HostsPageState extends State<HostsPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _helpContextService = getIt<HelpContextService>();
 
@@ -100,9 +121,16 @@ class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMix
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.dns_outlined, size: 64, color: Theme.of(context).colorScheme.outline),
+            Icon(
+              Icons.dns_outlined,
+              size: 64,
+              color: Theme.of(context).colorScheme.outline,
+            ),
             const SizedBox(height: 16),
-            Text('No known hosts', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'No known hosts',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
           ],
         ),
       );
@@ -117,7 +145,9 @@ class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMix
             children: [
               OutlinedButton.icon(
                 onPressed: () {
-                  context.read<HostsBloc>().add(const HostsHashKnownHostsRequested());
+                  context.read<HostsBloc>().add(
+                    const HostsHashKnownHostsRequested(),
+                  );
                 },
                 icon: const Icon(Icons.tag),
                 label: const Text('Hash All Hosts'),
@@ -134,7 +164,9 @@ class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMix
               return _KnownHostCard(
                 host: host,
                 onDelete: () {
-                  context.read<HostsBloc>().add(HostsRemoveKnownHostRequested(host.host));
+                  context.read<HostsBloc>().add(
+                    HostsRemoveKnownHostRequested(host.host),
+                  );
                 },
               );
             },
@@ -154,9 +186,16 @@ class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMix
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.key_off, size: 64, color: Theme.of(context).colorScheme.outline),
+            Icon(
+              Icons.key_off,
+              size: 64,
+              color: Theme.of(context).colorScheme.outline,
+            ),
             const SizedBox(height: 16),
-            Text('No authorized keys', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'No authorized keys',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
           ],
         ),
       );
@@ -176,7 +215,9 @@ class _HostsPageState extends State<HostsPage> with SingleTickerProviderStateMix
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: () {
-                context.read<HostsBloc>().add(HostsRemoveAuthorizedKeyRequested(key.publicKey));
+                context.read<HostsBloc>().add(
+                  HostsRemoveAuthorizedKeyRequested(key.publicKey),
+                );
               },
             ),
           ),
@@ -248,12 +289,16 @@ class _ScanHostDialogState extends State<_ScanHostDialog> {
                             ? const SizedBox(
                                 width: 16,
                                 height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Icon(Icons.search),
-                        label: Text(state.status == HostsStatus.scanning
-                            ? 'Scanning...'
-                            : 'Scan Host'),
+                        label: Text(
+                          state.status == HostsStatus.scanning
+                              ? 'Scanning...'
+                              : 'Scan Host',
+                        ),
                       ),
                     ),
                   ],
@@ -265,26 +310,32 @@ class _ScanHostDialogState extends State<_ScanHostDialog> {
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(height: 8),
-                  ...state.scannedKeys.map((key) => _ScannedKeyTile(
-                        hostKey: key,
-                        hashHostname: _hashHostname,
-                        onAdd: () => _addKey(context, key),
-                      )),
+                  ...state.scannedKeys.map(
+                    (key) => _ScannedKeyTile(
+                      hostKey: key,
+                      hashHostname: _hashHostname,
+                      onAdd: () => _addKey(context, key),
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   CheckboxListTile(
                     title: const Text('Hash hostname'),
                     subtitle: const Text('Hide hostname in known_hosts'),
                     value: _hashHostname,
-                    onChanged: (value) => setState(() => _hashHostname = value ?? false),
+                    onChanged: (value) =>
+                        setState(() => _hashHostname = value ?? false),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ],
-                if (state.status == HostsStatus.failure && state.errorMessage != null)
+                if (state.status == HostsStatus.failure &&
+                    state.errorMessage != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 16),
                     child: Text(
                       state.errorMessage!,
-                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ),
                   ),
               ],
@@ -293,7 +344,9 @@ class _ScanHostDialogState extends State<_ScanHostDialog> {
           actions: [
             TextButton(
               onPressed: () {
-                context.read<HostsBloc>().add(const HostsClearScannedKeysRequested());
+                context.read<HostsBloc>().add(
+                  const HostsClearScannedKeysRequested(),
+                );
                 Navigator.of(context).pop();
               },
               child: const Text('Cancel'),
@@ -314,29 +367,35 @@ class _ScanHostDialogState extends State<_ScanHostDialog> {
     if (hostname.isEmpty) return;
 
     final port = int.tryParse(_portController.text) ?? 22;
-    context.read<HostsBloc>().add(HostsScanHostKeysRequested(hostname, port: port));
+    context.read<HostsBloc>().add(
+      HostsScanHostKeysRequested(hostname, port: port),
+    );
   }
 
   void _addKey(BuildContext context, ScannedHostKey key) {
-    context.read<HostsBloc>().add(HostsAddKnownHostRequested(
-          hostname: key.hostname,
-          keyType: key.keyType,
-          publicKey: key.publicKey,
-          port: key.port,
-          hashHostname: _hashHostname,
-        ));
+    context.read<HostsBloc>().add(
+      HostsAddKnownHostRequested(
+        hostname: key.hostname,
+        keyType: key.keyType,
+        publicKey: key.publicKey,
+        port: key.port,
+        hashHostname: _hashHostname,
+      ),
+    );
     Navigator.of(context).pop();
   }
 
   void _addAllKeys(BuildContext context, List<ScannedHostKey> keys) {
     for (final key in keys) {
-      context.read<HostsBloc>().add(HostsAddKnownHostRequested(
-            hostname: key.hostname,
-            keyType: key.keyType,
-            publicKey: key.publicKey,
-            port: key.port,
-            hashHostname: _hashHostname,
-          ));
+      context.read<HostsBloc>().add(
+        HostsAddKnownHostRequested(
+          hostname: key.hostname,
+          keyType: key.keyType,
+          publicKey: key.publicKey,
+          port: key.port,
+          hashHostname: _hashHostname,
+        ),
+      );
     }
     Navigator.of(context).pop();
   }
@@ -361,7 +420,9 @@ class _ScannedKeyTile extends StatelessWidget {
         leading: const Icon(Icons.vpn_key),
         title: Text(hostKey.keyType),
         subtitle: Text(
-          hostKey.fingerprint.isNotEmpty ? hostKey.fingerprint : 'No fingerprint',
+          hostKey.fingerprint.isNotEmpty
+              ? hostKey.fingerprint
+              : 'No fingerprint',
           style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
         ),
         trailing: IconButton(
@@ -379,10 +440,7 @@ class _KnownHostCard extends StatefulWidget {
   final KnownHostEntry host;
   final VoidCallback onDelete;
 
-  const _KnownHostCard({
-    required this.host,
-    required this.onDelete,
-  });
+  const _KnownHostCard({required this.host, required this.onDelete});
 
   @override
   State<_KnownHostCard> createState() => _KnownHostCardState();

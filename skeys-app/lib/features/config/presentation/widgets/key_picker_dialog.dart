@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/di/injection.dart';
@@ -50,15 +70,9 @@ class _KeyPickerDialogState extends State<KeyPickerDialog> {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.key,
-                    color: colorScheme.primary,
-                  ),
+                  Icon(Icons.key, color: colorScheme.primary),
                   const SizedBox(width: 12),
-                  Text(
-                    'Select SSH Key',
-                    style: theme.textTheme.titleLarge,
-                  ),
+                  Text('Select SSH Key', style: theme.textTheme.titleLarge),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -231,7 +245,9 @@ class _KeyListTile extends StatelessWidget {
       onDoubleTap: onDoubleTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        color: isSelected ? colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
+        color: isSelected
+            ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+            : null,
         child: Row(
           children: [
             // Selection indicator
@@ -247,11 +263,7 @@ class _KeyListTile extends StatelessWidget {
                 color: isSelected ? colorScheme.primary : null,
               ),
               child: isSelected
-                  ? Icon(
-                      Icons.check,
-                      size: 16,
-                      color: colorScheme.onPrimary,
-                    )
+                  ? Icon(Icons.check, size: 16, color: colorScheme.onPrimary)
                   : null,
             ),
             const SizedBox(width: 12),
@@ -259,7 +271,10 @@ class _KeyListTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: _getKeyTypeColor(keyEntity.type, colorScheme).withValues(alpha: 0.1),
+                color: _getKeyTypeColor(
+                  keyEntity.type,
+                  colorScheme,
+                ).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -277,7 +292,9 @@ class _KeyListTile extends StatelessWidget {
                   Text(
                     keyEntity.name,
                     style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -302,11 +319,7 @@ class _KeyListTile extends StatelessWidget {
             if (keyEntity.hasPassphrase)
               Tooltip(
                 message: 'Passphrase protected',
-                child: Icon(
-                  Icons.lock,
-                  size: 16,
-                  color: colorScheme.outline,
-                ),
+                child: Icon(Icons.lock, size: 16, color: colorScheme.outline),
               ),
             if (keyEntity.isInAgent) ...[
               const SizedBox(width: 8),

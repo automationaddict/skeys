@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -18,7 +38,8 @@ class ConfigPage extends StatefulWidget {
   State<ConfigPage> createState() => _ConfigPageState();
 }
 
-class _ConfigPageState extends State<ConfigPage> with SingleTickerProviderStateMixin {
+class _ConfigPageState extends State<ConfigPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _helpContextService = getIt<HelpContextService>();
 
@@ -91,7 +112,6 @@ class _ConfigPageState extends State<ConfigPage> with SingleTickerProviderStateM
       ),
     );
   }
-
 }
 
 /// Client config tab with Global Settings section and reorderable SSH config entries.
@@ -130,13 +150,9 @@ class _ClientConfigTabState extends State<_ClientConfigTab> {
     return CustomScrollView(
       slivers: [
         // Global Settings Section
-        SliverToBoxAdapter(
-          child: _buildGlobalSettingsSection(context),
-        ),
+        SliverToBoxAdapter(child: _buildGlobalSettingsSection(context)),
         // Host Configurations Section Header
-        SliverToBoxAdapter(
-          child: _buildHostConfigurationsHeader(context),
-        ),
+        SliverToBoxAdapter(child: _buildHostConfigurationsHeader(context)),
         // Host Configurations List
         if (_entries.isEmpty)
           SliverFillRemaining(
@@ -181,16 +197,15 @@ class _ClientConfigTabState extends State<_ClientConfigTab> {
         children: [
           // Header
           InkWell(
-            onTap: () => setState(() => _globalSettingsExpanded = !_globalSettingsExpanded),
+            onTap: () => setState(
+              () => _globalSettingsExpanded = !_globalSettingsExpanded,
+            ),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.settings,
-                    color: colorScheme.primary,
-                  ),
+                  Icon(Icons.settings, color: colorScheme.primary),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -217,7 +232,9 @@ class _ClientConfigTabState extends State<_ClientConfigTab> {
                     tooltip: 'Add directive',
                   ),
                   Icon(
-                    _globalSettingsExpanded ? Icons.expand_less : Icons.expand_more,
+                    _globalSettingsExpanded
+                        ? Icons.expand_less
+                        : Icons.expand_more,
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ],
@@ -255,8 +272,12 @@ class _ClientConfigTabState extends State<_ClientConfigTab> {
                   final directive = widget.state.globalDirectives[index];
                   return _GlobalDirectiveListTile(
                     directive: directive,
-                    onEdit: () => _showEditGlobalDirectiveDialog(context, directive),
-                    onDelete: () => _showDeleteGlobalDirectiveConfirmation(context, directive),
+                    onEdit: () =>
+                        _showEditGlobalDirectiveDialog(context, directive),
+                    onDelete: () => _showDeleteGlobalDirectiveConfirmation(
+                      context,
+                      directive,
+                    ),
                   );
                 },
               ),
@@ -274,11 +295,7 @@ class _ClientConfigTabState extends State<_ClientConfigTab> {
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Row(
         children: [
-          Icon(
-            Icons.dns,
-            color: colorScheme.primary,
-            size: 20,
-          ),
+          Icon(Icons.dns, color: colorScheme.primary, size: 20),
           const SizedBox(width: 8),
           Text(
             'Host Configurations',
@@ -368,31 +385,35 @@ class _ClientConfigTabState extends State<_ClientConfigTab> {
       context: context,
       builder: (dialogContext) => GlobalDirectiveDialog(
         onSave: (key, value) {
-          context.read<ConfigBloc>().add(ConfigSetGlobalDirectiveRequested(
-            key: key,
-            value: value,
-          ));
+          context.read<ConfigBloc>().add(
+            ConfigSetGlobalDirectiveRequested(key: key, value: value),
+          );
         },
       ),
     );
   }
 
-  void _showEditGlobalDirectiveDialog(BuildContext context, GlobalDirective directive) {
+  void _showEditGlobalDirectiveDialog(
+    BuildContext context,
+    GlobalDirective directive,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => GlobalDirectiveDialog(
         directive: directive,
         onSave: (key, value) {
-          context.read<ConfigBloc>().add(ConfigSetGlobalDirectiveRequested(
-            key: key,
-            value: value,
-          ));
+          context.read<ConfigBloc>().add(
+            ConfigSetGlobalDirectiveRequested(key: key, value: value),
+          );
         },
       ),
     );
   }
 
-  void _showDeleteGlobalDirectiveConfirmation(BuildContext context, GlobalDirective directive) {
+  void _showDeleteGlobalDirectiveConfirmation(
+    BuildContext context,
+    GlobalDirective directive,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -409,7 +430,9 @@ class _ClientConfigTabState extends State<_ClientConfigTab> {
           FilledButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
-              context.read<ConfigBloc>().add(ConfigDeleteGlobalDirectiveRequested(directive.key));
+              context.read<ConfigBloc>().add(
+                ConfigDeleteGlobalDirectiveRequested(directive.key),
+              );
             },
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
@@ -428,8 +451,8 @@ class _ClientConfigTabState extends State<_ClientConfigTab> {
         entry: entry,
         onSave: (updatedEntry) {
           context.read<ConfigBloc>().add(
-                ConfigUpdateSSHEntryRequested(id: entry.id, entry: updatedEntry),
-              );
+            ConfigUpdateSSHEntryRequested(id: entry.id, entry: updatedEntry),
+          );
         },
       ),
     );
@@ -452,7 +475,9 @@ class _ClientConfigTabState extends State<_ClientConfigTab> {
           FilledButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
-              context.read<ConfigBloc>().add(ConfigDeleteSSHEntryRequested(entry.id));
+              context.read<ConfigBloc>().add(
+                ConfigDeleteSSHEntryRequested(entry.id),
+              );
             },
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
@@ -579,10 +604,7 @@ class _SSHConfigEntryCard extends StatelessWidget {
           child: Row(
             children: [
               // Drag handle (parent ReorderableDragStartListener handles actual dragging)
-              Icon(
-                Icons.drag_handle,
-                color: colorScheme.outline,
-              ),
+              Icon(Icons.drag_handle, color: colorScheme.outline),
               const SizedBox(width: 12),
               // Entry type icon
               Container(
@@ -614,7 +636,10 @@ class _SSHConfigEntryCard extends StatelessWidget {
                         if (entry.isWildcard) ...[
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: colorScheme.tertiaryContainer,
                               borderRadius: BorderRadius.circular(4),
@@ -630,7 +655,10 @@ class _SSHConfigEntryCard extends StatelessWidget {
                         if (entry.isCatchAll) ...[
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: colorScheme.secondaryContainer,
                               borderRadius: BorderRadius.circular(4),
@@ -728,7 +756,9 @@ class _SSHConfigEntryCard extends StatelessWidget {
     }
 
     if (parts.isEmpty) {
-      return entry.type == SSHConfigEntryType.match ? 'Match block' : 'Host entry';
+      return entry.type == SSHConfigEntryType.match
+          ? 'Match block'
+          : 'Host entry';
     }
 
     return parts.join('');

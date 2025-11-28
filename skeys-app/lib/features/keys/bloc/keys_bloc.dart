@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -16,7 +36,8 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
   final RemoteRepository _remoteRepository;
   final AppLogger _log = AppLogger('bloc.keys');
 
-  KeysBloc(this._repository, this._remoteRepository) : super(const KeysState()) {
+  KeysBloc(this._repository, this._remoteRepository)
+    : super(const KeysState()) {
     on<KeysLoadRequested>(_onLoadRequested);
     on<KeysWatchRequested>(_onWatchRequested);
     on<KeysGenerateRequested>(_onGenerateRequested);
@@ -40,16 +61,12 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
     try {
       final keys = await _repository.listKeys();
       _log.info('keys loaded', {'count': keys.length});
-      emit(state.copyWith(
-        status: KeysStatus.success,
-        keys: keys,
-      ));
+      emit(state.copyWith(status: KeysStatus.success, keys: keys));
     } catch (e, st) {
       _log.error('failed to load keys', e, st);
-      emit(state.copyWith(
-        status: KeysStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(status: KeysStatus.failure, errorMessage: e.toString()),
+      );
     }
   }
 
@@ -64,10 +81,7 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
       _repository.watchKeys(),
       onData: (keys) {
         _log.debug('keys stream update', {'count': keys.length});
-        return state.copyWith(
-          status: KeysStatus.success,
-          keys: keys,
-        );
+        return state.copyWith(status: KeysStatus.success, keys: keys);
       },
       onError: (error, stackTrace) {
         _log.error('keys stream error', error, stackTrace);
@@ -103,16 +117,12 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
 
       // Reload keys after generation
       final keys = await _repository.listKeys();
-      emit(state.copyWith(
-        status: KeysStatus.success,
-        keys: keys,
-      ));
+      emit(state.copyWith(status: KeysStatus.success, keys: keys));
     } catch (e, st) {
       _log.error('failed to generate key', e, st, {'name': event.name});
-      emit(state.copyWith(
-        status: KeysStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(status: KeysStatus.failure, errorMessage: e.toString()),
+      );
     }
   }
 
@@ -129,16 +139,12 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
 
       // Reload keys after deletion
       final keys = await _repository.listKeys();
-      emit(state.copyWith(
-        status: KeysStatus.success,
-        keys: keys,
-      ));
+      emit(state.copyWith(status: KeysStatus.success, keys: keys));
     } catch (e, st) {
       _log.error('failed to delete key', e, st, {'path': event.path});
-      emit(state.copyWith(
-        status: KeysStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(status: KeysStatus.failure, errorMessage: e.toString()),
+      );
     }
   }
 
@@ -160,10 +166,9 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
       emit(state.copyWith(status: KeysStatus.success));
     } catch (e, st) {
       _log.error('failed to change passphrase', e, st, {'path': event.path});
-      emit(state.copyWith(
-        status: KeysStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(status: KeysStatus.failure, errorMessage: e.toString()),
+      );
     }
   }
 
@@ -177,16 +182,17 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
       // Get the key to access its public key content
       final key = await _repository.getKey(event.path);
       _log.debug('public key retrieved for copy', {'path': event.path});
-      emit(state.copyWith(
-        status: KeysStatus.success,
-        copiedPublicKey: key.publicKey,
-      ));
+      emit(
+        state.copyWith(
+          status: KeysStatus.success,
+          copiedPublicKey: key.publicKey,
+        ),
+      );
     } catch (e, st) {
       _log.error('failed to get public key', e, st, {'path': event.path});
-      emit(state.copyWith(
-        status: KeysStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(status: KeysStatus.failure, errorMessage: e.toString()),
+      );
     }
   }
 
@@ -201,7 +207,12 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
       'user': event.user,
       'trustHostKey': event.trustHostKey,
     });
-    emit(state.copyWith(status: KeysStatus.testingConnection, clearTestResult: true));
+    emit(
+      state.copyWith(
+        status: KeysStatus.testingConnection,
+        clearTestResult: true,
+      ),
+    );
 
     try {
       final result = await _remoteRepository.testConnection(
@@ -218,28 +229,32 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
         'message': result.message,
         'hostKeyStatus': result.hostKeyStatus.name,
       });
-      emit(state.copyWith(
-        status: KeysStatus.success,
-        testConnectionResult: ConnectionTestResult(
-          success: result.success,
-          message: result.message,
-          serverVersion: result.serverVersion,
-          latencyMs: result.latencyMs,
-          host: event.host,
-          hostKeyStatus: result.hostKeyStatus,
-          hostKeyInfo: result.hostKeyInfo,
+      emit(
+        state.copyWith(
+          status: KeysStatus.success,
+          testConnectionResult: ConnectionTestResult(
+            success: result.success,
+            message: result.message,
+            serverVersion: result.serverVersion,
+            latencyMs: result.latencyMs,
+            host: event.host,
+            hostKeyStatus: result.hostKeyStatus,
+            hostKeyInfo: result.hostKeyInfo,
+          ),
         ),
-      ));
+      );
     } catch (e, st) {
       _log.error('connection test failed', e, st, {'host': event.host});
-      emit(state.copyWith(
-        status: KeysStatus.success,
-        testConnectionResult: ConnectionTestResult(
-          success: false,
-          message: e.toString(),
-          host: event.host,
+      emit(
+        state.copyWith(
+          status: KeysStatus.success,
+          testConnectionResult: ConnectionTestResult(
+            success: false,
+            message: e.toString(),
+            host: event.host,
+          ),
         ),
-      ));
+      );
     }
   }
 

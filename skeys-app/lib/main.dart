@@ -1,11 +1,29 @@
-import 'dart:async';
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
 import 'package:toastification/toastification.dart';
-import 'package:window_manager/window_manager.dart';
 
 import 'core/di/injection.dart';
 import 'core/logging/app_logger.dart';
@@ -63,38 +81,6 @@ void main() async {
   // }
 
   runApp(const SKeysApp());
-}
-
-Future<void> _initializeWindow(SettingsService settings, AppLogger log) async {
-  await windowManager.ensureInitialized();
-
-  final savedWidth = settings.windowWidth;
-  final savedHeight = settings.windowHeight;
-
-  log.debug('restoring window size', {
-    'width': savedWidth,
-    'height': savedHeight,
-  });
-
-  final windowOptions = WindowOptions(
-    size: Size(savedWidth, savedHeight),
-    minimumSize: Size(
-      SettingsService.minWindowWidth,
-      SettingsService.minWindowHeight,
-    ),
-    center: true,
-    backgroundColor: Colors.transparent,
-    skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.normal,
-    title: 'SKeys - SSH Key Manager',
-  );
-
-  await windowManager.waitUntilReadyToShow(windowOptions, () async {
-    // Explicitly set size after window is ready (some Linux WMs ignore WindowOptions size)
-    await windowManager.setSize(Size(savedWidth, savedHeight));
-    await windowManager.show();
-    await windowManager.focus();
-  });
 }
 
 Level _parseLogLevel(String level) {
@@ -194,9 +180,9 @@ class _SKeysAppState extends State<SKeysApp> {
               routerConfig: appRouter,
               builder: (context, child) {
                 return MediaQuery(
-                  data: MediaQuery.of(context).copyWith(
-                    textScaler: TextScaler.linear(textScale.scale),
-                  ),
+                  data: MediaQuery.of(
+                    context,
+                  ).copyWith(textScaler: TextScaler.linear(textScale.scale)),
                   child: child!,
                 );
               },
@@ -227,27 +213,17 @@ class ErrorApp extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: Colors.red,
-                ),
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
                 const SizedBox(height: 24),
                 const Text(
                   'Failed to Start SKeys',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   error,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 const SizedBox(height: 24),
                 const Text(

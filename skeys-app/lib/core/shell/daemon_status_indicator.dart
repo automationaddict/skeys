@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -21,7 +41,10 @@ class DaemonStatusIndicator extends StatelessWidget {
     );
   }
 
-  Widget _buildIndicator(BuildContext context, DaemonStatusService statusService) {
+  Widget _buildIndicator(
+    BuildContext context,
+    DaemonStatusService statusService,
+  ) {
     final status = statusService.status;
 
     IconData icon;
@@ -68,11 +91,7 @@ class DaemonStatusIndicator extends StatelessWidget {
                     ),
                   ),
                 )
-              : Icon(
-                  icon,
-                  size: 12,
-                  color: color,
-                ),
+              : Icon(icon, size: 12, color: color),
         ),
       ),
     );
@@ -104,10 +123,7 @@ class _DisconnectedDialog extends StatelessWidget {
         return AlertDialog(
           title: Row(
             children: [
-              Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.orange,
-              ),
+              Icon(Icons.warning_amber_rounded, color: Colors.orange),
               const SizedBox(width: 12),
               const Text('Daemon Disconnected'),
             ],
@@ -202,20 +218,14 @@ class _CommandTile extends StatelessWidget {
   final String label;
   final String command;
 
-  const _CommandTile({
-    required this.label,
-    required this.command,
-  });
+  const _CommandTile({required this.label, required this.command});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelSmall,
-        ),
+        Text(label, style: Theme.of(context).textTheme.labelSmall),
         const SizedBox(height: 4),
         Container(
           width: double.infinity,
@@ -229,10 +239,7 @@ class _CommandTile extends StatelessWidget {
               Expanded(
                 child: Text(
                   command,
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
                 ),
               ),
               IconButton(
@@ -240,13 +247,14 @@ class _CommandTile extends StatelessWidget {
                 tooltip: 'Copy to clipboard',
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: command));
-                  AppToast.info(context, message: 'Copied: $command', duration: const Duration(seconds: 1));
+                  AppToast.info(
+                    context,
+                    message: 'Copied: $command',
+                    duration: const Duration(seconds: 1),
+                  );
                 },
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(
-                  minWidth: 24,
-                  minHeight: 24,
-                ),
+                constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
               ),
             ],
           ),

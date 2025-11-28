@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import '../domain/config_entity.dart';
 import '../domain/ssh_config_entry.dart';
 import '../../../core/grpc/grpc_client.dart';
@@ -10,7 +30,10 @@ abstract class ConfigRepository {
   Future<List<SSHConfigEntry>> listSSHConfigEntries();
   Stream<List<SSHConfigEntry>> watchSSHConfigEntries();
   Future<SSHConfigEntry> getSSHConfigEntry(String id);
-  Future<SSHConfigEntry> createSSHConfigEntry(SSHConfigEntry entry, {int? insertPosition});
+  Future<SSHConfigEntry> createSSHConfigEntry(
+    SSHConfigEntry entry, {
+    int? insertPosition,
+  });
   Future<SSHConfigEntry> updateSSHConfigEntry(String id, SSHConfigEntry entry);
   Future<void> deleteSSHConfigEntry(String id);
   Future<List<SSHConfigEntry>> reorderSSHConfigEntries(List<String> entryIds);
@@ -70,9 +93,9 @@ class ConfigRepositoryImpl implements ConfigRepository {
     final request = pb.WatchSSHConfigEntriesRequest()
       ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL);
 
-    return _client.config.watchSSHConfigEntries(request).map(
-      (response) => response.entries.map(_mapSSHConfigEntry).toList()
-    );
+    return _client.config
+        .watchSSHConfigEntries(request)
+        .map((response) => response.entries.map(_mapSSHConfigEntry).toList());
   }
 
   @override
@@ -86,7 +109,10 @@ class ConfigRepositoryImpl implements ConfigRepository {
   }
 
   @override
-  Future<SSHConfigEntry> createSSHConfigEntry(SSHConfigEntry entry, {int? insertPosition}) async {
+  Future<SSHConfigEntry> createSSHConfigEntry(
+    SSHConfigEntry entry, {
+    int? insertPosition,
+  }) async {
     final request = pb.CreateSSHConfigEntryRequest()
       ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL)
       ..entry = _mapToProtoSSHConfigEntry(entry)
@@ -97,7 +123,10 @@ class ConfigRepositoryImpl implements ConfigRepository {
   }
 
   @override
-  Future<SSHConfigEntry> updateSSHConfigEntry(String id, SSHConfigEntry entry) async {
+  Future<SSHConfigEntry> updateSSHConfigEntry(
+    String id,
+    SSHConfigEntry entry,
+  ) async {
     final request = pb.UpdateSSHConfigEntryRequest()
       ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL)
       ..id = id
@@ -117,7 +146,9 @@ class ConfigRepositoryImpl implements ConfigRepository {
   }
 
   @override
-  Future<List<SSHConfigEntry>> reorderSSHConfigEntries(List<String> entryIds) async {
+  Future<List<SSHConfigEntry>> reorderSSHConfigEntries(
+    List<String> entryIds,
+  ) async {
     final request = pb.ReorderSSHConfigEntriesRequest()
       ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL)
       ..entryIds.addAll(entryIds);
@@ -136,10 +167,9 @@ class ConfigRepositoryImpl implements ConfigRepository {
       ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL);
 
     final response = await _client.config.listGlobalDirectives(request);
-    return response.directives.map((d) => GlobalDirective(
-      key: d.key,
-      value: d.value,
-    )).toList();
+    return response.directives
+        .map((d) => GlobalDirective(key: d.key, value: d.value))
+        .toList();
   }
 
   @override
@@ -150,10 +180,7 @@ class ConfigRepositoryImpl implements ConfigRepository {
       ..value = value;
 
     final response = await _client.config.setGlobalDirective(request);
-    return GlobalDirective(
-      key: response.key,
-      value: response.value,
-    );
+    return GlobalDirective(key: response.key, value: response.value);
   }
 
   @override
@@ -224,11 +251,15 @@ class ConfigRepositoryImpl implements ConfigRepository {
     final response = await _client.config.getServerConfig(request);
     return ServerConfig(
       path: '/etc/ssh/sshd_config',
-      options: response.directives.map((d) => ServerConfigOption(
-        key: d.key,
-        value: d.value,
-        lineNumber: d.lineNumber,
-      )).toList(),
+      options: response.directives
+          .map(
+            (d) => ServerConfigOption(
+              key: d.key,
+              value: d.value,
+              lineNumber: d.lineNumber,
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -238,10 +269,12 @@ class ConfigRepositoryImpl implements ConfigRepository {
       ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL);
 
     for (final update in updates) {
-      request.updates.add(pb.ServerConfigUpdate()
-        ..key = update.key
-        ..value = update.value
-        ..delete = update.delete);
+      request.updates.add(
+        pb.ServerConfigUpdate()
+          ..key = update.key
+          ..value = update.value
+          ..delete = update.delete,
+      );
     }
 
     await _client.config.updateServerConfig(request);
@@ -261,7 +294,9 @@ class ConfigRepositoryImpl implements ConfigRepository {
       hostname: host.hostname.isEmpty ? null : host.hostname,
       user: host.user.isEmpty ? null : host.user,
       port: host.port == 0 ? null : host.port,
-      identityFile: host.identityFiles.isEmpty ? null : host.identityFiles.first,
+      identityFile: host.identityFiles.isEmpty
+          ? null
+          : host.identityFiles.first,
       forwardAgent: host.forwardAgent,
       extraOptions: Map.from(host.extraOptions),
     );
@@ -272,7 +307,9 @@ class ConfigRepositoryImpl implements ConfigRepository {
     if (entry.hostname != null) config.hostname = entry.hostname!;
     if (entry.user != null) config.user = entry.user!;
     if (entry.port != null) config.port = entry.port!;
-    if (entry.identityFile != null) config.identityFiles.add(entry.identityFile!);
+    if (entry.identityFile != null) {
+      config.identityFiles.add(entry.identityFile!);
+    }
     if (entry.forwardAgent != null) config.forwardAgent = entry.forwardAgent!;
     config.extraOptions.addAll(entry.extraOptions);
     return config;
@@ -311,11 +348,17 @@ class ConfigRepositoryImpl implements ConfigRepository {
       forwardAgent: options.forwardAgent ? true : null,
       proxyJump: options.proxyJump.isEmpty ? null : options.proxyJump,
       proxyCommand: options.proxyCommand.isEmpty ? null : options.proxyCommand,
-      serverAliveInterval: options.serverAliveInterval == 0 ? null : options.serverAliveInterval,
-      serverAliveCountMax: options.serverAliveCountMax == 0 ? null : options.serverAliveCountMax,
+      serverAliveInterval: options.serverAliveInterval == 0
+          ? null
+          : options.serverAliveInterval,
+      serverAliveCountMax: options.serverAliveCountMax == 0
+          ? null
+          : options.serverAliveCountMax,
       identitiesOnly: options.identitiesOnly ? true : null,
       compression: options.compression ? true : null,
-      strictHostKeyChecking: options.strictHostKeyChecking.isEmpty ? null : options.strictHostKeyChecking,
+      strictHostKeyChecking: options.strictHostKeyChecking.isEmpty
+          ? null
+          : options.strictHostKeyChecking,
       extraOptions: Map.from(options.extraOptions),
     );
   }
@@ -346,12 +389,20 @@ class ConfigRepositoryImpl implements ConfigRepository {
     proto.identityFiles.addAll(options.identityFiles);
     if (options.forwardAgent == true) proto.forwardAgent = true;
     if (options.proxyJump != null) proto.proxyJump = options.proxyJump!;
-    if (options.proxyCommand != null) proto.proxyCommand = options.proxyCommand!;
-    if (options.serverAliveInterval != null) proto.serverAliveInterval = options.serverAliveInterval!;
-    if (options.serverAliveCountMax != null) proto.serverAliveCountMax = options.serverAliveCountMax!;
+    if (options.proxyCommand != null) {
+      proto.proxyCommand = options.proxyCommand!;
+    }
+    if (options.serverAliveInterval != null) {
+      proto.serverAliveInterval = options.serverAliveInterval!;
+    }
+    if (options.serverAliveCountMax != null) {
+      proto.serverAliveCountMax = options.serverAliveCountMax!;
+    }
     if (options.identitiesOnly == true) proto.identitiesOnly = true;
     if (options.compression == true) proto.compression = true;
-    if (options.strictHostKeyChecking != null) proto.strictHostKeyChecking = options.strictHostKeyChecking!;
+    if (options.strictHostKeyChecking != null) {
+      proto.strictHostKeyChecking = options.strictHostKeyChecking!;
+    }
     proto.extraOptions.addAll(options.extraOptions);
     return proto;
   }

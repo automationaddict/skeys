@@ -10,6 +10,7 @@ APPLICATIONS_DIR="${HOME}/.local/share/applications"
 ICONS_DIR="${HOME}/.local/share/icons/hicolor"
 CACHE_DIR="${HOME}/.cache/skeys"
 CONFIG_DIR="${HOME}/.config/skeys"
+APP_DATA_DIR="${HOME}/.local/share/com.skeys.skeys-app"
 RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
 SSH_CONFIG="${HOME}/.ssh/config"
 
@@ -110,8 +111,9 @@ remove_user_data() {
         info "Removing user data..."
         rm -rf "$CACHE_DIR"
         rm -rf "$CONFIG_DIR"
+        rm -rf "$APP_DATA_DIR"
     else
-        info "Keeping user data in ${CONFIG_DIR} and ${CACHE_DIR}"
+        info "Keeping user data in ${CONFIG_DIR}, ${CACHE_DIR}, and ${APP_DATA_DIR}"
     fi
 }
 

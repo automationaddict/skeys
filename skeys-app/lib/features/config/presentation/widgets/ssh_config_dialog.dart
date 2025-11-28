@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -13,11 +33,7 @@ class SSHConfigDialog extends StatefulWidget {
   /// Callback when the user saves the entry.
   final void Function(SSHConfigEntry entry) onSave;
 
-  const SSHConfigDialog({
-    super.key,
-    this.entry,
-    required this.onSave,
-  });
+  const SSHConfigDialog({super.key, this.entry, required this.onSave});
 
   @override
   State<SSHConfigDialog> createState() => _SSHConfigDialogState();
@@ -77,8 +93,10 @@ class _SSHConfigDialogState extends State<SSHConfigDialog> {
 
       _proxyJumpController.text = opts.proxyJump ?? '';
       _proxyCommandController.text = opts.proxyCommand ?? '';
-      _serverAliveIntervalController.text = opts.serverAliveInterval?.toString() ?? '';
-      _serverAliveCountMaxController.text = opts.serverAliveCountMax?.toString() ?? '';
+      _serverAliveIntervalController.text =
+          opts.serverAliveInterval?.toString() ?? '';
+      _serverAliveCountMaxController.text =
+          opts.serverAliveCountMax?.toString() ?? '';
 
       _identitiesOnly = opts.identitiesOnly ?? false;
       _compression = opts.compression ?? false;
@@ -142,7 +160,9 @@ class _SSHConfigDialogState extends State<SSHConfigDialog> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    _isEditing ? 'Edit SSH Config Entry' : 'Add SSH Config Entry',
+                    _isEditing
+                        ? 'Edit SSH Config Entry'
+                        : 'Add SSH Config Entry',
                     style: theme.textTheme.titleLarge,
                   ),
                   const Spacer(),
@@ -250,11 +270,15 @@ class _SSHConfigDialogState extends State<SSHConfigDialog> {
                                 hintText: '22',
                               ),
                               keyboardType: TextInputType.number,
-                              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
                               validator: (value) {
                                 if (value != null && value.isNotEmpty) {
                                   final port = int.tryParse(value);
-                                  if (port == null || port < 1 || port > 65535) {
+                                  if (port == null ||
+                                      port < 1 ||
+                                      port > 65535) {
                                     return 'Invalid port';
                                   }
                                 }
@@ -297,14 +321,17 @@ class _SSHConfigDialogState extends State<SSHConfigDialog> {
 
                       // Advanced Options toggle
                       InkWell(
-                        onTap: () => setState(() => _showAdvanced = !_showAdvanced),
+                        onTap: () =>
+                            setState(() => _showAdvanced = !_showAdvanced),
                         borderRadius: BorderRadius.circular(8),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Row(
                             children: [
                               Icon(
-                                _showAdvanced ? Icons.expand_less : Icons.expand_more,
+                                _showAdvanced
+                                    ? Icons.expand_less
+                                    : Icons.expand_more,
                                 color: colorScheme.primary,
                               ),
                               const SizedBox(width: 8),
@@ -317,7 +344,10 @@ class _SSHConfigDialogState extends State<SSHConfigDialog> {
                               if (_hasAdvancedOptions()) ...[
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: colorScheme.primaryContainer,
                                     borderRadius: BorderRadius.circular(12),
@@ -378,8 +408,8 @@ class _SSHConfigDialogState extends State<SSHConfigDialog> {
     return Text(
       title,
       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: Theme.of(context).colorScheme.primary,
-          ),
+        color: Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 
@@ -537,7 +567,11 @@ class _SSHConfigDialogState extends State<SSHConfigDialog> {
     if (_compression) count++;
     if (_strictHostKeyChecking != null) count++;
     if (_extraOptionsController.text.isNotEmpty) {
-      count += _extraOptionsController.text.trim().split('\n').where((l) => l.trim().isNotEmpty).length;
+      count += _extraOptionsController.text
+          .trim()
+          .split('\n')
+          .where((l) => l.trim().isNotEmpty)
+          .length;
     }
     return count;
   }
@@ -593,13 +627,23 @@ class _SSHConfigDialogState extends State<SSHConfigDialog> {
 
     // Build options
     final options = SSHOptions(
-      hostname: _hostnameController.text.isNotEmpty ? _hostnameController.text.trim() : null,
-      user: _userController.text.isNotEmpty ? _userController.text.trim() : null,
-      port: _portController.text.isNotEmpty ? int.tryParse(_portController.text) : null,
+      hostname: _hostnameController.text.isNotEmpty
+          ? _hostnameController.text.trim()
+          : null,
+      user: _userController.text.isNotEmpty
+          ? _userController.text.trim()
+          : null,
+      port: _portController.text.isNotEmpty
+          ? int.tryParse(_portController.text)
+          : null,
       identityFiles: identityFiles,
       forwardAgent: _forwardAgent ? true : null,
-      proxyJump: _proxyJumpController.text.isNotEmpty ? _proxyJumpController.text.trim() : null,
-      proxyCommand: _proxyCommandController.text.isNotEmpty ? _proxyCommandController.text.trim() : null,
+      proxyJump: _proxyJumpController.text.isNotEmpty
+          ? _proxyJumpController.text.trim()
+          : null,
+      proxyCommand: _proxyCommandController.text.isNotEmpty
+          ? _proxyCommandController.text.trim()
+          : null,
       serverAliveInterval: _serverAliveIntervalController.text.isNotEmpty
           ? int.tryParse(_serverAliveIntervalController.text)
           : null,

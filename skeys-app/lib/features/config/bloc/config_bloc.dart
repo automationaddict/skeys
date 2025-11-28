@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -58,16 +78,15 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
     try {
       final entries = await _repository.listSSHConfigEntries();
       _log.info('SSH config entries loaded', {'count': entries.length});
-      emit(state.copyWith(
-        status: ConfigStatus.success,
-        sshEntries: entries,
-      ));
+      emit(state.copyWith(status: ConfigStatus.success, sshEntries: entries));
     } catch (e, st) {
       _log.error('failed to load SSH config entries', e, st);
-      emit(state.copyWith(
-        status: ConfigStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: ConfigStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -81,7 +100,9 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
     await emit.forEach<List<SSHConfigEntry>>(
       _repository.watchSSHConfigEntries(),
       onData: (entries) {
-        _log.debug('SSH config entries stream update', {'count': entries.length});
+        _log.debug('SSH config entries stream update', {
+          'count': entries.length,
+        });
         return state.copyWith(
           status: ConfigStatus.success,
           sshEntries: entries,
@@ -111,16 +132,17 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
       );
       _log.info('SSH config entry created', {'patterns': event.entry.patterns});
       final entries = await _repository.listSSHConfigEntries();
-      emit(state.copyWith(
-        status: ConfigStatus.success,
-        sshEntries: entries,
-      ));
+      emit(state.copyWith(status: ConfigStatus.success, sshEntries: entries));
     } catch (e, st) {
-      _log.error('failed to create SSH config entry', e, st, {'patterns': event.entry.patterns});
-      emit(state.copyWith(
-        status: ConfigStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      _log.error('failed to create SSH config entry', e, st, {
+        'patterns': event.entry.patterns,
+      });
+      emit(
+        state.copyWith(
+          status: ConfigStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -135,16 +157,15 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
       await _repository.updateSSHConfigEntry(event.id, event.entry);
       _log.info('SSH config entry updated', {'id': event.id});
       final entries = await _repository.listSSHConfigEntries();
-      emit(state.copyWith(
-        status: ConfigStatus.success,
-        sshEntries: entries,
-      ));
+      emit(state.copyWith(status: ConfigStatus.success, sshEntries: entries));
     } catch (e, st) {
       _log.error('failed to update SSH config entry', e, st, {'id': event.id});
-      emit(state.copyWith(
-        status: ConfigStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: ConfigStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -159,16 +180,15 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
       await _repository.deleteSSHConfigEntry(event.id);
       _log.info('SSH config entry deleted', {'id': event.id});
       final entries = await _repository.listSSHConfigEntries();
-      emit(state.copyWith(
-        status: ConfigStatus.success,
-        sshEntries: entries,
-      ));
+      emit(state.copyWith(status: ConfigStatus.success, sshEntries: entries));
     } catch (e, st) {
       _log.error('failed to delete SSH config entry', e, st, {'id': event.id});
-      emit(state.copyWith(
-        status: ConfigStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: ConfigStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -176,22 +196,23 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
     ConfigReorderSSHEntriesRequested event,
     Emitter<ConfigState> emit,
   ) async {
-    _log.info('reordering SSH config entries', {'count': event.entryIds.length});
+    _log.info('reordering SSH config entries', {
+      'count': event.entryIds.length,
+    });
     emit(state.copyWith(status: ConfigStatus.loading));
 
     try {
       final entries = await _repository.reorderSSHConfigEntries(event.entryIds);
       _log.info('SSH config entries reordered');
-      emit(state.copyWith(
-        status: ConfigStatus.success,
-        sshEntries: entries,
-      ));
+      emit(state.copyWith(status: ConfigStatus.success, sshEntries: entries));
     } catch (e, st) {
       _log.error('failed to reorder SSH config entries', e, st);
-      emit(state.copyWith(
-        status: ConfigStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: ConfigStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -209,16 +230,20 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
     try {
       final directives = await _repository.listGlobalDirectives();
       _log.info('global directives loaded', {'count': directives.length});
-      emit(state.copyWith(
-        status: ConfigStatus.success,
-        globalDirectives: directives,
-      ));
+      emit(
+        state.copyWith(
+          status: ConfigStatus.success,
+          globalDirectives: directives,
+        ),
+      );
     } catch (e, st) {
       _log.error('failed to load global directives', e, st);
-      emit(state.copyWith(
-        status: ConfigStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: ConfigStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -226,23 +251,30 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
     ConfigSetGlobalDirectiveRequested event,
     Emitter<ConfigState> emit,
   ) async {
-    _log.info('setting global directive', {'key': event.key, 'value': event.value});
+    _log.info('setting global directive', {
+      'key': event.key,
+      'value': event.value,
+    });
     emit(state.copyWith(status: ConfigStatus.loading));
 
     try {
       await _repository.setGlobalDirective(event.key, event.value);
       _log.info('global directive set', {'key': event.key});
       final directives = await _repository.listGlobalDirectives();
-      emit(state.copyWith(
-        status: ConfigStatus.success,
-        globalDirectives: directives,
-      ));
+      emit(
+        state.copyWith(
+          status: ConfigStatus.success,
+          globalDirectives: directives,
+        ),
+      );
     } catch (e, st) {
       _log.error('failed to set global directive', e, st, {'key': event.key});
-      emit(state.copyWith(
-        status: ConfigStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: ConfigStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -257,16 +289,22 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
       await _repository.deleteGlobalDirective(event.key);
       _log.info('global directive deleted', {'key': event.key});
       final directives = await _repository.listGlobalDirectives();
-      emit(state.copyWith(
-        status: ConfigStatus.success,
-        globalDirectives: directives,
-      ));
+      emit(
+        state.copyWith(
+          status: ConfigStatus.success,
+          globalDirectives: directives,
+        ),
+      );
     } catch (e, st) {
-      _log.error('failed to delete global directive', e, st, {'key': event.key});
-      emit(state.copyWith(
-        status: ConfigStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      _log.error('failed to delete global directive', e, st, {
+        'key': event.key,
+      });
+      emit(
+        state.copyWith(
+          status: ConfigStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -284,16 +322,15 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
     try {
       final hosts = await _repository.listHostConfigs();
       _log.info('client hosts loaded', {'count': hosts.length});
-      emit(state.copyWith(
-        status: ConfigStatus.success,
-        clientHosts: hosts,
-      ));
+      emit(state.copyWith(status: ConfigStatus.success, clientHosts: hosts));
     } catch (e, st) {
       _log.error('failed to load client hosts', e, st);
-      emit(state.copyWith(
-        status: ConfigStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: ConfigStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -308,16 +345,17 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
       await _repository.createHostConfig(event.entry);
       _log.info('client host added', {'host': event.entry.host});
       final hosts = await _repository.listHostConfigs();
-      emit(state.copyWith(
-        status: ConfigStatus.success,
-        clientHosts: hosts,
-      ));
+      emit(state.copyWith(status: ConfigStatus.success, clientHosts: hosts));
     } catch (e, st) {
-      _log.error('failed to add client host', e, st, {'host': event.entry.host});
-      emit(state.copyWith(
-        status: ConfigStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      _log.error('failed to add client host', e, st, {
+        'host': event.entry.host,
+      });
+      emit(
+        state.copyWith(
+          status: ConfigStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -332,16 +370,17 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
       await _repository.updateHostConfig(event.entry.host, event.entry);
       _log.info('client host updated', {'host': event.entry.host});
       final hosts = await _repository.listHostConfigs();
-      emit(state.copyWith(
-        status: ConfigStatus.success,
-        clientHosts: hosts,
-      ));
+      emit(state.copyWith(status: ConfigStatus.success, clientHosts: hosts));
     } catch (e, st) {
-      _log.error('failed to update client host', e, st, {'host': event.entry.host});
-      emit(state.copyWith(
-        status: ConfigStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      _log.error('failed to update client host', e, st, {
+        'host': event.entry.host,
+      });
+      emit(
+        state.copyWith(
+          status: ConfigStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -356,16 +395,15 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
       await _repository.deleteHostConfig(event.host);
       _log.info('client host deleted', {'host': event.host});
       final hosts = await _repository.listHostConfigs();
-      emit(state.copyWith(
-        status: ConfigStatus.success,
-        clientHosts: hosts,
-      ));
+      emit(state.copyWith(status: ConfigStatus.success, clientHosts: hosts));
     } catch (e, st) {
       _log.error('failed to delete client host', e, st, {'host': event.host});
-      emit(state.copyWith(
-        status: ConfigStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: ConfigStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -379,16 +417,15 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
     try {
       final config = await _repository.getServerConfig();
       _log.info('server config loaded', {'options': config.options.length});
-      emit(state.copyWith(
-        status: ConfigStatus.success,
-        serverConfig: config,
-      ));
+      emit(state.copyWith(status: ConfigStatus.success, serverConfig: config));
     } catch (e, st) {
       _log.error('failed to load server config', e, st);
-      emit(state.copyWith(
-        status: ConfigStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: ConfigStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -396,7 +433,10 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
     ConfigUpdateServerOptionRequested event,
     Emitter<ConfigState> emit,
   ) async {
-    _log.info('updating server option', {'key': event.key, 'value': event.value});
+    _log.info('updating server option', {
+      'key': event.key,
+      'value': event.value,
+    });
     emit(state.copyWith(status: ConfigStatus.loading));
 
     try {
@@ -405,17 +445,21 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
       ]);
       _log.info('server option updated', {'key': event.key});
       final config = await _repository.getServerConfig();
-      emit(state.copyWith(
-        status: ConfigStatus.success,
-        serverConfig: config,
-        serverConfigPendingRestart: true,
-      ));
+      emit(
+        state.copyWith(
+          status: ConfigStatus.success,
+          serverConfig: config,
+          serverConfigPendingRestart: true,
+        ),
+      );
     } catch (e, st) {
       _log.error('failed to update server option', e, st, {'key': event.key});
-      emit(state.copyWith(
-        status: ConfigStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: ConfigStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -429,16 +473,20 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
     try {
       await _repository.restartSSHServer();
       _log.info('SSH server restarted');
-      emit(state.copyWith(
-        status: ConfigStatus.success,
-        serverConfigPendingRestart: false,
-      ));
+      emit(
+        state.copyWith(
+          status: ConfigStatus.success,
+          serverConfigPendingRestart: false,
+        ),
+      );
     } catch (e, st) {
       _log.error('failed to restart SSH server', e, st);
-      emit(state.copyWith(
-        status: ConfigStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: ConfigStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 }

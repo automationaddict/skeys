@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -21,7 +41,10 @@ class BackupOptions {
   });
 
   bool get isEmpty =>
-      !includeKeys && !includeConfig && !includeKnownHosts && !includeAuthorizedKeys;
+      !includeKeys &&
+      !includeConfig &&
+      !includeKnownHosts &&
+      !includeAuthorizedKeys;
 }
 
 /// Result of analyzing a backup file.
@@ -54,7 +77,7 @@ class BackupService {
   final String sshDir;
 
   BackupService({String? sshDir})
-      : sshDir = sshDir ?? p.join(Platform.environment['HOME'] ?? '', '.ssh');
+    : sshDir = sshDir ?? p.join(Platform.environment['HOME'] ?? '', '.ssh');
 
   /// Create an encrypted backup archive.
   Future<Uint8List> createBackup({
@@ -79,11 +102,13 @@ class BackupService {
         'authorized_keys': options.includeAuthorizedKeys,
       },
     };
-    archive.addFile(ArchiveFile(
-      'metadata.json',
-      utf8.encode(jsonEncode(metadata)).length,
-      utf8.encode(jsonEncode(metadata)),
-    ));
+    archive.addFile(
+      ArchiveFile(
+        'metadata.json',
+        utf8.encode(jsonEncode(metadata)).length,
+        utf8.encode(jsonEncode(metadata)),
+      ),
+    );
 
     // Add SSH keys
     if (options.includeKeys) {
@@ -112,7 +137,7 @@ class BackupService {
     final gzipData = GZipEncoder().encode(tarData);
 
     // Encrypt
-    return _encrypt(Uint8List.fromList(gzipData!), passphrase);
+    return _encrypt(Uint8List.fromList(gzipData), passphrase);
   }
 
   /// Analyze a backup file without fully decrypting.
@@ -232,18 +257,16 @@ class BackupService {
       final hasMatchingPub =
           await File('${entity.path}.pub').exists() || isPublicKey;
       final hasMatchingPrivate = isPublicKey
-          ? await File(entity.path.substring(0, entity.path.length - 4)).exists()
+          ? await File(
+              entity.path.substring(0, entity.path.length - 4),
+            ).exists()
           : true;
 
       if (!hasMatchingPub && !hasMatchingPrivate) continue;
 
       try {
         final content = await entity.readAsBytes();
-        archive.addFile(ArchiveFile(
-          'keys/$name',
-          content.length,
-          content,
-        ));
+        archive.addFile(ArchiveFile('keys/$name', content.length, content));
       } catch (e) {
         // Skip files we can't read
       }
@@ -256,11 +279,7 @@ class BackupService {
 
     try {
       final content = await file.readAsBytes();
-      archive.addFile(ArchiveFile(
-        filename,
-        content.length,
-        content,
-      ));
+      archive.addFile(ArchiveFile(filename, content.length, content));
     } catch (e) {
       // Skip files we can't read
     }
@@ -339,11 +358,7 @@ class BackupService {
 
     // Decrypt
     final algorithm = AesGcm.with256bits();
-    final secretBox = SecretBox(
-      cipherText,
-      nonce: nonce,
-      mac: Mac(mac),
-    );
+    final secretBox = SecretBox(cipherText, nonce: nonce, mac: Mac(mac));
 
     try {
       final decrypted = await algorithm.decrypt(
@@ -357,7 +372,7 @@ class BackupService {
   }
 
   void _fillRandomBytes(Uint8List buffer) {
-    final random = Random.secure();
+    final random = SecureRandom.secure();
     for (var i = 0; i < buffer.length; i++) {
       buffer[i] = random.nextInt(256);
     }
@@ -383,7 +398,8 @@ class BackupService {
 
   Future<void> _setFilePermissions(String path, String archivePath) async {
     // Private keys should be 600, everything else 644
-    final isPrivateKey = archivePath.startsWith('keys/') && !archivePath.endsWith('.pub');
+    final isPrivateKey =
+        archivePath.startsWith('keys/') && !archivePath.endsWith('.pub');
     final mode = isPrivateKey ? '600' : '644';
 
     await Process.run('chmod', [mode, path]);
@@ -400,13 +416,13 @@ class RestoreResult {
   bool get success => restored.isNotEmpty && !hasErrors;
 }
 
-class Random {
-  static final _random = _SecureRandom();
-  static _SecureRandom secure() => _random;
-}
+class SecureRandom {
+  static final _instance = SecureRandom._();
+  static SecureRandom secure() => _instance;
 
-class _SecureRandom {
-  final _random = DateTime.now().millisecondsSinceEpoch;
+  SecureRandom._();
+
+  final _seed = DateTime.now().millisecondsSinceEpoch;
   int _counter = 0;
 
   int nextInt(int max) {
@@ -417,10 +433,11 @@ class _SecureRandom {
       final raf = file.openSync();
       final bytes = raf.readSync(4);
       raf.closeSync();
-      final value = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24);
+      final value =
+          bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24);
       return value.abs() % max;
     }
     // Fallback (less secure)
-    return ((_random + _counter * 31337) % max).abs();
+    return ((_seed + _counter * 31337) % max).abs();
   }
 }

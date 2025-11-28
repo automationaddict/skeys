@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
@@ -53,7 +73,8 @@ class _HelpPanelState extends State<HelpPanel> {
     _helpNavService.addListener(_onHelpNavigationChanged);
 
     // Check for pending help navigation (e.g., from settings dialog)
-    if (_helpNavService.pendingShowHelp && _helpNavService.pendingHelpRoute != null) {
+    if (_helpNavService.pendingShowHelp &&
+        _helpNavService.pendingHelpRoute != null) {
       _overrideRoute = _helpNavService.pendingHelpRoute;
       _helpNavService.clearPendingHelp();
     } else {
@@ -73,7 +94,8 @@ class _HelpPanelState extends State<HelpPanel> {
 
   void _onHelpNavigationChanged() {
     // Check for pending help navigation
-    if (_helpNavService.pendingShowHelp && _helpNavService.pendingHelpRoute != null) {
+    if (_helpNavService.pendingShowHelp &&
+        _helpNavService.pendingHelpRoute != null) {
       final route = _helpNavService.pendingHelpRoute!;
       _helpNavService.clearPendingHelp();
 
@@ -102,7 +124,8 @@ class _HelpPanelState extends State<HelpPanel> {
       _updateCurrentRoute();
       _loadHelpForCurrentRoute();
     }
-    if (oldWidget.overrideRoute != widget.overrideRoute && widget.overrideRoute != null) {
+    if (oldWidget.overrideRoute != widget.overrideRoute &&
+        widget.overrideRoute != null) {
       _overrideRoute = widget.overrideRoute;
       _updateCurrentRoute();
       _loadHelpForCurrentRoute();
@@ -221,9 +244,7 @@ class _HelpPanelState extends State<HelpPanel> {
           width: _panelWidth,
           decoration: BoxDecoration(
             color: colorScheme.surface,
-            border: Border(
-              left: BorderSide(color: colorScheme.outlineVariant),
-            ),
+            border: Border(left: BorderSide(color: colorScheme.outlineVariant)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.1),
@@ -240,8 +261,8 @@ class _HelpPanelState extends State<HelpPanel> {
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _isSearching && _searchResults.isNotEmpty
-                        ? _buildSearchResults(theme, colorScheme)
-                        : _buildMarkdownContent(theme, colorScheme),
+                    ? _buildSearchResults(theme, colorScheme)
+                    : _buildMarkdownContent(theme, colorScheme),
               ),
               _buildTopicSelector(theme, colorScheme),
             ],
@@ -256,9 +277,7 @@ class _HelpPanelState extends State<HelpPanel> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
-        border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant),
-        ),
+        border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
       ),
       child: Row(
         children: [
@@ -299,9 +318,7 @@ class _HelpPanelState extends State<HelpPanel> {
                   },
                 )
               : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 12,
@@ -430,9 +447,7 @@ class _HelpPanelState extends State<HelpPanel> {
         ),
         tableHeadAlign: TextAlign.left,
         horizontalRuleDecoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(color: colorScheme.outlineVariant),
-          ),
+          border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
         ),
       ),
       onTapLink: (text, href, title) => _handleLinkTap(href),
@@ -475,9 +490,7 @@ class _HelpPanelState extends State<HelpPanel> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
-        border: Border(
-          top: BorderSide(color: colorScheme.outlineVariant),
-        ),
+        border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -501,10 +514,7 @@ class _HelpPanelState extends State<HelpPanel> {
                     label: Text(_capitalizeFirst(topic)),
                     selected: isSelected,
                     onSelected: (_) => _navigateToDoc(topic),
-                    avatar: Icon(
-                      _getIconForDoc(topic),
-                      size: 16,
-                    ),
+                    avatar: Icon(_getIconForDoc(topic), size: 16),
                   );
                 }).toList(),
               ),

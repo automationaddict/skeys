@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -43,16 +63,20 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
         'locked': agentStatus.isLocked,
         'key_count': agentStatus.keyCount,
       });
-      emit(state.copyWith(
-        status: AgentBlocStatus.success,
-        agentStatus: agentStatus,
-      ));
+      emit(
+        state.copyWith(
+          status: AgentBlocStatus.success,
+          agentStatus: agentStatus,
+        ),
+      );
     } catch (e, st) {
       _log.error('failed to load agent status', e, st);
-      emit(state.copyWith(
-        status: AgentBlocStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: AgentBlocStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -66,16 +90,15 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
     try {
       final keys = await _repository.listKeys();
       _log.info('agent keys loaded', {'count': keys.length});
-      emit(state.copyWith(
-        status: AgentBlocStatus.success,
-        loadedKeys: keys,
-      ));
+      emit(state.copyWith(status: AgentBlocStatus.success, loadedKeys: keys));
     } catch (e, st) {
       _log.error('failed to load agent keys', e, st);
-      emit(state.copyWith(
-        status: AgentBlocStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: AgentBlocStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -117,9 +140,9 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
     // Get timeout from settings if not specified in event
     final settingsService = getIt<SettingsService>();
     final timeoutMinutes = settingsService.agentKeyTimeoutMinutes;
-    final lifetime = event.lifetime ?? (timeoutMinutes > 0
-        ? Duration(minutes: timeoutMinutes)
-        : null);
+    final lifetime =
+        event.lifetime ??
+        (timeoutMinutes > 0 ? Duration(minutes: timeoutMinutes) : null);
 
     _log.info('adding key to agent', {
       'path': event.keyPath,
@@ -139,17 +162,21 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
       final keys = await _repository.listKeys();
       final agentStatus = await _repository.getStatus();
 
-      emit(state.copyWith(
-        status: AgentBlocStatus.success,
-        loadedKeys: keys,
-        agentStatus: agentStatus,
-      ));
+      emit(
+        state.copyWith(
+          status: AgentBlocStatus.success,
+          loadedKeys: keys,
+          agentStatus: agentStatus,
+        ),
+      );
     } catch (e, st) {
       _log.error('failed to add key to agent', e, st, {'path': event.keyPath});
-      emit(state.copyWith(
-        status: AgentBlocStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: AgentBlocStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -166,17 +193,23 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
 
       final keys = await _repository.listKeys();
       final agentStatus = await _repository.getStatus();
-      emit(state.copyWith(
-        status: AgentBlocStatus.success,
-        loadedKeys: keys,
-        agentStatus: agentStatus,
-      ));
+      emit(
+        state.copyWith(
+          status: AgentBlocStatus.success,
+          loadedKeys: keys,
+          agentStatus: agentStatus,
+        ),
+      );
     } catch (e, st) {
-      _log.error('failed to remove key from agent', e, st, {'fingerprint': event.fingerprint});
-      emit(state.copyWith(
-        status: AgentBlocStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      _log.error('failed to remove key from agent', e, st, {
+        'fingerprint': event.fingerprint,
+      });
+      emit(
+        state.copyWith(
+          status: AgentBlocStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -192,17 +225,21 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
       _log.info('all keys removed from agent');
 
       final agentStatus = await _repository.getStatus();
-      emit(state.copyWith(
-        status: AgentBlocStatus.success,
-        loadedKeys: [],
-        agentStatus: agentStatus,
-      ));
+      emit(
+        state.copyWith(
+          status: AgentBlocStatus.success,
+          loadedKeys: [],
+          agentStatus: agentStatus,
+        ),
+      );
     } catch (e, st) {
       _log.error('failed to remove all keys from agent', e, st);
-      emit(state.copyWith(
-        status: AgentBlocStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: AgentBlocStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -217,16 +254,20 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
       await _repository.lock(event.passphrase);
       _log.info('agent locked');
       final agentStatus = await _repository.getStatus();
-      emit(state.copyWith(
-        status: AgentBlocStatus.success,
-        agentStatus: agentStatus,
-      ));
+      emit(
+        state.copyWith(
+          status: AgentBlocStatus.success,
+          agentStatus: agentStatus,
+        ),
+      );
     } catch (e, st) {
       _log.error('failed to lock agent', e, st);
-      emit(state.copyWith(
-        status: AgentBlocStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: AgentBlocStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -241,16 +282,20 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
       await _repository.unlock(event.passphrase);
       _log.info('agent unlocked');
       final agentStatus = await _repository.getStatus();
-      emit(state.copyWith(
-        status: AgentBlocStatus.success,
-        agentStatus: agentStatus,
-      ));
+      emit(
+        state.copyWith(
+          status: AgentBlocStatus.success,
+          agentStatus: agentStatus,
+        ),
+      );
     } catch (e, st) {
       _log.error('failed to unlock agent', e, st);
-      emit(state.copyWith(
-        status: AgentBlocStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: AgentBlocStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 }

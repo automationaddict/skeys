@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -18,9 +38,7 @@ class _AgentPageState extends State<AgentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SSH Agent'),
-      ),
+      appBar: AppBar(title: const Text('SSH Agent')),
       body: BlocBuilder<AgentBloc, AgentState>(
         builder: (context, state) {
           return SingleChildScrollView(
@@ -81,9 +99,9 @@ class _AgentPageState extends State<AgentPage> {
               const SizedBox(height: 8),
               Text(
                 'Socket: ${agentStatus.socketPath}',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontFamily: 'monospace',
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
               ),
             ],
           ],
@@ -92,17 +110,19 @@ class _AgentPageState extends State<AgentPage> {
     );
   }
 
-  Widget _buildStatusRow(BuildContext context, String label, String value, Color? valueColor) {
+  Widget _buildStatusRow(
+    BuildContext context,
+    String label,
+    String value,
+    Color? valueColor,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label),
         Text(
           value,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: valueColor,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, color: valueColor),
         ),
       ],
     );
@@ -119,8 +139,8 @@ class _AgentPageState extends State<AgentPage> {
         final timeoutText = timeoutMinutes == 0
             ? 'No timeout'
             : timeoutMinutes >= 60
-                ? '${timeoutMinutes ~/ 60}h ${timeoutMinutes % 60}m'
-                : '$timeoutMinutes min';
+            ? '${timeoutMinutes ~/ 60}h ${timeoutMinutes % 60}m'
+            : '$timeoutMinutes min';
 
         return Card(
           child: Padding(
@@ -144,8 +164,8 @@ class _AgentPageState extends State<AgentPage> {
                     Text(
                       'Timeout: $timeoutText',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                   ],
                 ),
@@ -187,10 +207,7 @@ class _AgentPageState extends State<AgentPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Loaded Keys',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text('Loaded Keys', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 16),
         if (state.loadedKeys.isEmpty)
           Card(
@@ -215,63 +232,75 @@ class _AgentPageState extends State<AgentPage> {
             ),
           )
         else
-          ...state.loadedKeys.map((key) => Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.key),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    key.comment.isNotEmpty ? key.comment : 'No comment',
-                                    style: Theme.of(context).textTheme.bodyLarge,
-                                  ),
+          ...state.loadedKeys.map(
+            (key) => Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.key),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  key.comment.isNotEmpty
+                                      ? key.comment
+                                      : 'No comment',
+                                  style: Theme.of(context).textTheme.bodyLarge,
                                 ),
-                                KeyCountdownWidget(
-                                  hasLifetime: key.hasLifetime,
-                                  lifetimeSeconds: key.lifetimeSeconds,
+                              ),
+                              KeyCountdownWidget(
+                                hasLifetime: key.hasLifetime,
+                                lifetimeSeconds: key.lifetimeSeconds,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${key.type} (${key.bits} bits)',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${key.type} (${key.bits} bits)',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              key.fingerprint,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    fontFamily: 'monospace',
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            key.fingerprint,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  fontFamily: 'monospace',
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.remove_circle_outline),
-                        onPressed: () {
-                          context.read<AgentBloc>().add(AgentRemoveKeyRequested(key.fingerprint));
-                        },
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.remove_circle_outline),
+                      onPressed: () {
+                        context.read<AgentBloc>().add(
+                          AgentRemoveKeyRequested(key.fingerprint),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-              )),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -282,6 +311,7 @@ class _AgentPageState extends State<AgentPage> {
       Navigator.pop(context);
       context.read<AgentBloc>().add(AgentLockRequested(controller.text));
     }
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -298,10 +328,7 @@ class _AgentPageState extends State<AgentPage> {
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
-          FilledButton(
-            onPressed: submit,
-            child: const Text('Lock'),
-          ),
+          FilledButton(onPressed: submit, child: const Text('Lock')),
         ],
       ),
     );
@@ -313,6 +340,7 @@ class _AgentPageState extends State<AgentPage> {
       Navigator.pop(context);
       context.read<AgentBloc>().add(AgentUnlockRequested(controller.text));
     }
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -329,10 +357,7 @@ class _AgentPageState extends State<AgentPage> {
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
-          FilledButton(
-            onPressed: submit,
-            child: const Text('Unlock'),
-          ),
+          FilledButton(onPressed: submit, child: const Text('Unlock')),
         ],
       ),
     );
@@ -343,7 +368,9 @@ class _AgentPageState extends State<AgentPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Remove All Keys'),
-        content: const Text('Are you sure you want to remove all keys from the agent?'),
+        content: const Text(
+          'Are you sure you want to remove all keys from the agent?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -352,7 +379,9 @@ class _AgentPageState extends State<AgentPage> {
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              context.read<AgentBloc>().add(const AgentRemoveAllKeysRequested());
+              context.read<AgentBloc>().add(
+                const AgentRemoveAllKeysRequested(),
+              );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Remove All'),

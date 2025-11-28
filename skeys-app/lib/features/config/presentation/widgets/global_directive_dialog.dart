@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/material.dart';
 
 import '../../domain/config_entity.dart';
@@ -68,8 +88,45 @@ class _GlobalDirectiveDialogState extends State<GlobalDirectiveDialog> {
     'ControlMaster': ['yes', 'no', 'ask', 'auto', 'autoask'],
     'FingerprintHash': ['md5', 'sha256'],
     'ForwardAgent': ['yes', 'no'],
-    'IPQoS': ['af11', 'af12', 'af13', 'af21', 'af22', 'af23', 'af31', 'af32', 'af33', 'af41', 'af42', 'af43', 'cs0', 'cs1', 'cs2', 'cs3', 'cs4', 'cs5', 'cs6', 'cs7', 'ef', 'le', 'lowdelay', 'throughput', 'reliability', 'none'],
-    'LogLevel': ['QUIET', 'FATAL', 'ERROR', 'INFO', 'VERBOSE', 'DEBUG', 'DEBUG1', 'DEBUG2', 'DEBUG3'],
+    'IPQoS': [
+      'af11',
+      'af12',
+      'af13',
+      'af21',
+      'af22',
+      'af23',
+      'af31',
+      'af32',
+      'af33',
+      'af41',
+      'af42',
+      'af43',
+      'cs0',
+      'cs1',
+      'cs2',
+      'cs3',
+      'cs4',
+      'cs5',
+      'cs6',
+      'cs7',
+      'ef',
+      'le',
+      'lowdelay',
+      'throughput',
+      'reliability',
+      'none',
+    ],
+    'LogLevel': [
+      'QUIET',
+      'FATAL',
+      'ERROR',
+      'INFO',
+      'VERBOSE',
+      'DEBUG',
+      'DEBUG1',
+      'DEBUG2',
+      'DEBUG3',
+    ],
     'ObscureKeystrokeTiming': ['yes', 'no'],
     'PubkeyAuthentication': ['yes', 'no', 'unbound', 'host-bound'],
     'RequestTTY': ['no', 'yes', 'force', 'auto'],
@@ -84,42 +141,122 @@ class _GlobalDirectiveDialogState extends State<GlobalDirectiveDialog> {
   // Common SSH global directives for quick selection
   static const _commonDirectives = [
     // Connection & keepalive
-    _DirectivePreset('ServerAliveInterval', '60', 'Send keepalive every N seconds'),
-    _DirectivePreset('ServerAliveCountMax', '3', 'Max keepalive failures before disconnect'),
+    _DirectivePreset(
+      'ServerAliveInterval',
+      '60',
+      'Send keepalive every N seconds',
+    ),
+    _DirectivePreset(
+      'ServerAliveCountMax',
+      '3',
+      'Max keepalive failures before disconnect',
+    ),
     _DirectivePreset('ConnectTimeout', '30', 'Connection timeout in seconds'),
     _DirectivePreset('TCPKeepAlive', 'yes', 'Enable TCP keepalive messages'),
-    _DirectivePreset('Compression', 'yes', 'Enable compression for slow networks'),
+    _DirectivePreset(
+      'Compression',
+      'yes',
+      'Enable compression for slow networks',
+    ),
     // Security & authentication
-    _DirectivePreset('HashKnownHosts', 'yes', 'Hash hostnames in known_hosts file for privacy'),
-    _DirectivePreset('StrictHostKeyChecking', 'ask', 'Behavior for unknown host keys'),
-    _DirectivePreset('VerifyHostKeyDNS', 'ask', 'Verify host keys using DNS SSHFP records'),
-    _DirectivePreset('UpdateHostKeys', 'ask', 'Accept updated host keys from server'),
+    _DirectivePreset(
+      'HashKnownHosts',
+      'yes',
+      'Hash hostnames in known_hosts file for privacy',
+    ),
+    _DirectivePreset(
+      'StrictHostKeyChecking',
+      'ask',
+      'Behavior for unknown host keys',
+    ),
+    _DirectivePreset(
+      'VerifyHostKeyDNS',
+      'ask',
+      'Verify host keys using DNS SSHFP records',
+    ),
+    _DirectivePreset(
+      'UpdateHostKeys',
+      'ask',
+      'Accept updated host keys from server',
+    ),
     _DirectivePreset('CheckHostIP', 'yes', 'Check host IP against known_hosts'),
-    _DirectivePreset('PasswordAuthentication', 'yes', 'Allow password authentication'),
-    _DirectivePreset('PubkeyAuthentication', 'yes', 'Enable public key authentication'),
+    _DirectivePreset(
+      'PasswordAuthentication',
+      'yes',
+      'Allow password authentication',
+    ),
+    _DirectivePreset(
+      'PubkeyAuthentication',
+      'yes',
+      'Enable public key authentication',
+    ),
     // Agent & keys
-    _DirectivePreset('AddKeysToAgent', 'yes', 'Automatically add keys to ssh-agent'),
-    _DirectivePreset('IdentitiesOnly', 'yes', 'Only use explicitly configured identity files'),
+    _DirectivePreset(
+      'AddKeysToAgent',
+      'yes',
+      'Automatically add keys to ssh-agent',
+    ),
+    _DirectivePreset(
+      'IdentitiesOnly',
+      'yes',
+      'Only use explicitly configured identity files',
+    ),
     _DirectivePreset('ForwardAgent', 'no', 'Forward SSH agent to remote hosts'),
     // Files & paths
-    _DirectivePreset('UserKnownHostsFile', '~/.ssh/known_hosts', 'Path to known hosts file'),
-    _DirectivePreset('IdentityFile', '~/.ssh/id_ed25519', 'Path to private key file'),
-    _DirectivePreset('ControlPath', '~/.ssh/sockets/%r@%h-%p', 'Path for control socket'),
+    _DirectivePreset(
+      'UserKnownHostsFile',
+      '~/.ssh/known_hosts',
+      'Path to known hosts file',
+    ),
+    _DirectivePreset(
+      'IdentityFile',
+      '~/.ssh/id_ed25519',
+      'Path to private key file',
+    ),
+    _DirectivePreset(
+      'ControlPath',
+      '~/.ssh/sockets/%r@%h-%p',
+      'Path for control socket',
+    ),
     // Multiplexing
     _DirectivePreset('ControlMaster', 'auto', 'Enable connection sharing'),
-    _DirectivePreset('ControlPersist', '600', 'Keep master connection open (seconds)'),
+    _DirectivePreset(
+      'ControlPersist',
+      '600',
+      'Keep master connection open (seconds)',
+    ),
     // Forwarding
     _DirectivePreset('ForwardX11', 'no', 'Enable X11 forwarding'),
     _DirectivePreset('ForwardX11Trusted', 'no', 'Trust remote X11 clients'),
-    _DirectivePreset('GatewayPorts', 'no', 'Allow remote hosts to connect to local forwards'),
+    _DirectivePreset(
+      'GatewayPorts',
+      'no',
+      'Allow remote hosts to connect to local forwards',
+    ),
     // Misc
     _DirectivePreset('AddressFamily', 'any', 'IPv4/IPv6 preference'),
-    _DirectivePreset('BatchMode', 'no', 'Disable prompts for batch/script mode'),
-    _DirectivePreset('VisualHostKey', 'no', 'Display visual ASCII art host key'),
+    _DirectivePreset(
+      'BatchMode',
+      'no',
+      'Disable prompts for batch/script mode',
+    ),
+    _DirectivePreset(
+      'VisualHostKey',
+      'no',
+      'Display visual ASCII art host key',
+    ),
     _DirectivePreset('LogLevel', 'INFO', 'Logging verbosity level'),
     // GSSAPI (Kerberos)
-    _DirectivePreset('GSSAPIAuthentication', 'yes', 'Enable GSSAPI authentication'),
-    _DirectivePreset('GSSAPIDelegateCredentials', 'no', 'Delegate GSSAPI credentials'),
+    _DirectivePreset(
+      'GSSAPIAuthentication',
+      'yes',
+      'Enable GSSAPI authentication',
+    ),
+    _DirectivePreset(
+      'GSSAPIDelegateCredentials',
+      'no',
+      'Delegate GSSAPI credentials',
+    ),
   ];
 
   bool get _isEditing => widget.directive != null;
@@ -128,7 +265,9 @@ class _GlobalDirectiveDialogState extends State<GlobalDirectiveDialog> {
   void initState() {
     super.initState();
     _keyController = TextEditingController(text: widget.directive?.key ?? '');
-    _valueController = TextEditingController(text: widget.directive?.value ?? '');
+    _valueController = TextEditingController(
+      text: widget.directive?.value ?? '',
+    );
     // Initialize dropdown value if this directive has constrained options
     if (widget.directive != null) {
       final options = _directiveValueOptions[widget.directive!.key];
@@ -189,10 +328,7 @@ class _GlobalDirectiveDialogState extends State<GlobalDirectiveDialog> {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.settings,
-                    color: colorScheme.primary,
-                  ),
+                  Icon(Icons.settings, color: colorScheme.primary),
                   const SizedBox(width: 12),
                   Text(
                     _isEditing ? 'Edit Directive' : 'Add Global Directive',
@@ -348,10 +484,7 @@ class _GlobalDirectiveDialogState extends State<GlobalDirectiveDialog> {
           prefixIcon: Icon(Icons.list),
         ),
         items: options.map((option) {
-          return DropdownMenuItem<String>(
-            value: option,
-            child: Text(option),
-          );
+          return DropdownMenuItem<String>(value: option, child: Text(option));
         }).toList(),
         onChanged: (value) {
           setState(() {
@@ -388,7 +521,9 @@ class _GlobalDirectiveDialogState extends State<GlobalDirectiveDialog> {
 
   String? _getValueHelperText() {
     final key = _keyController.text.toLowerCase();
-    if (key.contains('interval') || key.contains('timeout') || key.contains('count')) {
+    if (key.contains('interval') ||
+        key.contains('timeout') ||
+        key.contains('count')) {
       return 'Enter a number (seconds or count)';
     }
     if (key.contains('file') || key.contains('path')) {

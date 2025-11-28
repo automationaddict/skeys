@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -37,16 +57,15 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
     try {
       final remotes = await _repository.listRemotes();
       _log.info('remotes loaded', {'count': remotes.length});
-      emit(state.copyWith(
-        status: RemoteBlocStatus.success,
-        remotes: remotes,
-      ));
+      emit(state.copyWith(status: RemoteBlocStatus.success, remotes: remotes));
     } catch (e, st) {
       _log.error('failed to load remotes', e, st);
-      emit(state.copyWith(
-        status: RemoteBlocStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: RemoteBlocStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -73,16 +92,15 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
       );
       _log.info('remote added', {'name': event.name});
       final remotes = await _repository.listRemotes();
-      emit(state.copyWith(
-        status: RemoteBlocStatus.success,
-        remotes: remotes,
-      ));
+      emit(state.copyWith(status: RemoteBlocStatus.success, remotes: remotes));
     } catch (e, st) {
       _log.error('failed to add remote', e, st, {'name': event.name});
-      emit(state.copyWith(
-        status: RemoteBlocStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: RemoteBlocStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -97,16 +115,15 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
       await _repository.deleteRemote(event.id);
       _log.info('remote deleted', {'id': event.id});
       final remotes = await _repository.listRemotes();
-      emit(state.copyWith(
-        status: RemoteBlocStatus.success,
-        remotes: remotes,
-      ));
+      emit(state.copyWith(status: RemoteBlocStatus.success, remotes: remotes));
     } catch (e, st) {
       _log.error('failed to delete remote', e, st, {'id': event.id});
-      emit(state.copyWith(
-        status: RemoteBlocStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: RemoteBlocStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -122,17 +139,23 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
       _log.info('connected to remote', {'remote_id': event.remoteId});
       final remotes = await _repository.listRemotes();
       final connections = await _repository.listConnections();
-      emit(state.copyWith(
-        status: RemoteBlocStatus.success,
-        remotes: remotes,
-        connections: connections,
-      ));
+      emit(
+        state.copyWith(
+          status: RemoteBlocStatus.success,
+          remotes: remotes,
+          connections: connections,
+        ),
+      );
     } catch (e, st) {
-      _log.error('failed to connect to remote', e, st, {'remote_id': event.remoteId});
-      emit(state.copyWith(
-        status: RemoteBlocStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      _log.error('failed to connect to remote', e, st, {
+        'remote_id': event.remoteId,
+      });
+      emit(
+        state.copyWith(
+          status: RemoteBlocStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -140,25 +163,35 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
     RemoteDisconnectRequested event,
     Emitter<RemoteState> emit,
   ) async {
-    _log.info('disconnecting from remote', {'connection_id': event.connectionId});
+    _log.info('disconnecting from remote', {
+      'connection_id': event.connectionId,
+    });
     emit(state.copyWith(status: RemoteBlocStatus.loading));
 
     try {
       await _repository.disconnect(event.connectionId);
-      _log.info('disconnected from remote', {'connection_id': event.connectionId});
+      _log.info('disconnected from remote', {
+        'connection_id': event.connectionId,
+      });
       final remotes = await _repository.listRemotes();
       final connections = await _repository.listConnections();
-      emit(state.copyWith(
-        status: RemoteBlocStatus.success,
-        remotes: remotes,
-        connections: connections,
-      ));
+      emit(
+        state.copyWith(
+          status: RemoteBlocStatus.success,
+          remotes: remotes,
+          connections: connections,
+        ),
+      );
     } catch (e, st) {
-      _log.error('failed to disconnect from remote', e, st, {'connection_id': event.connectionId});
-      emit(state.copyWith(
-        status: RemoteBlocStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      _log.error('failed to disconnect from remote', e, st, {
+        'connection_id': event.connectionId,
+      });
+      emit(
+        state.copyWith(
+          status: RemoteBlocStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -174,10 +207,12 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
       emit(state.copyWith(connections: connections));
     } catch (e, st) {
       _log.error('failed to load connections', e, st);
-      emit(state.copyWith(
-        status: RemoteBlocStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: RemoteBlocStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -223,19 +258,23 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
         'connection_id': event.connectionId,
         'exit_code': result.exitCode,
       });
-      emit(state.copyWith(
-        status: RemoteBlocStatus.success,
-        lastCommandResult: result,
-      ));
+      emit(
+        state.copyWith(
+          status: RemoteBlocStatus.success,
+          lastCommandResult: result,
+        ),
+      );
     } catch (e, st) {
       _log.error('failed to execute command', e, st, {
         'connection_id': event.connectionId,
         'command': event.command,
       });
-      emit(state.copyWith(
-        status: RemoteBlocStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: RemoteBlocStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 }

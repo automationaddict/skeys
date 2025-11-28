@@ -1,0 +1,29 @@
+#!/bin/bash
+# Pre-push hook to ensure CHANGELOG.md is up to date
+set -e
+
+# Check if git-cliff is installed
+if ! command -v git-cliff &> /dev/null; then
+    echo "WARNING: git-cliff not installed, skipping changelog check"
+    exit 0
+fi
+
+# Generate changelog to a temp file and compare
+tmpfile=$(mktemp)
+git-cliff -o "$tmpfile"
+
+if ! diff -q "$tmpfile" CHANGELOG.md &>/dev/null; then
+    rm "$tmpfile"
+    echo ""
+    echo "ERROR: CHANGELOG.md is out of date!"
+    echo ""
+    echo "Run the following to update it:"
+    echo "  git-cliff -o CHANGELOG.md"
+    echo "  git add CHANGELOG.md"
+    echo "  git commit --amend --no-edit"
+    echo ""
+    exit 1
+fi
+
+rm "$tmpfile"
+exit 0

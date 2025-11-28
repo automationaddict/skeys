@@ -1,10 +1,27 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:equatable/equatable.dart';
 
 /// Type of SSH config entry
-enum SSHConfigEntryType {
-  host,
-  match,
-}
+enum SSHConfigEntryType { host, match }
 
 /// Represents a Host or Match block in SSH config
 class SSHConfigEntry extends Equatable {
@@ -24,16 +41,21 @@ class SSHConfigEntry extends Equatable {
 
   /// Display name for UI
   String get displayName {
-    if (patterns.isEmpty) return type == SSHConfigEntryType.host ? 'Host' : 'Match';
+    if (patterns.isEmpty) {
+      return type == SSHConfigEntryType.host ? 'Host' : 'Match';
+    }
     return patterns.join(', ');
   }
 
   /// Whether this is a wildcard/pattern entry
-  bool get isWildcard => patterns.any((p) => p.contains('*') || p.contains('?'));
+  bool get isWildcard =>
+      patterns.any((p) => p.contains('*') || p.contains('?'));
 
   /// Whether this is a catch-all entry (Host *)
   bool get isCatchAll =>
-      type == SSHConfigEntryType.host && patterns.length == 1 && patterns.first == '*';
+      type == SSHConfigEntryType.host &&
+      patterns.length == 1 &&
+      patterns.first == '*';
 
   SSHConfigEntry copyWith({
     String? id,
@@ -119,14 +141,17 @@ class SSHOptions extends Equatable {
     if (serverAliveCountMax != null && serverAliveCountMax! > 0) count++;
     if (identitiesOnly == true) count++;
     if (compression == true) count++;
-    if (strictHostKeyChecking != null && strictHostKeyChecking!.isNotEmpty) count++;
+    if (strictHostKeyChecking != null && strictHostKeyChecking!.isNotEmpty) {
+      count++;
+    }
     count += extraOptions.length;
     if (identityFiles.length > 1) count += identityFiles.length - 1;
     return count;
   }
 
   /// Get the primary identity file (first one)
-  String? get primaryIdentityFile => identityFiles.isNotEmpty ? identityFiles.first : null;
+  String? get primaryIdentityFile =>
+      identityFiles.isNotEmpty ? identityFiles.first : null;
 
   /// Get additional identity files (all except first)
   List<String> get additionalIdentityFiles =>
@@ -159,25 +184,26 @@ class SSHOptions extends Equatable {
       serverAliveCountMax: serverAliveCountMax ?? this.serverAliveCountMax,
       identitiesOnly: identitiesOnly ?? this.identitiesOnly,
       compression: compression ?? this.compression,
-      strictHostKeyChecking: strictHostKeyChecking ?? this.strictHostKeyChecking,
+      strictHostKeyChecking:
+          strictHostKeyChecking ?? this.strictHostKeyChecking,
       extraOptions: extraOptions ?? this.extraOptions,
     );
   }
 
   @override
   List<Object?> get props => [
-        hostname,
-        user,
-        port,
-        identityFiles,
-        forwardAgent,
-        proxyJump,
-        proxyCommand,
-        serverAliveInterval,
-        serverAliveCountMax,
-        identitiesOnly,
-        compression,
-        strictHostKeyChecking,
-        extraOptions,
-      ];
+    hostname,
+    user,
+    port,
+    identityFiles,
+    forwardAgent,
+    proxyJump,
+    proxyCommand,
+    serverAliveInterval,
+    serverAliveCountMax,
+    identitiesOnly,
+    compression,
+    strictHostKeyChecking,
+    extraOptions,
+  ];
 }

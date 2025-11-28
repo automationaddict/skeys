@@ -1,5 +1,24 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'dart:convert';
-import 'dart:io';
 import 'package:logger/logger.dart';
 
 /// Application logger with JSON output support for consistent structured logging.
@@ -53,12 +72,21 @@ class AppLogger {
     _logger.w(_formatMessage(message, fields));
   }
 
-  void error(String message, [Object? error, StackTrace? stackTrace, Map<String, dynamic>? fields]) {
+  void error(
+    String message, [
+    Object? error,
+    StackTrace? stackTrace,
+    Map<String, dynamic>? fields,
+  ]) {
     final combinedFields = {
       ...?fields,
       if (error != null) 'error': error.toString(),
     };
-    _logger.e(_formatMessage(message, combinedFields), error: error, stackTrace: stackTrace);
+    _logger.e(
+      _formatMessage(message, combinedFields),
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 
   String _formatMessage(String message, Map<String, dynamic>? fields) {
@@ -86,7 +114,6 @@ class _SimpleColorPrinter extends LogPrinter {
   static const _green = '\x1B[32m';
   static const _yellow = '\x1B[33m';
   static const _red = '\x1B[31m';
-  static const _magenta = '\x1B[35m';
 
   @override
   List<String> log(LogEvent event) {

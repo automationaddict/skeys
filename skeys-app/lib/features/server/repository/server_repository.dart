@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import '../../../core/generated/skeys/v1/common.pb.dart' as common;
 import '../../../core/generated/skeys/v1/config.pb.dart' as config;
 import '../../../core/generated/skeys/v1/system.pb.dart' as pb;
@@ -74,7 +94,9 @@ class ServerRepositoryImpl implements ServerRepository {
 
   @override
   Future<SSHSystemStatus> getSSHStatus() async {
-    final response = await _client.system.getSSHStatus(pb.GetSSHStatusRequest());
+    final response = await _client.system.getSSHStatus(
+      pb.GetSSHStatusRequest(),
+    );
     return _mapToEntity(response);
   }
 
@@ -88,13 +110,17 @@ class ServerRepositoryImpl implements ServerRepository {
 
   @override
   Future<ServiceControlResult> startService() async {
-    final response = await _client.system.startSSHService(pb.StartSSHServiceRequest());
+    final response = await _client.system.startSSHService(
+      pb.StartSSHServiceRequest(),
+    );
     return _mapServiceControlResult(response);
   }
 
   @override
   Future<ServiceControlResult> stopService() async {
-    final response = await _client.system.stopSSHService(pb.StopSSHServiceRequest());
+    final response = await _client.system.stopSSHService(
+      pb.StopSSHServiceRequest(),
+    );
     return _mapServiceControlResult(response);
   }
 
@@ -108,18 +134,24 @@ class ServerRepositoryImpl implements ServerRepository {
 
   @override
   Future<ServiceControlResult> enableService() async {
-    final response = await _client.system.enableSSHService(pb.EnableSSHServiceRequest());
+    final response = await _client.system.enableSSHService(
+      pb.EnableSSHServiceRequest(),
+    );
     return _mapServiceControlResult(response);
   }
 
   @override
   Future<ServiceControlResult> disableService() async {
-    final response = await _client.system.disableSSHService(pb.DisableSSHServiceRequest());
+    final response = await _client.system.disableSSHService(
+      pb.DisableSSHServiceRequest(),
+    );
     return _mapServiceControlResult(response);
   }
 
   @override
-  Future<InstallInstructions> getInstallInstructions(SSHComponent component) async {
+  Future<InstallInstructions> getInstallInstructions(
+    SSHComponent component,
+  ) async {
     final pbComponent = component == SSHComponent.server
         ? pb.SSHComponent.SSH_COMPONENT_SERVER
         : pb.SSHComponent.SSH_COMPONENT_CLIENT;
@@ -145,7 +177,9 @@ class ServerRepositoryImpl implements ServerRepository {
       client: _mapClientStatus(response.client),
       server: _mapServerStatus(response.server),
       network: response.hasNetwork() ? _mapNetworkInfo(response.network) : null,
-      firewall: response.hasFirewall() ? _mapFirewallStatus(response.firewall) : null,
+      firewall: response.hasFirewall()
+          ? _mapFirewallStatus(response.firewall)
+          : null,
     );
   }
 
@@ -209,7 +243,9 @@ class ServerRepositoryImpl implements ServerRepository {
     }
   }
 
-  ServiceControlResult _mapServiceControlResult(pb.SSHServiceControlResponse response) {
+  ServiceControlResult _mapServiceControlResult(
+    pb.SSHServiceControlResponse response,
+  ) {
     return ServiceControlResult(
       success: response.success,
       message: response.message,

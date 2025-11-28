@@ -13,8 +13,7 @@
 import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
-import '../../google/protobuf/duration.pb.dart'
-    as $3;
+import '../../google/protobuf/duration.pb.dart' as $3;
 
 import 'common.pb.dart' as $2;
 

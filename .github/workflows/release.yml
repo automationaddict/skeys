@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history needed for git-cliff
 
       - name: Extract version from tag
         id: version
@@ -97,22 +99,18 @@ jobs:
           cp scripts/install.sh install.sh
           cp scripts/uninstall.sh uninstall.sh
 
-      - name: Extract changelog for version
+      - name: Generate changelog with git-cliff
+        uses: orhun/git-cliff-action@v4
         id: changelog
-        run: |
-          VERSION=${{ steps.version.outputs.VERSION }}
-          VERSION_NUM=${VERSION#v}
-          # Extract the section for this version from CHANGELOG.md
-          awk -v ver="$VERSION_NUM" '
-            /^## \[/ {
-              if (found) exit
-              if (index($0, "[" ver "]")) found=1
-              next
-            }
-            found { print }
-          ' CHANGELOG.md > release_notes.md
-          echo "Release notes:"
-          cat release_notes.md
+        with:
+          config: cliff.toml
+          args: --latest --strip header
+        env:
+          OUTPUT: release_notes.md
+          GITHUB_REPO: ${{ github.repository }}
+
+      - name: Show release notes
+        run: cat release_notes.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

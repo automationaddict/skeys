@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/services.dart';
 
 /// Service for loading and searching help documentation.
@@ -72,20 +92,24 @@ class HelpService {
 
       for (var i = 0; i < lines.length; i++) {
         if (lines[i].toLowerCase().contains(queryLower)) {
-          matches.add(SearchMatch(
-            lineNumber: i + 1,
-            line: lines[i],
-            context: _getContext(lines, i),
-          ));
+          matches.add(
+            SearchMatch(
+              lineNumber: i + 1,
+              line: lines[i],
+              context: _getContext(lines, i),
+            ),
+          );
         }
       }
 
       if (matches.isNotEmpty) {
-        results.add(SearchResult(
-          docName: docName,
-          title: _getTitleFromDoc(content),
-          matches: matches,
-        ));
+        results.add(
+          SearchResult(
+            docName: docName,
+            title: _getTitleFromDoc(content),
+            matches: matches,
+          ),
+        );
       }
     }
 

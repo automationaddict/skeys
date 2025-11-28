@@ -1,0 +1,156 @@
+#!/bin/bash
+# Pre-commit hook for code quality checks
+set -e
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+errors=0
+
+# =============================================================================
+# License Headers
+# =============================================================================
+if command -v addlicense &> /dev/null; then
+    echo "Checking license headers..."
+    if ! addlicense -check -l mit -c "John Nelson" \
+        -ignore "**/*.pb.go" \
+        -ignore "**/*.pb.dart" \
+        -ignore "**/*.pbjson.dart" \
+        -ignore "**/*.pbgrpc.dart" \
+        -ignore "**/generated/**" \
+        -ignore "skeys-app/lib/core/generated/**" \
+        -ignore "skeys-daemon/api/gen/**" \
+        skeys-core/**/*.go \
+        skeys-daemon/**/*.go \
+        skeys-app/lib/**/*.dart \
+        2>/dev/null; then
+        echo ""
+        echo "ERROR: Missing license headers!"
+        echo "  Run: addlicense -l mit -c \"John Nelson\" skeys-core skeys-daemon skeys-app/lib"
+        echo ""
+        errors=1
+    else
+        echo "License headers OK"
+    fi
+else
+    echo "WARNING: addlicense not installed, skipping license check"
+fi
+
+# =============================================================================
+# Go formatting (gofmt)
+# =============================================================================
+if command -v gofmt &> /dev/null; then
+    echo "Checking Go formatting..."
+    unformatted=$(gofmt -l skeys-core skeys-daemon 2>/dev/null | grep -v ".pb.go" || true)
+    if [[ -n "$unformatted" ]]; then
+        echo ""
+        echo "ERROR: Go files not formatted!"
+        echo "$unformatted"
+        echo ""
+        echo "  Run: gofmt -w skeys-core skeys-daemon"
+        echo ""
+        errors=1
+    else
+        echo "Go formatting OK"
+    fi
+else
+    echo "WARNING: gofmt not installed, skipping Go format check"
+fi
+
+# =============================================================================
+# Go linting (staticcheck or golangci-lint)
+# =============================================================================
+if command -v staticcheck &> /dev/null; then
+    echo "Checking Go lint (staticcheck)..."
+    lint_failed=0
+    for dir in skeys-core skeys-daemon; do
+        if [[ -f "$dir/go.mod" ]]; then
+            pushd "$dir" > /dev/null
+            if ! staticcheck ./... 2>/dev/null; then
+                lint_failed=1
+            fi
+            popd > /dev/null
+        fi
+    done
+    if [[ $lint_failed -ne 0 ]]; then
+        echo ""
+        echo "ERROR: Go lint issues found!"
+        echo ""
+        errors=1
+    else
+        echo "Go lint OK"
+    fi
+elif command -v golangci-lint &> /dev/null; then
+    echo "Checking Go lint (golangci-lint)..."
+    lint_failed=0
+    for dir in skeys-core skeys-daemon; do
+        if [[ -f "$dir/go.mod" ]]; then
+            pushd "$dir" > /dev/null
+            if ! golangci-lint run ./... 2>/dev/null; then
+                lint_failed=1
+            fi
+            popd > /dev/null
+        fi
+    done
+    if [[ $lint_failed -ne 0 ]]; then
+        echo ""
+        echo "ERROR: Go lint issues found!"
+        echo ""
+        errors=1
+    else
+        echo "Go lint OK"
+    fi
+else
+    echo "WARNING: staticcheck/golangci-lint not installed, skipping Go lint"
+fi
+
+# =============================================================================
+# Dart formatting
+# =============================================================================
+if command -v dart &> /dev/null; then
+    echo "Checking Dart formatting..."
+    if ! dart format --set-exit-if-changed --output=none skeys-app/lib 2>/dev/null; then
+        echo ""
+        echo "ERROR: Dart files not formatted!"
+        echo ""
+        echo "  Run: dart format skeys-app/lib"
+        echo ""
+        errors=1
+    else
+        echo "Dart formatting OK"
+    fi
+else
+    echo "WARNING: dart not installed, skipping Dart format check"
+fi
+
+# =============================================================================
+# Dart analysis
+# =============================================================================
+if command -v dart &> /dev/null; then
+    echo "Checking Dart analysis..."
+    pushd skeys-app > /dev/null
+    if ! dart analyze --fatal-infos lib 2>/dev/null; then
+        echo ""
+        echo "ERROR: Dart analysis issues found!"
+        echo ""
+        errors=1
+    else
+        echo "Dart analysis OK"
+    fi
+    popd > /dev/null
+else
+    echo "WARNING: dart not installed, skipping Dart analysis"
+fi
+
+# =============================================================================
+# Exit
+# =============================================================================
+if [[ $errors -ne 0 ]]; then
+    echo ""
+    echo "Pre-commit checks FAILED"
+    exit 1
+fi
+
+echo ""
+echo "All pre-commit checks passed"
+exit 0

@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/material.dart';
 
 /// Dialog for entering a passphrase to unlock a key.
@@ -42,7 +62,9 @@ class _PassphraseDialogState extends State<PassphraseDialog> {
               decoration: InputDecoration(
                 labelText: 'Passphrase',
                 suffixIcon: IconButton(
-                  icon: Icon(_showPassphrase ? Icons.visibility_off : Icons.visibility),
+                  icon: Icon(
+                    _showPassphrase ? Icons.visibility_off : Icons.visibility,
+                  ),
                   onPressed: () {
                     setState(() {
                       _showPassphrase = !_showPassphrase;
@@ -60,10 +82,7 @@ class _PassphraseDialogState extends State<PassphraseDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        FilledButton(
-          onPressed: _submit,
-          child: const Text('Unlock'),
-        ),
+        FilledButton(onPressed: _submit, child: const Text('Unlock')),
       ],
     );
   }

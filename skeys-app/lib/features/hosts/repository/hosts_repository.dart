@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import '../domain/host_entity.dart';
 import '../../../core/grpc/grpc_client.dart';
 import '../../../core/generated/skeys/v1/hosts.pb.dart' as pb;
@@ -10,13 +30,27 @@ abstract class HostsRepository {
   Stream<List<KnownHostEntry>> watchKnownHosts();
   Future<void> removeKnownHost(String hostname, {int port = 22});
   Future<void> hashKnownHosts();
-  Future<List<ScannedHostKey>> scanHostKeys(String hostname, {int port = 22, int timeout = 10});
-  Future<KnownHostEntry> addKnownHost(String hostname, String keyType, String publicKey, {int port = 22, bool hashHostname = false});
+  Future<List<ScannedHostKey>> scanHostKeys(
+    String hostname, {
+    int port = 22,
+    int timeout = 10,
+  });
+  Future<KnownHostEntry> addKnownHost(
+    String hostname,
+    String keyType,
+    String publicKey, {
+    int port = 22,
+    bool hashHostname = false,
+  });
 
   // Authorized keys
   Future<List<AuthorizedKeyEntry>> listAuthorizedKeys({String? user});
   Stream<List<AuthorizedKeyEntry>> watchAuthorizedKeys({String? user});
-  Future<void> addAuthorizedKey(String publicKey, {List<String>? options, String? user});
+  Future<void> addAuthorizedKey(
+    String publicKey, {
+    List<String>? options,
+    String? user,
+  });
   Future<void> removeAuthorizedKey(String keyId, {String? user});
 }
 
@@ -32,12 +66,16 @@ class HostsRepositoryImpl implements HostsRepository {
       ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL);
 
     final response = await _client.hosts.listKnownHosts(request);
-    return response.hosts.map((h) => KnownHostEntry(
-      host: h.hostnames.isNotEmpty ? h.hostnames.first : '',
-      keyType: h.keyType,
-      publicKey: h.publicKey,
-      isHashed: h.isHashed,
-    )).toList();
+    return response.hosts
+        .map(
+          (h) => KnownHostEntry(
+            host: h.hostnames.isNotEmpty ? h.hostnames.first : '',
+            keyType: h.keyType,
+            publicKey: h.publicKey,
+            isHashed: h.isHashed,
+          ),
+        )
+        .toList();
   }
 
   @override
@@ -45,14 +83,20 @@ class HostsRepositoryImpl implements HostsRepository {
     final request = pb.WatchKnownHostsRequest()
       ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL);
 
-    return _client.hosts.watchKnownHosts(request).map((response) =>
-      response.hosts.map((h) => KnownHostEntry(
-        host: h.hostnames.isNotEmpty ? h.hostnames.first : '',
-        keyType: h.keyType,
-        publicKey: h.publicKey,
-        isHashed: h.isHashed,
-      )).toList()
-    );
+    return _client.hosts
+        .watchKnownHosts(request)
+        .map(
+          (response) => response.hosts
+              .map(
+                (h) => KnownHostEntry(
+                  host: h.hostnames.isNotEmpty ? h.hostnames.first : '',
+                  keyType: h.keyType,
+                  publicKey: h.publicKey,
+                  isHashed: h.isHashed,
+                ),
+              )
+              .toList(),
+        );
   }
 
   @override
@@ -74,24 +118,38 @@ class HostsRepositoryImpl implements HostsRepository {
   }
 
   @override
-  Future<List<ScannedHostKey>> scanHostKeys(String hostname, {int port = 22, int timeout = 10}) async {
+  Future<List<ScannedHostKey>> scanHostKeys(
+    String hostname, {
+    int port = 22,
+    int timeout = 10,
+  }) async {
     final request = pb.ScanHostKeysRequest()
       ..hostname = hostname
       ..port = port
       ..timeoutSeconds = timeout;
 
     final response = await _client.hosts.scanHostKeys(request);
-    return response.keys.map((k) => ScannedHostKey(
-      hostname: k.hostname,
-      port: k.port,
-      keyType: k.keyType,
-      publicKey: k.publicKey,
-      fingerprint: k.fingerprint,
-    )).toList();
+    return response.keys
+        .map(
+          (k) => ScannedHostKey(
+            hostname: k.hostname,
+            port: k.port,
+            keyType: k.keyType,
+            publicKey: k.publicKey,
+            fingerprint: k.fingerprint,
+          ),
+        )
+        .toList();
   }
 
   @override
-  Future<KnownHostEntry> addKnownHost(String hostname, String keyType, String publicKey, {int port = 22, bool hashHostname = false}) async {
+  Future<KnownHostEntry> addKnownHost(
+    String hostname,
+    String keyType,
+    String publicKey, {
+    int port = 22,
+    bool hashHostname = false,
+  }) async {
     final request = pb.AddKnownHostRequest()
       ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL)
       ..hostname = hostname
@@ -116,12 +174,16 @@ class HostsRepositoryImpl implements HostsRepository {
     if (user != null) request.user = user;
 
     final response = await _client.hosts.listAuthorizedKeys(request);
-    return response.keys.map((k) => AuthorizedKeyEntry(
-      keyType: k.keyType,
-      publicKey: k.publicKey,
-      comment: k.comment,
-      options: List.from(k.options),
-    )).toList();
+    return response.keys
+        .map(
+          (k) => AuthorizedKeyEntry(
+            keyType: k.keyType,
+            publicKey: k.publicKey,
+            comment: k.comment,
+            options: List.from(k.options),
+          ),
+        )
+        .toList();
   }
 
   @override
@@ -130,18 +192,28 @@ class HostsRepositoryImpl implements HostsRepository {
       ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL);
     if (user != null) request.user = user;
 
-    return _client.hosts.watchAuthorizedKeys(request).map((response) =>
-      response.keys.map((k) => AuthorizedKeyEntry(
-        keyType: k.keyType,
-        publicKey: k.publicKey,
-        comment: k.comment,
-        options: List.from(k.options),
-      )).toList()
-    );
+    return _client.hosts
+        .watchAuthorizedKeys(request)
+        .map(
+          (response) => response.keys
+              .map(
+                (k) => AuthorizedKeyEntry(
+                  keyType: k.keyType,
+                  publicKey: k.publicKey,
+                  comment: k.comment,
+                  options: List.from(k.options),
+                ),
+              )
+              .toList(),
+        );
   }
 
   @override
-  Future<void> addAuthorizedKey(String publicKey, {List<String>? options, String? user}) async {
+  Future<void> addAuthorizedKey(
+    String publicKey, {
+    List<String>? options,
+    String? user,
+  }) async {
     final request = pb.AddAuthorizedKeyRequest()
       ..target = (common.Target()..type = common.TargetType.TARGET_TYPE_LOCAL)
       ..publicKey = publicKey;

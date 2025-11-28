@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -175,12 +195,16 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      ...ServicePreset.presets.map((preset) => ChoiceChip(
-                        avatar: Icon(preset.icon, size: 18),
-                        label: Text(preset.name),
-                        selected: _selectedPreset == preset,
-                        onSelected: isLoading ? null : (_) => _selectPreset(preset),
-                      )),
+                      ...ServicePreset.presets.map(
+                        (preset) => ChoiceChip(
+                          avatar: Icon(preset.icon, size: 18),
+                          label: Text(preset.name),
+                          selected: _selectedPreset == preset,
+                          onSelected: isLoading
+                              ? null
+                              : (_) => _selectPreset(preset),
+                        ),
+                      ),
                       ChoiceChip(
                         avatar: const Icon(Icons.dns, size: 18),
                         label: const Text('Custom'),
@@ -245,7 +269,9 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
                                       return 'Required';
                                     }
                                     final port = int.tryParse(value);
-                                    if (port == null || port < 1 || port > 65535) {
+                                    if (port == null ||
+                                        port < 1 ||
+                                        port > 65535) {
                                       return 'Invalid';
                                     }
                                     return null;
@@ -261,14 +287,16 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
                   ],
 
                   // Passphrase field - shown when key has passphrase and is not in agent
-                  if ((_selectedPreset != null || _useCustom) && _currentNeedsPassphrase) ...[
+                  if ((_selectedPreset != null || _useCustom) &&
+                      _currentNeedsPassphrase) ...[
                     Form(
                       key: _selectedPreset != null ? _formKey : null,
                       child: TextFormField(
                         controller: _passphraseController,
                         decoration: InputDecoration(
                           labelText: 'Key Passphrase',
-                          helperText: 'Required - key is not loaded in SSH agent',
+                          helperText:
+                              'Required - key is not loaded in SSH agent',
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassphrase
@@ -317,17 +345,20 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
                       ],
                     ),
                   ],
-
                 ],
               ),
             ),
           ),
           actions: [
             TextButton(
-              onPressed: isLoading ? null : () {
-                context.read<KeysBloc>().add(const KeysTestConnectionCleared());
-                Navigator.of(context).pop();
-              },
+              onPressed: isLoading
+                  ? null
+                  : () {
+                      context.read<KeysBloc>().add(
+                        const KeysTestConnectionCleared(),
+                      );
+                      Navigator.of(context).pop();
+                    },
               child: const Text('Close'),
             ),
             if (_selectedPreset != null || _useCustom)
@@ -372,17 +403,22 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
       user = _userController.text;
     }
 
-    context.read<KeysBloc>().add(KeysTestConnectionRequested(
-      keyPath: widget.keyEntity.path,
-      host: host,
-      port: port,
-      user: user,
-      passphrase: _currentNeedsPassphrase ? _passphraseController.text : null,
-    ));
+    context.read<KeysBloc>().add(
+      KeysTestConnectionRequested(
+        keyPath: widget.keyEntity.path,
+        host: host,
+        port: port,
+        user: user,
+        passphrase: _currentNeedsPassphrase ? _passphraseController.text : null,
+      ),
+    );
   }
 
   /// Shows a dialog asking the user to confirm an unknown host key.
-  void _showHostKeyConfirmationDialog(BuildContext context, HostKeyInfo hostKeyInfo) {
+  void _showHostKeyConfirmationDialog(
+    BuildContext context,
+    HostKeyInfo hostKeyInfo,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -409,32 +445,44 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildHostKeyInfoRow(context, 'Host', hostKeyInfo.hostname),
-                    _buildHostKeyInfoRow(context, 'Port', hostKeyInfo.port.toString()),
-                    _buildHostKeyInfoRow(context, 'Key Type', hostKeyInfo.keyType),
+                    _buildHostKeyInfoRow(
+                      context,
+                      'Port',
+                      hostKeyInfo.port.toString(),
+                    ),
+                    _buildHostKeyInfoRow(
+                      context,
+                      'Key Type',
+                      hostKeyInfo.keyType,
+                    ),
                     const SizedBox(height: 8),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Fingerprint: ',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         Expanded(
                           child: SelectableText(
                             hostKeyInfo.fingerprint,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontFamily: 'monospace',
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(fontFamily: 'monospace'),
                           ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.copy, size: 16),
                           onPressed: () {
-                            Clipboard.setData(ClipboardData(text: hostKeyInfo.fingerprint));
+                            Clipboard.setData(
+                              ClipboardData(text: hostKeyInfo.fingerprint),
+                            );
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Fingerprint copied to clipboard')),
+                              const SnackBar(
+                                content: Text(
+                                  'Fingerprint copied to clipboard',
+                                ),
+                              ),
                             );
                           },
                           tooltip: 'Copy fingerprint',
@@ -482,7 +530,10 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
   }
 
   /// Shows a warning dialog about a host key mismatch (possible MITM attack).
-  void _showHostKeyMismatchWarning(BuildContext context, HostKeyInfo hostKeyInfo) {
+  void _showHostKeyMismatchWarning(
+    BuildContext context,
+    HostKeyInfo hostKeyInfo,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -549,8 +600,16 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
                     ),
                     const SizedBox(height: 8),
                     _buildHostKeyInfoRow(context, 'Host', hostKeyInfo.hostname),
-                    _buildHostKeyInfoRow(context, 'Key Type', hostKeyInfo.keyType),
-                    _buildHostKeyInfoRow(context, 'Fingerprint', hostKeyInfo.fingerprint),
+                    _buildHostKeyInfoRow(
+                      context,
+                      'Key Type',
+                      hostKeyInfo.keyType,
+                    ),
+                    _buildHostKeyInfoRow(
+                      context,
+                      'Fingerprint',
+                      hostKeyInfo.fingerprint,
+                    ),
                   ],
                 ),
               ),
@@ -575,7 +634,11 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
     );
   }
 
-  Widget _buildHostKeyInfoRow(BuildContext context, String label, String value) {
+  Widget _buildHostKeyInfoRow(
+    BuildContext context,
+    String label,
+    String value,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
@@ -585,9 +648,9 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
             width: 80,
             child: Text(
               '$label:',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
           Expanded(
@@ -617,13 +680,15 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
       user = _userController.text;
     }
 
-    context.read<KeysBloc>().add(KeysTestConnectionRequested(
-      keyPath: widget.keyEntity.path,
-      host: host,
-      port: port,
-      user: user,
-      passphrase: _currentNeedsPassphrase ? _passphraseController.text : null,
-      trustHostKey: true,
-    ));
+    context.read<KeysBloc>().add(
+      KeysTestConnectionRequested(
+        keyPath: widget.keyEntity.path,
+        host: host,
+        port: port,
+        user: user,
+        passphrase: _currentNeedsPassphrase ? _passphraseController.text : null,
+        trustHostKey: true,
+      ),
+    );
   }
 }

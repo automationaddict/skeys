@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -23,12 +43,11 @@ class _RemotePageState extends State<RemotePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Remote Servers'),
-      ),
+      appBar: AppBar(title: const Text('Remote Servers')),
       body: BlocBuilder<RemoteBloc, RemoteState>(
         builder: (context, state) {
-          if (state.status == RemoteBlocStatus.loading && state.remotes.isEmpty) {
+          if (state.status == RemoteBlocStatus.loading &&
+              state.remotes.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -51,8 +70,8 @@ class _RemotePageState extends State<RemotePage> {
                   Text(
                     'Add a remote server to get started',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                   ),
                 ],
               ),
@@ -64,20 +83,28 @@ class _RemotePageState extends State<RemotePage> {
             itemCount: state.remotes.length,
             itemBuilder: (context, index) {
               final remote = state.remotes[index];
-              final connection = state.connections.where((c) => c.remoteId == remote.id).firstOrNull;
+              final connection = state.connections
+                  .where((c) => c.remoteId == remote.id)
+                  .firstOrNull;
               return _RemoteCard(
                 remote: remote,
                 connection: connection,
                 onConnect: () {
-                  context.read<RemoteBloc>().add(RemoteConnectRequested(remoteId: remote.id));
+                  context.read<RemoteBloc>().add(
+                    RemoteConnectRequested(remoteId: remote.id),
+                  );
                 },
                 onDisconnect: connection != null
                     ? () {
-                        context.read<RemoteBloc>().add(RemoteDisconnectRequested(connection.id));
+                        context.read<RemoteBloc>().add(
+                          RemoteDisconnectRequested(connection.id),
+                        );
                       }
                     : null,
                 onDelete: () {
-                  context.read<RemoteBloc>().add(RemoteDeleteRequested(remote.id));
+                  context.read<RemoteBloc>().add(
+                    RemoteDeleteRequested(remote.id),
+                  );
                 },
               );
             },
@@ -138,12 +165,14 @@ class _RemotePageState extends State<RemotePage> {
           FilledButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              context.read<RemoteBloc>().add(RemoteAddRequested(
-                    name: nameController.text,
-                    host: hostController.text,
-                    port: int.tryParse(portController.text) ?? 22,
-                    user: userController.text,
-                  ));
+              context.read<RemoteBloc>().add(
+                RemoteAddRequested(
+                  name: nameController.text,
+                  host: hostController.text,
+                  port: int.tryParse(portController.text) ?? 22,
+                  user: userController.text,
+                ),
+              );
             },
             child: const Text('Add'),
           ),
@@ -186,7 +215,7 @@ class _RemoteCard extends StatelessWidget {
                   height: 48,
                   decoration: BoxDecoration(
                     color: isConnected
-                        ? Colors.green.withOpacity(0.2)
+                        ? Colors.green.withValues(alpha: 0.2)
                         : Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -207,8 +236,8 @@ class _RemoteCard extends StatelessWidget {
                       Text(
                         '${remote.user}@${remote.host}:${remote.port}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontFamily: 'monospace',
-                            ),
+                          fontFamily: 'monospace',
+                        ),
                       ),
                     ],
                   ),
@@ -260,11 +289,8 @@ class _RemoteCard extends StatelessWidget {
     };
 
     return Chip(
-      label: Text(
-        label,
-        style: TextStyle(color: color, fontSize: 12),
-      ),
-      backgroundColor: color.withOpacity(0.1),
+      label: Text(label, style: TextStyle(color: color, fontSize: 12)),
+      backgroundColor: color.withValues(alpha: 0.1),
       side: BorderSide.none,
       padding: EdgeInsets.zero,
       visualDensity: VisualDensity.compact,

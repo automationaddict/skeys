@@ -1,3 +1,23 @@
+// Copyright (c) 2025 John Nelson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import 'package:flutter/material.dart';
 
 import '../../domain/sshd_directives.dart';
@@ -24,7 +44,8 @@ class _ServerDirectiveDialogState extends State<ServerDirectiveDialog> {
   late TextEditingController _valueController;
   String? _selectedDropdownValue;
 
-  SshdDirectiveDefinition? get _directive => sshdDirectiveMap[widget.directiveKey];
+  SshdDirectiveDefinition? get _directive =>
+      sshdDirectiveMap[widget.directiveKey];
 
   @override
   void initState() {
@@ -83,10 +104,7 @@ class _ServerDirectiveDialogState extends State<ServerDirectiveDialog> {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.edit,
-                    color: colorScheme.primary,
-                  ),
+                  Icon(Icons.edit, color: colorScheme.primary),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -188,7 +206,8 @@ class _ServerDirectiveDialogState extends State<ServerDirectiveDialog> {
                         setState(() {
                           _valueController.text = _directive!.defaultValue;
                           final options = _getValueOptions();
-                          if (options != null && options.contains(_directive!.defaultValue)) {
+                          if (options != null &&
+                              options.contains(_directive!.defaultValue)) {
                             _selectedDropdownValue = _directive!.defaultValue;
                           }
                         });
@@ -201,10 +220,7 @@ class _ServerDirectiveDialogState extends State<ServerDirectiveDialog> {
                     child: const Text('Cancel'),
                   ),
                   const SizedBox(width: 12),
-                  FilledButton(
-                    onPressed: _save,
-                    child: const Text('Save'),
-                  ),
+                  FilledButton(onPressed: _save, child: const Text('Save')),
                 ],
               ),
             ),
@@ -227,10 +243,7 @@ class _ServerDirectiveDialogState extends State<ServerDirectiveDialog> {
           helperText: _directive?.hint,
         ),
         items: options.map((option) {
-          return DropdownMenuItem<String>(
-            value: option,
-            child: Text(option),
-          );
+          return DropdownMenuItem<String>(value: option, child: Text(option));
         }).toList(),
         onChanged: (value) {
           setState(() {
