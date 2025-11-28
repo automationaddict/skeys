@@ -31,7 +31,11 @@ import 'widgets/server_config_tab.dart';
 import 'widgets/ssh_config_dialog.dart';
 
 /// Page for SSH configuration management.
+///
+/// Displays client SSH config (Host entries and global directives) and server
+/// SSH config (sshd_config options) in a tabbed interface.
 class ConfigPage extends StatefulWidget {
+  /// Creates a ConfigPage widget.
   const ConfigPage({super.key});
 
   @override

@@ -26,42 +26,76 @@ import '../../../core/generated/skeys/v1/common.pb.dart' as common;
 
 /// Abstract repository for SSH configuration management.
 abstract class ConfigRepository {
-  // New unified SSH config API
+  /// Lists all SSH config entries (Host and Match blocks).
   Future<List<SSHConfigEntry>> listSSHConfigEntries();
+
+  /// Watches SSH config entries for changes.
   Stream<List<SSHConfigEntry>> watchSSHConfigEntries();
+
+  /// Gets a specific SSH config entry by ID.
   Future<SSHConfigEntry> getSSHConfigEntry(String id);
+
+  /// Creates a new SSH config entry.
   Future<SSHConfigEntry> createSSHConfigEntry(
     SSHConfigEntry entry, {
     int? insertPosition,
   });
+
+  /// Updates an existing SSH config entry.
   Future<SSHConfigEntry> updateSSHConfigEntry(String id, SSHConfigEntry entry);
+
+  /// Deletes an SSH config entry.
   Future<void> deleteSSHConfigEntry(String id);
+
+  /// Reorders SSH config entries.
   Future<List<SSHConfigEntry>> reorderSSHConfigEntries(List<String> entryIds);
 
-  // Global directives API (options outside Host/Match blocks)
+  /// Lists all global directives.
   Future<List<GlobalDirective>> listGlobalDirectives();
+
+  /// Sets a global directive value.
   Future<GlobalDirective> setGlobalDirective(String key, String value);
+
+  /// Deletes a global directive.
   Future<void> deleteGlobalDirective(String key);
 
-  // Legacy client config (backward compatibility)
+  /// Lists all host configurations (legacy API).
   Future<List<ConfigHostEntry>> listHostConfigs();
+
+  /// Gets a specific host configuration (legacy API).
   Future<ConfigHostEntry> getHostConfig(String alias);
+
+  /// Creates a host configuration (legacy API).
   Future<void> createHostConfig(ConfigHostEntry entry);
+
+  /// Updates a host configuration (legacy API).
   Future<void> updateHostConfig(String alias, ConfigHostEntry entry);
+
+  /// Deletes a host configuration (legacy API).
   Future<void> deleteHostConfig(String alias);
 
-  // Server config
+  /// Gets the SSH server configuration.
   Future<ServerConfig> getServerConfig();
+
+  /// Updates SSH server configuration options.
   Future<void> updateServerConfig(List<ServerConfigUpdate> updates);
+
+  /// Restarts the SSH server service.
   Future<void> restartSSHServer();
 }
 
-/// Update operation for server config
+/// Update operation for server config.
 class ServerConfigUpdate {
+  /// The option key to update.
   final String key;
+
+  /// The new value for the option.
   final String value;
+
+  /// Whether to delete this option instead of setting it.
   final bool delete;
 
+  /// Creates a ServerConfigUpdate with the given parameters.
   const ServerConfigUpdate({
     required this.key,
     required this.value,
@@ -73,6 +107,7 @@ class ServerConfigUpdate {
 class ConfigRepositoryImpl implements ConfigRepository {
   final GrpcClient _client;
 
+  /// Creates a ConfigRepositoryImpl with the given gRPC client.
   ConfigRepositoryImpl(this._client);
 
   // ============================================================
