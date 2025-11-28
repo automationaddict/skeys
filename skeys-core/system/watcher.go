@@ -26,7 +26,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/johnnelson/skeys-core/broadcast"
+	"github.com/automationaddict/skeys-core/broadcast"
 )
 
 // SSHStatusUpdate represents a change notification for SSH status

@@ -28,8 +28,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/johnnelson/skeys-core/logging"
-	"github.com/johnnelson/skeys-daemon/internal/server"
+	"github.com/automationaddict/skeys-core/logging"
+	"github.com/automationaddict/skeys-daemon/internal/server"
 )
 
 var (

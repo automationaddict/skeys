@@ -1,9 +1,9 @@
-module github.com/johnnelson/skeys-daemon
+module github.com/automationaddict/skeys-daemon
 
 go 1.22.7
 
 require (
-	github.com/johnnelson/skeys-core v0.0.0
+	github.com/automationaddict/skeys-core v0.0.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto v0.28.0
 	google.golang.org/grpc v1.68.0
@@ -27,4 +27,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/johnnelson/skeys-core => ../skeys-core
+replace github.com/automationaddict/skeys-core => ../skeys-core

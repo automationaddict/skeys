@@ -994,7 +994,7 @@ const file_skeys_v1_keys_proto_rawDesc = "" +
 	"\x0eGetFingerprint\x12\x1f.skeys.v1.GetFingerprintRequest\x1a .skeys.v1.GetFingerprintResponse\x12M\n" +
 	"\x10ChangePassphrase\x12!.skeys.v1.ChangePassphraseRequest\x1a\x16.google.protobuf.Empty\x12V\n" +
 	"\x0fPushKeyToRemote\x12 .skeys.v1.PushKeyToRemoteRequest\x1a!.skeys.v1.PushKeyToRemoteResponse\x12E\n" +
-	"\tWatchKeys\x12\x1a.skeys.v1.WatchKeysRequest\x1a\x1a.skeys.v1.ListKeysResponse0\x01B7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"
+	"\tWatchKeys\x12\x1a.skeys.v1.WatchKeysRequest\x1a\x1a.skeys.v1.ListKeysResponse0\x01BCZAgithub.com/automationaddict/skeys-daemon/api/gen/skeys/v1;skeysv1b\x06proto3"
 
 var (
 	file_skeys_v1_keys_proto_rawDescOnce sync.Once

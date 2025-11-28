@@ -29,8 +29,8 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/johnnelson/skeys-core/keys"
-	pb "github.com/johnnelson/skeys-daemon/api/gen/skeys/v1"
+	"github.com/automationaddict/skeys-core/keys"
+	pb "github.com/automationaddict/skeys-daemon/api/gen/skeys/v1"
 )
 
 // KeyServiceAdapter adapts the keys.Service to the gRPC KeyService interface.

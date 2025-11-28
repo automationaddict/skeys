@@ -771,7 +771,7 @@ const file_skeys_v1_agent_proto_rawDesc = "" +
 	"\tLockAgent\x12\x1a.skeys.v1.LockAgentRequest\x1a\x16.google.protobuf.Empty\x12C\n" +
 	"\vUnlockAgent\x12\x1c.skeys.v1.UnlockAgentRequest\x1a\x16.google.protobuf.Empty\x12I\n" +
 	"\n" +
-	"WatchAgent\x12\x1b.skeys.v1.WatchAgentRequest\x1a\x1c.skeys.v1.WatchAgentResponse0\x01B7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"
+	"WatchAgent\x12\x1b.skeys.v1.WatchAgentRequest\x1a\x1c.skeys.v1.WatchAgentResponse0\x01BCZAgithub.com/automationaddict/skeys-daemon/api/gen/skeys/v1;skeysv1b\x06proto3"
 
 var (
 	file_skeys_v1_agent_proto_rawDescOnce sync.Once

@@ -30,8 +30,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/johnnelson/skeys-core/storage"
-	pb "github.com/johnnelson/skeys-daemon/api/gen/skeys/v1"
+	"github.com/automationaddict/skeys-core/storage"
+	pb "github.com/automationaddict/skeys-daemon/api/gen/skeys/v1"
 )
 
 func createTestStore(t *testing.T) *storage.Store {

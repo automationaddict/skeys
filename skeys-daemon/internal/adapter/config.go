@@ -28,9 +28,9 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/johnnelson/skeys-core/config"
-	"github.com/johnnelson/skeys-core/sshconfig"
-	pb "github.com/johnnelson/skeys-daemon/api/gen/skeys/v1"
+	"github.com/automationaddict/skeys-core/config"
+	"github.com/automationaddict/skeys-core/sshconfig"
+	pb "github.com/automationaddict/skeys-daemon/api/gen/skeys/v1"
 )
 
 // ConfigServiceAdapter adapts the config services to the gRPC ConfigService interface.

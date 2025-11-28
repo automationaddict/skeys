@@ -340,7 +340,7 @@ const file_skeys_v1_metadata_proto_rawDesc = "" +
 	"\x0eGetKeyMetadata\x12\x1f.skeys.v1.GetKeyMetadataRequest\x1a\x15.skeys.v1.KeyMetadata\x12I\n" +
 	"\x0eSetKeyMetadata\x12\x1f.skeys.v1.SetKeyMetadataRequest\x1a\x16.google.protobuf.Empty\x12O\n" +
 	"\x11DeleteKeyMetadata\x12\".skeys.v1.DeleteKeyMetadataRequest\x1a\x16.google.protobuf.Empty\x12V\n" +
-	"\x0fListKeyMetadata\x12 .skeys.v1.ListKeyMetadataRequest\x1a!.skeys.v1.ListKeyMetadataResponseB7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"
+	"\x0fListKeyMetadata\x12 .skeys.v1.ListKeyMetadataRequest\x1a!.skeys.v1.ListKeyMetadataResponseBCZAgithub.com/automationaddict/skeys-daemon/api/gen/skeys/v1;skeysv1b\x06proto3"
 
 var (
 	file_skeys_v1_metadata_proto_rawDescOnce sync.Once

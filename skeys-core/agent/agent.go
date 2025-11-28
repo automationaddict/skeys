@@ -28,8 +28,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/johnnelson/skeys-core/executor"
-	"github.com/johnnelson/skeys-core/logging"
+	"github.com/automationaddict/skeys-core/executor"
+	"github.com/automationaddict/skeys-core/logging"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 )

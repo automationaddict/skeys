@@ -26,8 +26,8 @@ import (
 
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	skeyscore "github.com/johnnelson/skeys-core"
-	pb "github.com/johnnelson/skeys-daemon/api/gen/skeys/v1"
+	skeyscore "github.com/automationaddict/skeys-core"
+	pb "github.com/automationaddict/skeys-daemon/api/gen/skeys/v1"
 )
 
 // VersionServiceAdapter implements the gRPC VersionService

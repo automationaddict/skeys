@@ -30,7 +30,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/johnnelson/skeys-core/logging"
+	"github.com/automationaddict/skeys-core/logging"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"

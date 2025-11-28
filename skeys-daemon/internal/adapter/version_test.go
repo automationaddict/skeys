@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	skeyscore "github.com/johnnelson/skeys-core"
+	skeyscore "github.com/automationaddict/skeys-core"
 )
 
 func TestNewVersionServiceAdapter(t *testing.T) {

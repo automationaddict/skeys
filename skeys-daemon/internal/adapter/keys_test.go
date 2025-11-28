@@ -26,8 +26,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/johnnelson/skeys-core/keys"
-	pb "github.com/johnnelson/skeys-daemon/api/gen/skeys/v1"
+	"github.com/automationaddict/skeys-core/keys"
+	pb "github.com/automationaddict/skeys-daemon/api/gen/skeys/v1"
 )
 
 func TestToProtoKeyType(t *testing.T) {

@@ -119,7 +119,7 @@ const file_skeys_v1_version_proto_rawDesc = "" +
 	"coreCommit2M\n" +
 	"\x0eVersionService\x12;\n" +
 	"\n" +
-	"GetVersion\x12\x16.google.protobuf.Empty\x1a\x15.skeys.v1.VersionInfoB7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"
+	"GetVersion\x12\x16.google.protobuf.Empty\x1a\x15.skeys.v1.VersionInfoBCZAgithub.com/automationaddict/skeys-daemon/api/gen/skeys/v1;skeysv1b\x06proto3"
 
 var (
 	file_skeys_v1_version_proto_rawDescOnce sync.Once

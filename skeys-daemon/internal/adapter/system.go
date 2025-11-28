@@ -27,8 +27,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/johnnelson/skeys-core/system"
-	pb "github.com/johnnelson/skeys-daemon/api/gen/skeys/v1"
+	"github.com/automationaddict/skeys-core/system"
+	pb "github.com/automationaddict/skeys-daemon/api/gen/skeys/v1"
 )
 
 // SystemServiceAdapter adapts the system services to the gRPC SystemService interface.

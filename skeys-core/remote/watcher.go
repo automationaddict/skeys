@@ -26,7 +26,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/johnnelson/skeys-core/broadcast"
+	"github.com/automationaddict/skeys-core/broadcast"
 )
 
 // ConnectionsUpdate contains a connections update or error

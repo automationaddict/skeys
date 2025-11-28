@@ -32,7 +32,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/johnnelson/skeys-core/logging"
+	"github.com/automationaddict/skeys-core/logging"
 )
 
 func TestNewConnectionPool(t *testing.T) {

@@ -1,4 +1,4 @@
-module github.com/johnnelson/skeys-core
+module github.com/automationaddict/skeys-core
 
 go 1.22.5
 

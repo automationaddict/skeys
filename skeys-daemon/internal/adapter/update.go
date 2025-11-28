@@ -28,8 +28,8 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/johnnelson/skeys-core/update"
-	pb "github.com/johnnelson/skeys-daemon/api/gen/skeys/v1"
+	"github.com/automationaddict/skeys-core/update"
+	pb "github.com/automationaddict/skeys-daemon/api/gen/skeys/v1"
 )
 
 // UpdateServiceAdapter implements the gRPC UpdateService

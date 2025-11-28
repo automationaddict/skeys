@@ -1272,7 +1272,7 @@ const file_skeys_v1_hosts_proto_rawDesc = "" +
 	"\x13WatchAuthorizedKeys\x12$.skeys.v1.WatchAuthorizedKeysRequest\x1a$.skeys.v1.ListAuthorizedKeysResponse0\x01\x12N\n" +
 	"\x10AddAuthorizedKey\x12!.skeys.v1.AddAuthorizedKeyRequest\x1a\x17.skeys.v1.AuthorizedKey\x12T\n" +
 	"\x13UpdateAuthorizedKey\x12$.skeys.v1.UpdateAuthorizedKeyRequest\x1a\x17.skeys.v1.AuthorizedKey\x12S\n" +
-	"\x13RemoveAuthorizedKey\x12$.skeys.v1.RemoveAuthorizedKeyRequest\x1a\x16.google.protobuf.EmptyB7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"
+	"\x13RemoveAuthorizedKey\x12$.skeys.v1.RemoveAuthorizedKeyRequest\x1a\x16.google.protobuf.EmptyBCZAgithub.com/automationaddict/skeys-daemon/api/gen/skeys/v1;skeysv1b\x06proto3"
 
 var (
 	file_skeys_v1_hosts_proto_rawDescOnce sync.Once

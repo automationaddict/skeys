@@ -31,7 +31,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/johnnelson/skeys-core/logging"
+	"github.com/automationaddict/skeys-core/logging"
 )
 
 // MockExecutor implements executor.Executor for testing

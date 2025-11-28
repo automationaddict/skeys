@@ -25,7 +25,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/johnnelson/skeys-core/hosts"
+	"github.com/automationaddict/skeys-core/hosts"
 )
 
 func TestToProtoKnownHost(t *testing.T) {

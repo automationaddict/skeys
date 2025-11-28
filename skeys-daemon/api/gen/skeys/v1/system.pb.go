@@ -1399,7 +1399,7 @@ const file_skeys_v1_system_proto_rawDesc = "" +
 	"\x10ReloadSSHService\x12!.skeys.v1.ReloadSSHServiceRequest\x1a#.skeys.v1.SSHServiceControlResponse\x12Z\n" +
 	"\x10EnableSSHService\x12!.skeys.v1.EnableSSHServiceRequest\x1a#.skeys.v1.SSHServiceControlResponse\x12\\\n" +
 	"\x11DisableSSHService\x12\".skeys.v1.DisableSSHServiceRequest\x1a#.skeys.v1.SSHServiceControlResponse\x12k\n" +
-	"\x16GetInstallInstructions\x12'.skeys.v1.GetInstallInstructionsRequest\x1a(.skeys.v1.GetInstallInstructionsResponseB7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"
+	"\x16GetInstallInstructions\x12'.skeys.v1.GetInstallInstructionsRequest\x1a(.skeys.v1.GetInstallInstructionsResponseBCZAgithub.com/automationaddict/skeys-daemon/api/gen/skeys/v1;skeysv1b\x06proto3"
 
 var (
 	file_skeys_v1_system_proto_rawDescOnce sync.Once

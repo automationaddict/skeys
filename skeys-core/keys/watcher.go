@@ -26,8 +26,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/automationaddict/skeys-core/broadcast"
 	"github.com/fsnotify/fsnotify"
-	"github.com/johnnelson/skeys-core/broadcast"
 )
 
 // KeysUpdate represents a change notification for keys

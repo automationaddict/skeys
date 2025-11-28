@@ -381,8 +381,8 @@ if command -v protoc &> /dev/null; then
         # Generate Go protos
         if [[ -f "skeys-daemon/api/gen/skeys/v1/agent.pb.go" ]]; then
             protoc --proto_path=proto \
-                --go_out="$tmpdir" --go_opt=module=github.com/johnnelson/skeys-daemon/api/gen \
-                --go-grpc_out="$tmpdir" --go-grpc_opt=module=github.com/johnnelson/skeys-daemon/api/gen \
+                --go_out="$tmpdir" --go_opt=module=github.com/automationaddict/skeys-daemon/api/gen \
+                --go-grpc_out="$tmpdir" --go-grpc_opt=module=github.com/automationaddict/skeys-daemon/api/gen \
                 proto/skeys/v1/*.proto 2>/dev/null || true
 
             # Compare generated files (just check if they would differ)

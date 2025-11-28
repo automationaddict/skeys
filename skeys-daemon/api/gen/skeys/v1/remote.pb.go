@@ -1454,7 +1454,7 @@ const file_skeys_v1_remote_proto_rawDesc = "" +
 	"\n" +
 	"Disconnect\x12\x1b.skeys.v1.DisconnectRequest\x1a\x16.google.protobuf.Empty\x12V\n" +
 	"\x0fListConnections\x12 .skeys.v1.ListConnectionsRequest\x1a!.skeys.v1.ListConnectionsResponse\x12S\n" +
-	"\x0eExecuteCommand\x12\x1f.skeys.v1.ExecuteCommandRequest\x1a .skeys.v1.ExecuteCommandResponseB7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"
+	"\x0eExecuteCommand\x12\x1f.skeys.v1.ExecuteCommandRequest\x1a .skeys.v1.ExecuteCommandResponseBCZAgithub.com/automationaddict/skeys-daemon/api/gen/skeys/v1;skeysv1b\x06proto3"
 
 var (
 	file_skeys_v1_remote_proto_rawDescOnce sync.Once

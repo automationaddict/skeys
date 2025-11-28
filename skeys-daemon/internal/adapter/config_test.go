@@ -25,8 +25,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/johnnelson/skeys-core/config"
-	pb "github.com/johnnelson/skeys-daemon/api/gen/skeys/v1"
+	"github.com/automationaddict/skeys-core/config"
+	pb "github.com/automationaddict/skeys-daemon/api/gen/skeys/v1"
 )
 
 func TestToProtoHostConfig(t *testing.T) {

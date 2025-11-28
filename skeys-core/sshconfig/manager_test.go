@@ -30,7 +30,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/johnnelson/skeys-core/logging"
+	"github.com/automationaddict/skeys-core/logging"
 )
 
 func TestNewManager(t *testing.T) {

@@ -28,7 +28,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/johnnelson/skeys-core/logging"
+	"github.com/automationaddict/skeys-core/logging"
 )
 
 // AuthorizedKey represents an entry in authorized_keys

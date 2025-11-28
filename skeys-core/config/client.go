@@ -31,7 +31,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/johnnelson/skeys-core/logging"
+	"github.com/automationaddict/skeys-core/logging"
 	"github.com/patrikkj/sshconf"
 )
 

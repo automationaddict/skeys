@@ -32,7 +32,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/johnnelson/skeys-core/logging"
+	"github.com/automationaddict/skeys-core/logging"
 )
 
 func TestNewLoggingInterceptor(t *testing.T) {

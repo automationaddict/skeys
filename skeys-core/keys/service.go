@@ -32,7 +32,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/johnnelson/skeys-core/logging"
+	"github.com/automationaddict/skeys-core/logging"
 )
 
 // KeyType represents the algorithm used for an SSH key

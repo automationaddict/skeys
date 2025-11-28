@@ -770,7 +770,7 @@ const file_skeys_v1_update_proto_rawDesc = "" +
 	"\vApplyUpdate\x12\x1c.skeys.v1.ApplyUpdateRequest\x1a\x1d.skeys.v1.ApplyUpdateResponse\x12E\n" +
 	"\x11GetUpdateSettings\x12\x16.google.protobuf.Empty\x1a\x18.skeys.v1.UpdateSettings\x12G\n" +
 	"\x11SetUpdateSettings\x12\x18.skeys.v1.UpdateSettings\x1a\x18.skeys.v1.UpdateSettings\x12A\n" +
-	"\x0fGetUpdateStatus\x12\x16.google.protobuf.Empty\x1a\x16.skeys.v1.UpdateStatusB7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"
+	"\x0fGetUpdateStatus\x12\x16.google.protobuf.Empty\x1a\x16.skeys.v1.UpdateStatusBCZAgithub.com/automationaddict/skeys-daemon/api/gen/skeys/v1;skeysv1b\x06proto3"
 
 var (
 	file_skeys_v1_update_proto_rawDescOnce sync.Once

@@ -2787,7 +2787,7 @@ const file_skeys_v1_config_proto_rawDesc = "" +
 	"\x12UpdateServerConfig\x12#.skeys.v1.UpdateServerConfigRequest\x1a\x16.skeys.v1.ServerConfig\x12e\n" +
 	"\x14ValidateServerConfig\x12%.skeys.v1.ValidateServerConfigRequest\x1a&.skeys.v1.ValidateServerConfigResponse\x12\\\n" +
 	"\x11RestartSSHService\x12\".skeys.v1.RestartSSHServiceRequest\x1a#.skeys.v1.RestartSSHServiceResponse\x12b\n" +
-	"\x13DiscoverConfigPaths\x12$.skeys.v1.DiscoverConfigPathsRequest\x1a%.skeys.v1.DiscoverConfigPathsResponseB7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"
+	"\x13DiscoverConfigPaths\x12$.skeys.v1.DiscoverConfigPathsRequest\x1a%.skeys.v1.DiscoverConfigPathsResponseBCZAgithub.com/automationaddict/skeys-daemon/api/gen/skeys/v1;skeysv1b\x06proto3"
 
 var (
 	file_skeys_v1_config_proto_rawDescOnce sync.Once

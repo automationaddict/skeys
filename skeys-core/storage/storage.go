@@ -28,7 +28,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/johnnelson/skeys-core/logging"
+	"github.com/automationaddict/skeys-core/logging"
 )
 
 // KeyMetadata stores metadata associated with an SSH key

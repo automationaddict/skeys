@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package skeys.v1;
 
-option go_package = "github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1";
+option go_package = "github.com/automationaddict/skeys-daemon/api/gen/skeys/v1;skeysv1";
 
 import "skeys/v1/common.proto";
 import "skeys/v1/config.proto";

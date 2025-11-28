@@ -136,7 +136,7 @@ const file_skeys_v1_common_proto_rawDesc = "" +
 	"TargetType\x12\x1b\n" +
 	"\x17TARGET_TYPE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11TARGET_TYPE_LOCAL\x10\x01\x12\x16\n" +
-	"\x12TARGET_TYPE_REMOTE\x10\x02B7Z5github.com/johnnelson/skeys-daemon/api/gen/v1;skeysv1b\x06proto3"
+	"\x12TARGET_TYPE_REMOTE\x10\x02BCZAgithub.com/automationaddict/skeys-daemon/api/gen/skeys/v1;skeysv1b\x06proto3"
 
 var (
 	file_skeys_v1_common_proto_rawDescOnce sync.Once

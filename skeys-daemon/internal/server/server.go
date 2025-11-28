@@ -29,17 +29,17 @@ import (
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 
-	"github.com/johnnelson/skeys-core/agent"
-	"github.com/johnnelson/skeys-core/config"
-	"github.com/johnnelson/skeys-core/hosts"
-	"github.com/johnnelson/skeys-core/keys"
-	"github.com/johnnelson/skeys-core/logging"
-	"github.com/johnnelson/skeys-core/remote"
-	"github.com/johnnelson/skeys-core/sshconfig"
-	"github.com/johnnelson/skeys-core/storage"
+	"github.com/automationaddict/skeys-core/agent"
+	"github.com/automationaddict/skeys-core/config"
+	"github.com/automationaddict/skeys-core/hosts"
+	"github.com/automationaddict/skeys-core/keys"
+	"github.com/automationaddict/skeys-core/logging"
+	"github.com/automationaddict/skeys-core/remote"
+	"github.com/automationaddict/skeys-core/sshconfig"
+	"github.com/automationaddict/skeys-core/storage"
 
-	pb "github.com/johnnelson/skeys-daemon/api/gen/skeys/v1"
-	"github.com/johnnelson/skeys-daemon/internal/adapter"
+	pb "github.com/automationaddict/skeys-daemon/api/gen/skeys/v1"
+	"github.com/automationaddict/skeys-daemon/internal/adapter"
 )
 
 // Server wraps the gRPC server and all service adapters

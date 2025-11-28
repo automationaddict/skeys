@@ -32,8 +32,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/johnnelson/skeys-core/executor"
-	"github.com/johnnelson/skeys-core/logging"
+	"github.com/automationaddict/skeys-core/executor"
+	"github.com/automationaddict/skeys-core/logging"
 )
 
 // KnownHost represents an entry in known_hosts

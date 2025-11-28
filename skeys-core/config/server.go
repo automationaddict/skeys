@@ -29,7 +29,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/johnnelson/skeys-core/logging"
+	"github.com/automationaddict/skeys-core/logging"
 )
 
 // ServerDirective represents a directive in sshd_config

@@ -24,7 +24,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/johnnelson/skeys-core/logging"
+	"github.com/automationaddict/skeys-core/logging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 )

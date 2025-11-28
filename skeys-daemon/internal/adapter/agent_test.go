@@ -25,7 +25,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/johnnelson/skeys-core/agent"
+	"github.com/automationaddict/skeys-core/agent"
 )
 
 func TestToProtoAgentKey(t *testing.T) {
