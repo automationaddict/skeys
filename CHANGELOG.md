@@ -2,49 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.0.4] - 2025-11-28
+## [Unreleased]
 
-### Added
-- New app icon with rounded corners and blue theme
-- App logo displayed in the About screen
-- App logo displayed in the navigation rail sidebar
+### Documentation
 
-### Changed
-- Updated all icon sizes (16px to 1024px) with new design
-
-## [0.0.3] - 2025-11-27
-
-### Added
-- Real-time streaming to Remote, Config, and Hosts pages
-- Network info and firewall status on Server page
-- Shared broadcaster pattern for efficient streaming
-
-### Changed
-- Standardized Go backend patterns for consistency
-- Refactored streaming architecture
-
-## [0.0.2] - 2025-11-26
-
-### Added
-- Real-time streaming to Server page with BLoC architecture
-- SSH service auto-start toggle
-- Server help documentation with troubleshooting guide
+- Add documentation to core modules (batch 1/~13)
+- Add public API documentation for core help, settings, shell modules
+- Add public API documentation for features/agent module
+- Add public API documentation for features/config bloc events
+- Add public API documentation for features/config state and domain
+- Add public API documentation for features/config presentation and repository
+- Add public API documentation for features/hosts module
+- Add public API documentation for features/keys module
+- Add public API documentation for remaining features and main
+- Fix remaining public API documentation issues
 
 ### Fixed
-- Nil pointer dereference in update check
-- Improved SSH service start failure error messages
 
-### Changed
-- Use AppToast for server page messages
+- Prevent dialog freeze when network unavailable in add key to agent
 
-## [0.0.1] - 2025-11-25
+### Miscellaneous
 
-### Added
-- Initial release
-- SSH key management (generate, delete, copy public key)
-- SSH agent integration
-- Host key verification and management
-- Remote server configuration
-- gRPC backend daemon
-- Auto-update support
-- Backup and restore functionality
+- Add git hooks and license headers
+- Expand pre-commit checks and fix IPv6 address format
+- Add TOML linting to pre-commit hook
+- Add YAML and Markdown linting to pre-commit hook

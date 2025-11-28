@@ -18,6 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import 'package:grpc/grpc.dart';
+
 import '../domain/agent_entity.dart';
 import '../../../core/grpc/grpc_client.dart';
 import '../../../core/generated/skeys/v1/agent.pb.dart' as pb;
@@ -132,7 +134,11 @@ class AgentRepositoryImpl implements AgentRepository {
       request.lifetime = pb_duration.Duration.fromDart(lifetime);
     }
 
-    await _client.agent.addKeyToAgent(request);
+    // Use 10-second timeout to prevent hanging on network issues
+    await _client.agent.addKeyToAgent(
+      request,
+      options: CallOptions(timeout: const Duration(seconds: 10)),
+    );
   }
 
   @override

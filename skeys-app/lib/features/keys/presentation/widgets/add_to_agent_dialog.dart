@@ -136,255 +136,282 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<KeysBloc, KeysState>(
-      listener: (context, state) {
-        if (!_verifyingConnection) return;
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<KeysBloc, KeysState>(
+          listener: (context, state) {
+            if (!_verifyingConnection) return;
 
-        if (state.testConnectionResult != null) {
-          final result = state.testConnectionResult!;
+            if (state.testConnectionResult != null) {
+              final result = state.testConnectionResult!;
 
-          // Handle host key verification states
-          if (result.needsHostKeyApproval && result.hostKeyInfo != null) {
-            _showHostKeyConfirmationDialog(context, result.hostKeyInfo!);
-            return;
-          }
+              // Handle host key verification states
+              if (result.needsHostKeyApproval && result.hostKeyInfo != null) {
+                _showHostKeyConfirmationDialog(context, result.hostKeyInfo!);
+                return;
+              }
 
-          if (result.hasHostKeyMismatch && result.hostKeyInfo != null) {
-            _showHostKeyMismatchWarning(context, result.hostKeyInfo!);
-            setState(() => _verifyingConnection = false);
-            return;
-          }
+              if (result.hasHostKeyMismatch && result.hostKeyInfo != null) {
+                _showHostKeyMismatchWarning(context, result.hostKeyInfo!);
+                setState(() => _verifyingConnection = false);
+                return;
+              }
 
-          // Connection test completed
-          if (result.success) {
-            // Connection verified! Now add to agent
-            _addKeyToAgent();
-          } else {
-            // Connection failed
-            AppToast.error(
-              context,
-              message: 'Connection failed: ${result.message}',
-            );
-            setState(() => _verifyingConnection = false);
-          }
-        }
-      },
-      builder: (context, state) {
-        final isLoading =
-            _verifyingConnection ||
-            _addingToAgent ||
-            state.status == KeysStatus.testingConnection;
+              // Connection test completed
+              if (result.success) {
+                // Connection verified! Now add to agent
+                _addKeyToAgent();
+              } else {
+                // Connection failed
+                AppToast.error(
+                  context,
+                  message: 'Connection failed: ${result.message}',
+                );
+                setState(() => _verifyingConnection = false);
+              }
+            }
+          },
+        ),
+        BlocListener<AgentBloc, AgentState>(
+          listener: (context, agentState) {
+            if (!_addingToAgent) return;
 
-        return AlertDialog(
-          title: const Text('Add Key to Agent'),
-          content: SizedBox(
-            width: 450,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Add "${widget.keyEntity.name}" to the SSH agent after verifying it works with a service.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 16),
+            if (agentState.status == AgentBlocStatus.success) {
+              // Key added successfully - store metadata and close
+              _onAgentAddSuccess();
+            } else if (agentState.status == AgentBlocStatus.failure) {
+              // Key add failed
+              AppToast.error(
+                context,
+                message:
+                    'Failed to add key: ${agentState.errorMessage ?? "Unknown error"}',
+              );
+              setState(() => _addingToAgent = false);
+            }
+          },
+        ),
+      ],
+      child: BlocBuilder<KeysBloc, KeysState>(
+        builder: (context, state) {
+          final isLoading =
+              _verifyingConnection ||
+              _addingToAgent ||
+              state.status == KeysStatus.testingConnection;
 
-                  // Service presets
-                  Text(
-                    'Select Service to Verify',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      ...ServicePreset.presets.map(
-                        (preset) => ChoiceChip(
-                          avatar: Icon(preset.icon, size: 18),
-                          label: Text(preset.name),
-                          selected: _selectedPreset == preset,
-                          onSelected: isLoading
-                              ? null
-                              : (_) => _selectPreset(preset),
-                        ),
-                      ),
-                      ChoiceChip(
-                        avatar: const Icon(Icons.dns, size: 18),
-                        label: const Text('Custom'),
-                        selected: _useCustom,
-                        onSelected: isLoading ? null : (_) => _selectCustom(),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Custom server form - only shown for Custom option
-                  if (_useCustom) ...[
-                    Form(
-                      key: _formKey,
-                      child: Column(
-                        children: [
-                          TextFormField(
-                            controller: _hostController,
-                            decoration: const InputDecoration(
-                              labelText: 'Host',
-                              hintText: 'e.g., my-server.com',
-                            ),
-                            enabled: !isLoading,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a host';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 2,
-                                child: TextFormField(
-                                  controller: _userController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'User',
-                                    hintText: 'e.g., root',
-                                  ),
-                                  enabled: !isLoading,
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please enter a user';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _portController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Port',
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                  enabled: !isLoading,
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Required';
-                                    }
-                                    final port = int.tryParse(value);
-                                    if (port == null ||
-                                        port < 1 ||
-                                        port > 65535) {
-                                      return 'Invalid';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+          return AlertDialog(
+            title: const Text('Add Key to Agent'),
+            content: SizedBox(
+              width: 450,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Add "${widget.keyEntity.name}" to the SSH agent after verifying it works with a service.',
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 16),
-                  ],
 
-                  // Passphrase field - shown when key has passphrase
-                  if ((_selectedPreset != null || _useCustom) &&
-                      widget.keyEntity.hasPassphrase) ...[
-                    Form(
-                      key: _selectedPreset != null ? _formKey : null,
-                      child: TextFormField(
-                        controller: _passphraseController,
-                        decoration: InputDecoration(
-                          labelText: 'Key Passphrase',
-                          helperText: 'Required to unlock your private key',
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassphrase
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassphrase = !_obscurePassphrase;
-                              });
-                            },
-                          ),
-                        ),
-                        obscureText: _obscurePassphrase,
-                        enabled: !isLoading,
-                        validator: (value) {
-                          if (widget.keyEntity.hasPassphrase &&
-                              (value == null || value.isEmpty)) {
-                            return 'Passphrase required for this key';
-                          }
-                          return null;
-                        },
-                      ),
+                    // Service presets
+                    Text(
+                      'Select Service to Verify',
+                      style: Theme.of(context).textTheme.titleSmall,
                     ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Loading indicator
-                  if (isLoading) ...[
-                    const Divider(),
-                    const SizedBox(height: 16),
-                    Row(
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
                       children: [
-                        const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ...ServicePreset.presets.map(
+                          (preset) => ChoiceChip(
+                            avatar: Icon(preset.icon, size: 18),
+                            label: Text(preset.name),
+                            selected: _selectedPreset == preset,
+                            onSelected: isLoading
+                                ? null
+                                : (_) => _selectPreset(preset),
+                          ),
                         ),
-                        const SizedBox(width: 12),
-                        Text(
-                          _addingToAgent
-                              ? 'Adding key to agent...'
-                              : _selectedPreset != null
-                              ? 'Verifying connection to ${_selectedPreset!.name}...'
-                              : 'Verifying connection to ${_hostController.text}...',
-                          style: Theme.of(context).textTheme.bodyMedium,
+                        ChoiceChip(
+                          avatar: const Icon(Icons.dns, size: 18),
+                          label: const Text('Custom'),
+                          selected: _useCustom,
+                          onSelected: isLoading ? null : (_) => _selectCustom(),
                         ),
                       ],
                     ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: isLoading
-                  ? null
-                  : () {
-                      context.read<KeysBloc>().add(
-                        const KeysTestConnectionCleared(),
-                      );
-                      Navigator.of(context).pop();
-                    },
-              child: const Text('Cancel'),
-            ),
-            if (_selectedPreset != null || _useCustom)
-              FilledButton(
-                autofocus: true,
-                onPressed: isLoading ? null : _onVerifyAndAdd,
-                child: isLoading
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+                    const SizedBox(height: 16),
+
+                    // Custom server form - only shown for Custom option
+                    if (_useCustom) ...[
+                      Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              controller: _hostController,
+                              decoration: const InputDecoration(
+                                labelText: 'Host',
+                                hintText: 'e.g., my-server.com',
+                              ),
+                              enabled: !isLoading,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter a host';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: TextFormField(
+                                    controller: _userController,
+                                    decoration: const InputDecoration(
+                                      labelText: 'User',
+                                      hintText: 'e.g., root',
+                                    ),
+                                    enabled: !isLoading,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please enter a user';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _portController,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Port',
+                                    ),
+                                    keyboardType: TextInputType.number,
+                                    enabled: !isLoading,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Required';
+                                      }
+                                      final port = int.tryParse(value);
+                                      if (port == null ||
+                                          port < 1 ||
+                                          port > 65535) {
+                                        return 'Invalid';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      )
-                    : const Text('Verify & Add'),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Passphrase field - shown when key has passphrase
+                    if ((_selectedPreset != null || _useCustom) &&
+                        widget.keyEntity.hasPassphrase) ...[
+                      Form(
+                        key: _selectedPreset != null ? _formKey : null,
+                        child: TextFormField(
+                          controller: _passphraseController,
+                          decoration: InputDecoration(
+                            labelText: 'Key Passphrase',
+                            helperText: 'Required to unlock your private key',
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassphrase
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassphrase = !_obscurePassphrase;
+                                });
+                              },
+                            ),
+                          ),
+                          obscureText: _obscurePassphrase,
+                          enabled: !isLoading,
+                          validator: (value) {
+                            if (widget.keyEntity.hasPassphrase &&
+                                (value == null || value.isEmpty)) {
+                              return 'Passphrase required for this key';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Loading indicator
+                    if (isLoading) ...[
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            _addingToAgent
+                                ? 'Adding key to agent...'
+                                : _selectedPreset != null
+                                ? 'Verifying connection to ${_selectedPreset!.name}...'
+                                : 'Verifying connection to ${_hostController.text}...',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
               ),
-          ],
-        );
-      },
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  // Always allow cancel - abort pending operations
+                  setState(() {
+                    _verifyingConnection = false;
+                    _addingToAgent = false;
+                  });
+                  context.read<KeysBloc>().add(
+                    const KeysTestConnectionCleared(),
+                  );
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Cancel'),
+              ),
+              if (_selectedPreset != null || _useCustom)
+                FilledButton(
+                  autofocus: true,
+                  onPressed: isLoading ? null : _onVerifyAndAdd,
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Verify & Add'),
+                ),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -444,13 +471,13 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
     }
   }
 
-  void _addKeyToAgent() async {
+  void _addKeyToAgent() {
     setState(() {
       _verifyingConnection = false;
       _addingToAgent = true;
     });
 
-    // Add key to agent
+    // Add key to agent - the BlocListener will handle completion
     context.read<AgentBloc>().add(
       AgentAddKeyRequested(
         keyPath: widget.keyEntity.path,
@@ -459,11 +486,14 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
             : null,
       ),
     );
+  }
 
+  /// Called when the agent successfully adds the key.
+  void _onAgentAddSuccess() async {
     // Store the verified service metadata
     await _storeServiceMetadata();
 
-    // Show success
+    // Show success and close dialog
     if (mounted) {
       final serviceName = _selectedPreset?.name ?? _hostController.text;
       AppToast.success(
