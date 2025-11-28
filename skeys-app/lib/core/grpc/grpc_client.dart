@@ -37,6 +37,7 @@ import '../logging/app_logger.dart';
 ///
 /// Uses Unix socket for local communication.
 class GrpcClient {
+  /// Path to the Unix socket for daemon communication.
   final String socketPath;
   final AppLogger _log = AppLogger('grpc');
 
@@ -53,6 +54,7 @@ class GrpcClient {
   SystemServiceClient? _system;
   UpdateServiceClient? _update;
 
+  /// Client for SSH key operations.
   KeyServiceClient get keys {
     if (_keys == null) {
       throw StateError('gRPC client not connected. Call connect() first.');
@@ -60,6 +62,7 @@ class GrpcClient {
     return _keys!;
   }
 
+  /// Client for SSH config operations.
   ConfigServiceClient get config {
     if (_config == null) {
       throw StateError('gRPC client not connected. Call connect() first.');
@@ -67,6 +70,7 @@ class GrpcClient {
     return _config!;
   }
 
+  /// Client for known hosts operations.
   HostsServiceClient get hosts {
     if (_hosts == null) {
       throw StateError('gRPC client not connected. Call connect() first.');
@@ -74,6 +78,7 @@ class GrpcClient {
     return _hosts!;
   }
 
+  /// Client for SSH agent operations.
   AgentServiceClient get agent {
     if (_agent == null) {
       throw StateError('gRPC client not connected. Call connect() first.');
@@ -81,6 +86,7 @@ class GrpcClient {
     return _agent!;
   }
 
+  /// Client for remote connection operations.
   RemoteServiceClient get remote {
     if (_remote == null) {
       throw StateError('gRPC client not connected. Call connect() first.');
@@ -88,6 +94,7 @@ class GrpcClient {
     return _remote!;
   }
 
+  /// Client for key metadata operations.
   MetadataServiceClient get metadata {
     if (_metadata == null) {
       throw StateError('gRPC client not connected. Call connect() first.');
@@ -95,6 +102,7 @@ class GrpcClient {
     return _metadata!;
   }
 
+  /// Client for version information.
   VersionServiceClient get version {
     if (_version == null) {
       throw StateError('gRPC client not connected. Call connect() first.');
@@ -102,6 +110,7 @@ class GrpcClient {
     return _version!;
   }
 
+  /// Client for system operations.
   SystemServiceClient get system {
     if (_system == null) {
       throw StateError('gRPC client not connected. Call connect() first.');
@@ -109,6 +118,7 @@ class GrpcClient {
     return _system!;
   }
 
+  /// Client for update operations.
   UpdateServiceClient get update {
     if (_update == null) {
       throw StateError('gRPC client not connected. Call connect() first.');
@@ -116,6 +126,7 @@ class GrpcClient {
     return _update!;
   }
 
+  /// Creates a gRPC client for the specified socket path.
   GrpcClient(this.socketPath) {
     _log.debug('gRPC client created', {'socket_path': socketPath});
   }

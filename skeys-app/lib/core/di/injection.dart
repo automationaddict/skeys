@@ -42,10 +42,15 @@ import '../../features/metadata/repository/metadata_repository.dart';
 import '../../features/server/bloc/server_bloc.dart';
 import '../../features/server/repository/server_repository.dart';
 
+/// Global service locator instance.
 final getIt = GetIt.instance;
 
 final _log = AppLogger('di');
 
+/// Configures and registers all application dependencies.
+///
+/// This initializes the backend, gRPC client, repositories, and BLoCs.
+/// Must be called during app startup before accessing any services.
 Future<void> configureDependencies() async {
   _log.info('configuring dependencies');
 
@@ -161,6 +166,9 @@ Future<void> configureDependencies() async {
   _log.info('dependency injection configured successfully');
 }
 
+/// Disposes all registered dependencies.
+///
+/// Should be called during app shutdown to clean up resources.
 Future<void> disposeDependencies() async {
   _log.info('disposing dependencies');
 

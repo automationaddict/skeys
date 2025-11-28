@@ -48,6 +48,9 @@ class BackendLauncher {
   static String get defaultSocketPath =>
       isDevMode ? '/tmp/skeys-dev.sock' : '/tmp/skeys.sock';
 
+  /// Returns the Unix socket path for daemon communication.
+  ///
+  /// Throws [StateError] if [start] has not been called.
   String get socketPath {
     if (_socketPath == null) {
       throw StateError('Backend not started. Call start() first.');
@@ -55,6 +58,7 @@ class BackendLauncher {
     return _socketPath!;
   }
 
+  /// Returns true if the backend is currently running.
   bool get isRunning => _isRunning;
 
   /// Starts the skeys-daemon backend process or connects to an existing one.

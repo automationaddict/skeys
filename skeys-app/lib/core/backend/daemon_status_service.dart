@@ -27,7 +27,16 @@ import '../grpc/grpc_client.dart';
 import '../logging/app_logger.dart';
 
 /// Status of the daemon connection.
-enum DaemonStatus { connected, disconnected, reconnecting }
+enum DaemonStatus {
+  /// Successfully connected to daemon.
+  connected,
+
+  /// Lost connection to daemon.
+  disconnected,
+
+  /// Attempting to reconnect to daemon.
+  reconnecting,
+}
 
 /// Service that monitors daemon connection health and provides reconnection.
 class DaemonStatusService extends ChangeNotifier {
@@ -41,10 +50,16 @@ class DaemonStatusService extends ChangeNotifier {
   static const _healthCheckInterval = Duration(seconds: 30);
   static const _reconnectDelay = Duration(seconds: 2);
 
+  /// Current connection status.
   DaemonStatus get status => _status;
+
+  /// Last error message if disconnected.
   String? get lastError => _lastError;
+
+  /// Returns true if connected to the daemon.
   bool get isConnected => _status == DaemonStatus.connected;
 
+  /// Creates a new daemon status service and starts health monitoring.
   DaemonStatusService() {
     _startHealthCheck();
   }

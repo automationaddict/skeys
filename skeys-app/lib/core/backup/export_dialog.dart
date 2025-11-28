@@ -29,8 +29,10 @@ import 'backup_service.dart';
 
 /// Dialog for exporting SSH configuration backup.
 class ExportDialog extends StatefulWidget {
+  /// Creates an export dialog widget.
   const ExportDialog({super.key});
 
+  /// Shows the export dialog and returns when it closes.
   static Future<void> show(BuildContext context) {
     return showDialog(
       context: context,

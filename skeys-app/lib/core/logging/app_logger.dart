@@ -23,6 +23,7 @@ import 'package:logger/logger.dart';
 
 /// Application logger with JSON output support for consistent structured logging.
 class AppLogger {
+  /// The component name for this logger instance.
   final String component;
   final Logger _logger;
 
@@ -56,22 +57,27 @@ class AppLogger {
     return AppLogger('$component.$child');
   }
 
+  /// Logs a trace level message with optional fields.
   void trace(String message, [Map<String, dynamic>? fields]) {
     _logger.t(_formatMessage(message, fields));
   }
 
+  /// Logs a debug level message with optional fields.
   void debug(String message, [Map<String, dynamic>? fields]) {
     _logger.d(_formatMessage(message, fields));
   }
 
+  /// Logs an info level message with optional fields.
   void info(String message, [Map<String, dynamic>? fields]) {
     _logger.i(_formatMessage(message, fields));
   }
 
+  /// Logs a warning level message with optional fields.
   void warning(String message, [Map<String, dynamic>? fields]) {
     _logger.w(_formatMessage(message, fields));
   }
 
+  /// Logs an error level message with optional error and stack trace.
   void error(
     String message, [
     Object? error,

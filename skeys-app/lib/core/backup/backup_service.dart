@@ -28,11 +28,19 @@ import 'package:path/path.dart' as p;
 
 /// Options for what to include in a backup.
 class BackupOptions {
+  /// Whether to include SSH private and public keys.
   final bool includeKeys;
+
+  /// Whether to include the SSH config file.
   final bool includeConfig;
+
+  /// Whether to include the known_hosts file.
   final bool includeKnownHosts;
+
+  /// Whether to include the authorized_keys file.
   final bool includeAuthorizedKeys;
 
+  /// Creates backup options with the specified inclusions.
   const BackupOptions({
     this.includeKeys = true,
     this.includeConfig = true,
@@ -40,6 +48,7 @@ class BackupOptions {
     this.includeAuthorizedKeys = false,
   });
 
+  /// Returns true if no options are selected.
   bool get isEmpty =>
       !includeKeys &&
       !includeConfig &&
@@ -49,13 +58,25 @@ class BackupOptions {
 
 /// Result of analyzing a backup file.
 class BackupContents {
+  /// List of key file names in the backup.
   final List<String> keyFiles;
+
+  /// Whether the backup contains an SSH config file.
   final bool hasConfig;
+
+  /// Whether the backup contains a known_hosts file.
   final bool hasKnownHosts;
+
+  /// Whether the backup contains an authorized_keys file.
   final bool hasAuthorizedKeys;
+
+  /// When the backup was created.
   final DateTime? createdAt;
+
+  /// Hostname of the machine that created the backup.
   final String? hostname;
 
+  /// Creates a backup contents description.
   BackupContents({
     required this.keyFiles,
     required this.hasConfig,
@@ -65,17 +86,22 @@ class BackupContents {
     this.hostname,
   });
 
+  /// Number of private keys in the backup (excludes .pub files).
   int get keyCount => keyFiles.where((f) => !f.endsWith('.pub')).length;
 }
 
 /// Service for creating and restoring SSH backups.
+///
+/// Backups are encrypted using AES-256-GCM with PBKDF2 key derivation.
 class BackupService {
   static const _magicHeader = 'SKEYS_BACKUP_V1';
   static const _saltLength = 16;
   static const _nonceLength = 12;
 
+  /// The SSH directory path (typically ~/.ssh).
   final String sshDir;
 
+  /// Creates a backup service targeting the specified SSH directory.
   BackupService({String? sshDir})
     : sshDir = sshDir ?? p.join(Platform.environment['HOME'] ?? '', '.ssh');
 
@@ -408,16 +434,27 @@ class BackupService {
 
 /// Result of a restore operation.
 class RestoreResult {
+  /// List of files that were successfully restored.
   final List<String> restored = [];
+
+  /// List of files that were skipped (already existed).
   final List<String> skipped = [];
+
+  /// Map of file names to error messages for failed restores.
   final Map<String, String> errors = {};
 
+  /// Returns true if any errors occurred during restore.
   bool get hasErrors => errors.isNotEmpty;
+
+  /// Returns true if at least one file was restored without errors.
   bool get success => restored.isNotEmpty && !hasErrors;
 }
 
+/// Secure random number generator using /dev/urandom.
 class SecureRandom {
   static final _instance = SecureRandom._();
+
+  /// Returns the singleton secure random instance.
   static SecureRandom secure() => _instance;
 
   SecureRandom._();
@@ -425,6 +462,7 @@ class SecureRandom {
   final _seed = DateTime.now().millisecondsSinceEpoch;
   int _counter = 0;
 
+  /// Returns a random integer from 0 (inclusive) to [max] (exclusive).
   int nextInt(int max) {
     _counter++;
     // Use dart:io's built-in secure random through file system

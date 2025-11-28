@@ -147,6 +147,48 @@ else
 fi
 
 # =============================================================================
+# Go documentation (revive exported rule)
+# =============================================================================
+if command -v revive &> /dev/null; then
+    echo "Checking Go documentation..."
+    doc_failed=0
+    for dir in skeys-core skeys-daemon; do
+        if [[ -f "$dir/go.mod" ]]; then
+            pushd "$dir" > /dev/null
+            # Check only exported symbols have comments
+            if ! revive -formatter friendly -set_exit_status \
+                -config <(echo '[[rule]]
+name = "exported"
+arguments = ["checkPrivateReceivers", "disableStutteringCheck"]') \
+                ./... 2>&1 | grep -v "^$"; then
+                # revive returns 0 even with warnings, check output
+                :
+            fi
+            # Run again to get exit status
+            if ! revive -set_exit_status \
+                -config <(echo '[[rule]]
+name = "exported"
+arguments = ["checkPrivateReceivers", "disableStutteringCheck"]') \
+                ./... 2>/dev/null; then
+                doc_failed=1
+            fi
+            popd > /dev/null
+        fi
+    done
+    if [[ $doc_failed -ne 0 ]]; then
+        echo ""
+        echo "ERROR: Go documentation issues found!"
+        echo "  All exported types and functions must have doc comments"
+        echo ""
+        errors=1
+    else
+        echo "Go documentation OK"
+    fi
+else
+    echo "WARNING: revive not installed, skipping Go doc check"
+fi
+
+# =============================================================================
 # Go linting (staticcheck or golangci-lint)
 # =============================================================================
 if command -v staticcheck &> /dev/null; then
