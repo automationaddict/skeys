@@ -30,15 +30,15 @@ import (
 
 func TestToProtoKnownHost(t *testing.T) {
 	host := &hosts.KnownHost{
-		ID:         "host-id-123",
-		Hostnames:  []string{"github.com", "192.168.1.1"},
-		KeyType:    "ssh-ed25519",
+		ID:          "host-id-123",
+		Hostnames:   []string{"github.com", "192.168.1.1"},
+		KeyType:     "ssh-ed25519",
 		Fingerprint: "SHA256:abc123",
-		PublicKey:  "AAAAC3NzaC1...",
-		IsHashed:   true,
-		IsRevoked:  false,
-		IsCertAuth: true,
-		LineNumber: 5,
+		PublicKey:   "AAAAC3NzaC1...",
+		IsHashed:    true,
+		IsRevoked:   false,
+		IsCertAuth:  true,
+		LineNumber:  5,
 	}
 
 	pbHost := toProtoKnownHost(host)

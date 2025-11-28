@@ -52,12 +52,13 @@ if command -v markdownlint &> /dev/null; then
     # MD013 - line length
     # MD022 - blanks around headings (too strict for changelogs)
     # MD024 - duplicate headings (changelogs have repeated Added/Changed/etc)
+    # MD031 - blanks around fences (too strict for numbered lists with code)
     # MD032 - blanks around lists (too strict)
     # MD033 - inline HTML
     # MD040 - fenced code language (not always needed)
     # MD041 - first line heading
     # MD060 - table column style
-    if ! markdownlint --disable MD013 MD022 MD024 MD032 MD033 MD040 MD041 MD060 -- *.md 2>/dev/null; then
+    if ! markdownlint --disable MD013 MD022 MD024 MD031 MD032 MD033 MD040 MD041 MD060 -- *.md 2>/dev/null; then
         echo ""
         echo "ERROR: Markdown validation failed!"
         echo ""

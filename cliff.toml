@@ -18,7 +18,7 @@ body = """
 ### {{ group | striptags | trim | upper_first }}
 
 {% for commit in commits -%}
-- {% if commit.scope %}**{{ commit.scope }}**: {% endif %}{{ commit.message | upper_first }}
+- {% if commit.scope %}**{{ commit.scope }}**: {% endif %}{{ commit.message | split(pat="\n") | first | upper_first }}
 {% endfor -%}
 {% endfor -%}
 {%- endif %}
@@ -31,7 +31,7 @@ postprocessors = [
 
 [git]
 conventional_commits = true
-filter_unconventional = true
+filter_unconventional = false
 split_commits = false
 commit_parsers = [
     { message = "^feat", group = "Added" },
@@ -47,6 +47,14 @@ commit_parsers = [
     { message = "^ci", group = "CI/CD" },
     { message = "^build", group = "Build" },
     { body = ".*security", group = "Security" },
+    # Catch-all for non-conventional commits (older history)
+    { message = "^Add", group = "Added" },
+    { message = "^Fix", group = "Fixed" },
+    { message = "^Update", group = "Changed" },
+    { message = "^Improve", group = "Changed" },
+    { message = "^Replace", group = "Changed" },
+    { message = "^Initial", group = "Added" },
+    { message = ".*", group = "Other" },
 ]
 protect_breaking_commits = false
 filter_commits = false

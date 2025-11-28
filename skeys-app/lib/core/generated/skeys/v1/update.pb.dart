@@ -522,6 +522,7 @@ class UpdateSettings extends $pb.GeneratedMessage {
     $core.bool? autoApply,
     $core.bool? includePrereleases,
     $core.int? checkIntervalHours,
+    $core.bool? includePatches,
   }) {
     final result = create();
     if (autoCheck != null) result.autoCheck = autoCheck;
@@ -531,6 +532,7 @@ class UpdateSettings extends $pb.GeneratedMessage {
       result.includePrereleases = includePrereleases;
     if (checkIntervalHours != null)
       result.checkIntervalHours = checkIntervalHours;
+    if (includePatches != null) result.includePatches = includePatches;
     return result;
   }
 
@@ -552,6 +554,7 @@ class UpdateSettings extends $pb.GeneratedMessage {
     ..aOB(3, _omitFieldNames ? '' : 'autoApply')
     ..aOB(4, _omitFieldNames ? '' : 'includePrereleases')
     ..aI(5, _omitFieldNames ? '' : 'checkIntervalHours')
+    ..aOB(6, _omitFieldNames ? '' : 'includePatches')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -622,6 +625,17 @@ class UpdateSettings extends $pb.GeneratedMessage {
   $core.bool hasCheckIntervalHours() => $_has(4);
   @$pb.TagNumber(5)
   void clearCheckIntervalHours() => $_clearField(5);
+
+  /// Include patch version updates (e.g., 1.0.1 -> 1.0.2)
+  /// When false, only notify for minor/major updates (e.g., 1.0.x -> 1.1.0)
+  @$pb.TagNumber(6)
+  $core.bool get includePatches => $_getBF(5);
+  @$pb.TagNumber(6)
+  set includePatches($core.bool value) => $_setBool(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasIncludePatches() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearIncludePatches() => $_clearField(6);
 }
 
 /// UpdateStatus represents the current state of the update system

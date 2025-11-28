@@ -132,6 +132,10 @@ message UpdateSettings {
 
   // How often to check for updates (in hours, 0 = only on startup)
   int32 check_interval_hours = 5;
+
+  // Include patch version updates (e.g., 1.0.1 -> 1.0.2)
+  // When false, only notify for minor/major updates (e.g., 1.0.x -> 1.1.0)
+  bool include_patches = 6;
 }
 
 // UpdateStatus represents the current state of the update system

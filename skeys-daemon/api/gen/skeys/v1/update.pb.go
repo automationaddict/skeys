@@ -534,8 +534,11 @@ type UpdateSettings struct {
 	IncludePrereleases bool `protobuf:"varint,4,opt,name=include_prereleases,json=includePrereleases,proto3" json:"include_prereleases,omitempty"`
 	// How often to check for updates (in hours, 0 = only on startup)
 	CheckIntervalHours int32 `protobuf:"varint,5,opt,name=check_interval_hours,json=checkIntervalHours,proto3" json:"check_interval_hours,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// Include patch version updates (e.g., 1.0.1 -> 1.0.2)
+	// When false, only notify for minor/major updates (e.g., 1.0.x -> 1.1.0)
+	IncludePatches bool `protobuf:"varint,6,opt,name=include_patches,json=includePatches,proto3" json:"include_patches,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *UpdateSettings) Reset() {
@@ -601,6 +604,13 @@ func (x *UpdateSettings) GetCheckIntervalHours() int32 {
 		return x.CheckIntervalHours
 	}
 	return 0
+}
+
+func (x *UpdateSettings) GetIncludePatches() bool {
+	if x != nil {
+		return x.IncludePatches
+	}
+	return false
 }
 
 // UpdateStatus represents the current state of the update system
@@ -721,7 +731,7 @@ const file_skeys_v1_update_proto_rawDesc = "" +
 	"\x05error\x18\x02 \x01(\tR\x05error\x12)\n" +
 	"\x10restart_required\x18\x03 \x01(\bR\x0frestartRequired\x12\x1f\n" +
 	"\vnew_version\x18\x04 \x01(\tR\n" +
-	"newVersion\"\xd6\x01\n" +
+	"newVersion\"\xff\x01\n" +
 	"\x0eUpdateSettings\x12\x1d\n" +
 	"\n" +
 	"auto_check\x18\x01 \x01(\bR\tautoCheck\x12#\n" +
@@ -729,7 +739,8 @@ const file_skeys_v1_update_proto_rawDesc = "" +
 	"\n" +
 	"auto_apply\x18\x03 \x01(\bR\tautoApply\x12/\n" +
 	"\x13include_prereleases\x18\x04 \x01(\bR\x12includePrereleases\x120\n" +
-	"\x14check_interval_hours\x18\x05 \x01(\x05R\x12checkIntervalHours\"\x96\x02\n" +
+	"\x14check_interval_hours\x18\x05 \x01(\x05R\x12checkIntervalHours\x12'\n" +
+	"\x0finclude_patches\x18\x06 \x01(\bR\x0eincludePatches\"\x96\x02\n" +
 	"\fUpdateStatus\x12+\n" +
 	"\x05state\x18\x01 \x01(\x0e2\x15.skeys.v1.UpdateStateR\x05state\x12?\n" +
 	"\x10available_update\x18\x02 \x01(\v2\x14.skeys.v1.UpdateInfoR\x0favailableUpdate\x12G\n" +

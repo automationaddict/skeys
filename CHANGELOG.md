@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Add include patches toggle for update settings
+
 ### Documentation
 
 - Add documentation to core modules (batch 1/~13)
@@ -33,3 +37,81 @@ All notable changes to this project will be documented in this file.
 
 - Add CI workflow, Codecov, and keys package tests
 - Add comprehensive unit tests for skeys-core packages
+## [0.0.4] - 2025-11-28
+
+### Added
+
+- Add CHANGELOG.md and update release workflow
+
+### Changed
+
+- Update app icon and add logo to UI
+## [0.0.3] - 2025-11-28
+
+### Added
+
+- Add network info and firewall status to Server page
+- Add real-time streaming to Hosts page
+- Add real-time streaming to Config page
+- Add real-time streaming to Remote page
+
+### Other
+
+- Standardize Go backend patterns for consistency
+- Refactor streaming to shared broadcaster pattern
+## [0.0.2] - 2025-11-28
+
+### Added
+
+- Add SSH service auto-start toggle
+- Add real-time streaming to Server page with BLoC architecture
+
+### Changed
+
+- Improve SSH service start failure error messages
+- Update server help docs with auto-start toggle and troubleshooting
+
+### Fixed
+
+- Fix nil pointer dereference in update check
+
+### Other
+
+- Use AppToast for server page messages
+## [0.0.1] - 2025-11-28
+
+### Added
+
+- Initial commit: SKeys SSH key management application
+- Add key expiration warnings and improve agent integration
+- Add agent key timeout with per-key countdown and tab-aware help
+- Add host key scanning and set version to 0.0.1
+- Add managed SSH agent and native Go key generation
+- Add SSH connection testing with toast notifications
+- Add SSH config integration for skeys managed agent
+- Add host key verification and prioritize SSH agent auth
+- Add gRPC streaming for reactive UI updates and expand settings
+- Add dev/prod separation with containerized daemon
+- Add single instance enforcement using Unix socket
+- Add expandable public key display to SSH keys and known hosts cards
+- Add global SSH directives support to Client Config
+- Add Server status page and SSH system service support
+- Add auto-update system with GitHub Releases distribution
+
+### Changed
+
+- Update README with current project state and features
+- Replace polling with event-driven updates and add core version info
+- Update dependencies to latest compatible versions
+- Improve UX with keyboard shortcuts, timer fix, and help panel
+
+### Fixed
+
+- Fix stale socket detection in backend launcher
+- Fix help panel navigation to settings via service
+- Fix UI freeze when re-adding key to agent and update app icons
+- Fix dev container socket and XDG runtime mount
+- Fix Flutter version in release workflow
+- Fix GitHub repo URLs in documentation
+- Fix install script stdout/stderr handling
+- Fix install script to handle partial installations

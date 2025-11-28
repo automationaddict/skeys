@@ -127,6 +127,7 @@ type Settings struct {
 	AutoApply          bool `json:"auto_apply"`
 	IncludePrereleases bool `json:"include_prereleases"`
 	CheckIntervalHours int  `json:"check_interval_hours"`
+	IncludePatches     bool `json:"include_patches"`
 }
 
 // DefaultSettings returns sensible default settings.
@@ -137,6 +138,7 @@ func DefaultSettings() Settings {
 		AutoApply:          false,
 		IncludePrereleases: false,
 		CheckIntervalHours: 24,
+		IncludePatches:     true, // Default to including patch updates
 	}
 }
 
@@ -177,10 +179,11 @@ func (m *Manager) setError(err error) {
 }
 
 // CheckForUpdates queries GitHub for the latest release.
-func (m *Manager) CheckForUpdates(ctx context.Context, includePrereleases bool) (*ReleaseInfo, error) {
+func (m *Manager) CheckForUpdates(ctx context.Context, includePrereleases, includePatches bool) (*ReleaseInfo, error) {
 	m.setState(StateChecking)
 	m.logger.InfoWithFields("checking for updates", map[string]interface{}{
 		"current_version": m.currentVersion,
+		"include_patches": includePatches,
 	})
 
 	release, err := m.fetchLatestRelease(ctx, includePrereleases)
@@ -197,8 +200,19 @@ func (m *Manager) CheckForUpdates(ctx context.Context, includePrereleases bool) 
 	latestVersion := strings.TrimPrefix(release.TagName, "v")
 	currentVersion := strings.TrimPrefix(m.currentVersion, "v")
 
+	// Check if there's a newer version
 	if !isNewerVersion(latestVersion, currentVersion) {
 		m.logger.InfoWithFields("already up to date", map[string]interface{}{
+			"current": currentVersion,
+			"latest":  latestVersion,
+		})
+		m.setState(StateIdle)
+		return nil, nil
+	}
+
+	// If not including patches, check if this is only a patch update
+	if !includePatches && isPatchUpdate(currentVersion, latestVersion) {
+		m.logger.InfoWithFields("patch update available but patches disabled", map[string]interface{}{
 			"current": currentVersion,
 			"latest":  latestVersion,
 		})
@@ -642,4 +656,52 @@ func isNewerVersion(a, b string) bool {
 	}
 
 	return len(aParts) > len(bParts)
+}
+
+// isPatchUpdate returns true if the update from 'current' to 'latest' is only a patch or build update.
+// A patch update is when only the patch version (third component) or build number changes.
+// For example: 1.0.1 -> 1.0.2 is a patch, 0.0.4+1 -> 0.0.4+2 is a build update, but 1.0.1 -> 1.1.0 is not.
+func isPatchUpdate(current, latest string) bool {
+	// Strip any leading 'v' prefix
+	current = strings.TrimPrefix(current, "v")
+	latest = strings.TrimPrefix(latest, "v")
+
+	// Split off build metadata (after +) if present
+	currentBase, _ := splitBuildMetadata(current)
+	latestBase, _ := splitBuildMetadata(latest)
+
+	// Split into parts
+	currentParts := strings.Split(currentBase, ".")
+	latestParts := strings.Split(latestBase, ".")
+
+	// Need at least 2 parts (major.minor) to compare
+	if len(currentParts) < 2 || len(latestParts) < 2 {
+		return false
+	}
+
+	// Compare major version
+	currentMajor, err1 := strconv.Atoi(currentParts[0])
+	latestMajor, err2 := strconv.Atoi(latestParts[0])
+	if err1 != nil || err2 != nil || currentMajor != latestMajor {
+		return false // Major version changed, not a patch
+	}
+
+	// Compare minor version
+	currentMinor, err1 := strconv.Atoi(currentParts[1])
+	latestMinor, err2 := strconv.Atoi(latestParts[1])
+	if err1 != nil || err2 != nil || currentMinor != latestMinor {
+		return false // Minor version changed, not a patch
+	}
+
+	// If major and minor are the same, it's a patch/build update
+	return true
+}
+
+// splitBuildMetadata splits a version string into base version and build metadata.
+// For "0.0.4+2" returns ("0.0.4", "2"), for "0.0.4" returns ("0.0.4", "").
+func splitBuildMetadata(version string) (base, build string) {
+	if idx := strings.Index(version, "+"); idx != -1 {
+		return version[:idx], version[idx+1:]
+	}
+	return version, ""
 }

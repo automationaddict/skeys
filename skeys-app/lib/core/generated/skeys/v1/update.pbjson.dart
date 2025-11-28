@@ -183,6 +183,7 @@ const UpdateSettings$json = {
       '5': 5,
       '10': 'checkIntervalHours'
     },
+    {'1': 'include_patches', '3': 6, '4': 1, '5': 8, '10': 'includePatches'},
   ],
 };
 

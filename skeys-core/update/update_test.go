@@ -422,3 +422,83 @@ func TestIsNewerVersion_NonNumeric(t *testing.T) {
 	assert.True(t, isNewerVersion("1.0.0-beta", "1.0.0-alpha"))  // beta > alpha lexicographically
 	assert.False(t, isNewerVersion("1.0.0-alpha", "1.0.0-beta")) // alpha < beta lexicographically
 }
+
+func TestIsPatchUpdate(t *testing.T) {
+	tests := []struct {
+		name     string
+		current  string
+		latest   string
+		expected bool
+	}{
+		{"patch increment", "1.0.0", "1.0.1", true},
+		{"patch increment larger", "1.0.1", "1.0.5", true},
+		{"minor increment", "1.0.0", "1.1.0", false},
+		{"major increment", "1.0.0", "2.0.0", false},
+		{"minor and patch increment", "1.0.0", "1.1.1", false},
+		{"with v prefix current", "v1.0.0", "1.0.1", true},
+		{"with v prefix latest", "1.0.0", "v1.0.1", true},
+		{"with v prefix both", "v1.0.0", "v1.0.1", true},
+		{"same version", "1.0.0", "1.0.0", true}, // Same major.minor = patch
+		{"two part version patch", "1.0", "1.0.1", true},
+		{"two part to two part", "1.0", "1.1", false},
+		{"single part version", "1", "1.0.1", false}, // Not enough parts
+		// Build number tests
+		{"build number increment", "0.0.4+1", "0.0.4+2", true},
+		{"build number larger increment", "0.0.4+1", "0.0.4+10", true},
+		{"build to no build", "0.0.4+1", "0.0.4", true},
+		{"no build to build", "0.0.4", "0.0.4+1", true},
+		{"build with patch increment", "0.0.4+1", "0.0.5+1", true},
+		{"build with minor increment", "0.0.4+1", "0.1.0+1", false},
+		{"build with major increment", "0.0.4+1", "1.0.0+1", false},
+		{"v prefix with build", "v0.0.4+1", "v0.0.4+2", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := isPatchUpdate(tt.current, tt.latest)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestSplitBuildMetadata(t *testing.T) {
+	tests := []struct {
+		name          string
+		version       string
+		expectedBase  string
+		expectedBuild string
+	}{
+		{"no build metadata", "0.0.4", "0.0.4", ""},
+		{"with build metadata", "0.0.4+2", "0.0.4", "2"},
+		{"with longer build", "0.0.4+123", "0.0.4", "123"},
+		{"empty version", "", "", ""},
+		{"just plus", "+1", "", "1"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			base, build := splitBuildMetadata(tt.version)
+			assert.Equal(t, tt.expectedBase, base)
+			assert.Equal(t, tt.expectedBuild, build)
+		})
+	}
+}
+
+func TestDefaultSettings_IncludePatches(t *testing.T) {
+	settings := DefaultSettings()
+	// Default should include patches
+	assert.True(t, settings.IncludePatches)
+}
+
+func TestSettings_IncludePatches(t *testing.T) {
+	settings := Settings{
+		AutoCheck:          true,
+		AutoDownload:       false,
+		AutoApply:          false,
+		IncludePrereleases: false,
+		CheckIntervalHours: 24,
+		IncludePatches:     false,
+	}
+
+	assert.False(t, settings.IncludePatches)
+}

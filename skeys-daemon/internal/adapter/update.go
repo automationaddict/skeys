@@ -57,7 +57,7 @@ func NewUpdateServiceAdapter(currentVersion string) *UpdateServiceAdapter {
 func (a *UpdateServiceAdapter) CheckForUpdates(ctx context.Context, req *emptypb.Empty) (*pb.UpdateInfo, error) {
 	settings, _ := update.LoadSettings(a.configDir)
 
-	release, err := a.manager.CheckForUpdates(ctx, settings.IncludePrereleases)
+	release, err := a.manager.CheckForUpdates(ctx, settings.IncludePrereleases, settings.IncludePatches)
 	if err != nil {
 		return nil, err
 	}
@@ -159,6 +159,7 @@ func (a *UpdateServiceAdapter) GetUpdateSettings(ctx context.Context, req *empty
 		AutoApply:          settings.AutoApply,
 		IncludePrereleases: settings.IncludePrereleases,
 		CheckIntervalHours: int32(settings.CheckIntervalHours),
+		IncludePatches:     settings.IncludePatches,
 	}, nil
 }
 
@@ -170,6 +171,7 @@ func (a *UpdateServiceAdapter) SetUpdateSettings(ctx context.Context, req *pb.Up
 		AutoApply:          req.AutoApply,
 		IncludePrereleases: req.IncludePrereleases,
 		CheckIntervalHours: int(req.CheckIntervalHours),
+		IncludePatches:     req.IncludePatches,
 	}
 
 	if err := update.SaveSettings(a.configDir, settings); err != nil {
