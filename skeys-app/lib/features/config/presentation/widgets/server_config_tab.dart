@@ -28,8 +28,10 @@ import 'server_directive_dialog.dart';
 
 /// Server config tab with expandable sections for all SSH server settings.
 class ServerConfigTab extends StatefulWidget {
+  /// The current config state.
   final ConfigState state;
 
+  /// Creates a ServerConfigTab widget.
   const ServerConfigTab({super.key, required this.state});
 
   @override

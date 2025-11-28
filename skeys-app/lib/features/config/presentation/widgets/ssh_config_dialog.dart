@@ -33,6 +33,7 @@ class SSHConfigDialog extends StatefulWidget {
   /// Callback when the user saves the entry.
   final void Function(SSHConfigEntry entry) onSave;
 
+  /// Creates an SSHConfigDialog widget.
   const SSHConfigDialog({super.key, this.entry, required this.onSave});
 
   @override

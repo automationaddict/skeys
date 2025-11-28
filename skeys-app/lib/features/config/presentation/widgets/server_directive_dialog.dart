@@ -24,10 +24,16 @@ import '../../domain/sshd_directives.dart';
 
 /// Dialog for editing an SSH server directive.
 class ServerDirectiveDialog extends StatefulWidget {
+  /// The directive key being edited.
   final String directiveKey;
+
+  /// The current value of the directive.
   final String? currentValue;
+
+  /// Callback when the directive is saved.
   final void Function(String value) onSave;
 
+  /// Creates a ServerDirectiveDialog widget.
   const ServerDirectiveDialog({
     super.key,
     required this.directiveKey,

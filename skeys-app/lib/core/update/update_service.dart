@@ -41,6 +41,7 @@ class UpdateService extends ChangeNotifier {
   bool _updateAvailable = false;
   String? _latestVersion;
 
+  /// Creates an UpdateService with an optional gRPC client.
   UpdateService({GrpcClient? grpcClient})
     : _grpcClient = grpcClient ?? getIt<GrpcClient>();
 

@@ -24,9 +24,13 @@ import '../../domain/config_entity.dart';
 
 /// Dialog for adding or editing a global SSH directive.
 class GlobalDirectiveDialog extends StatefulWidget {
+  /// The existing directive to edit, or null for a new directive.
   final GlobalDirective? directive;
+
+  /// Callback when the directive is saved.
   final void Function(String key, String value) onSave;
 
+  /// Creates a GlobalDirectiveDialog widget.
   const GlobalDirectiveDialog({
     super.key,
     this.directive,

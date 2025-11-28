@@ -26,6 +26,7 @@ import '../../../keys/repository/keys_repository.dart';
 
 /// Dialog for selecting an SSH key for IdentityFile configuration.
 class KeyPickerDialog extends StatefulWidget {
+  /// Creates a KeyPickerDialog widget.
   const KeyPickerDialog({super.key});
 
   @override

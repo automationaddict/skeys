@@ -94,22 +94,34 @@ class SettingsService extends ChangeNotifier {
   static const _agentKeyTimeoutMinutesKey = 'agent_key_timeout_minutes';
   static const _sshConfigPromptShownKey = 'ssh_config_prompt_shown';
 
-  // Default window size
+  /// Default window width in pixels.
   static const defaultWindowWidth = 1200.0;
+
+  /// Default window height in pixels.
   static const defaultWindowHeight = 800.0;
+
+  /// Minimum window width in pixels.
   static const minWindowWidth = 800.0;
+
+  /// Minimum window height in pixels.
   static const minWindowHeight = 600.0;
 
-  // Default help panel width
+  /// Default help panel width in pixels.
   static const defaultHelpPanelWidth = 400.0;
+
+  /// Minimum help panel width in pixels.
   static const minHelpPanelWidth = 280.0;
+
+  /// Maximum help panel width in pixels.
   static const maxHelpPanelWidth = 600.0;
 
-  // Default key expiration thresholds (in days)
+  /// Default number of days before key expiration to show a warning.
   static const defaultKeyExpirationWarningDays = 90;
+
+  /// Default number of days before key expiration to show critical alert.
   static const defaultKeyExpirationCriticalDays = 180;
 
-  // Default agent key timeout (in minutes, 0 = no timeout)
+  /// Default agent key timeout in minutes (0 = no timeout).
   static const defaultAgentKeyTimeoutMinutes = 0;
 
   final SharedPreferences _prefs;

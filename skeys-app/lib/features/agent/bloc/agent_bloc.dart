@@ -35,6 +35,7 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
   final AgentRepository _repository;
   final AppLogger _log = AppLogger('bloc.agent');
 
+  /// Creates an AgentBloc with the given repository.
   AgentBloc(this._repository) : super(const AgentState()) {
     on<AgentLoadStatusRequested>(_onLoadStatus);
     on<AgentLoadKeysRequested>(_onLoadKeys);

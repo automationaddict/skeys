@@ -34,6 +34,7 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
   final ConfigRepository _repository;
   final AppLogger _log = AppLogger('bloc.config');
 
+  /// Creates a ConfigBloc with the given repository.
   ConfigBloc(this._repository) : super(const ConfigState()) {
     // New unified SSH config API handlers
     on<ConfigLoadSSHEntriesRequested>(_onLoadSSHEntries);
