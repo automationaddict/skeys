@@ -48,6 +48,9 @@ class _GlobalDirectiveDialogState extends State<GlobalDirectiveDialog> {
   String? _selectedPreset;
   String? _selectedDropdownValue;
 
+  final _keyFocusNode = FocusNode();
+  final _valueFocusNode = FocusNode();
+
   // SSH directives with constrained value options
   // Reference: https://man.openbsd.org/ssh_config
   static const _directiveValueOptions = <String, List<String>>{
@@ -291,6 +294,8 @@ class _GlobalDirectiveDialogState extends State<GlobalDirectiveDialog> {
   void dispose() {
     _keyController.dispose();
     _valueController.dispose();
+    _keyFocusNode.dispose();
+    _valueFocusNode.dispose();
     super.dispose();
   }
 
@@ -393,12 +398,15 @@ class _GlobalDirectiveDialogState extends State<GlobalDirectiveDialog> {
                       // Key field
                       TextFormField(
                         controller: _keyController,
+                        focusNode: _keyFocusNode,
                         decoration: const InputDecoration(
                           labelText: 'Directive Name',
                           hintText: 'e.g., HashKnownHosts',
                           prefixIcon: Icon(Icons.key),
                         ),
                         enabled: !_isEditing, // Can't change key when editing
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) => _valueFocusNode.requestFocus(),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter a directive name';
@@ -508,12 +516,15 @@ class _GlobalDirectiveDialogState extends State<GlobalDirectiveDialog> {
     // Otherwise show free-form text field
     return TextFormField(
       controller: _valueController,
+      focusNode: _valueFocusNode,
       decoration: InputDecoration(
         labelText: 'Value',
         hintText: 'e.g., yes, no, or a path',
         prefixIcon: const Icon(Icons.text_fields),
         helperText: _getValueHelperText(),
       ),
+      textInputAction: TextInputAction.done,
+      onFieldSubmitted: (_) => _save(),
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Please enter a value';

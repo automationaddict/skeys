@@ -68,6 +68,13 @@ class _SSHConfigDialogState extends State<SSHConfigDialog> {
   // Extra options
   final _extraOptionsController = TextEditingController();
 
+  // Focus nodes for Enter key navigation
+  final _patternsFocusNode = FocusNode();
+  final _hostnameFocusNode = FocusNode();
+  final _userFocusNode = FocusNode();
+  final _portFocusNode = FocusNode();
+  final _identityFileFocusNode = FocusNode();
+
   // Progressive disclosure
   bool _showAdvanced = false;
 
@@ -129,6 +136,11 @@ class _SSHConfigDialogState extends State<SSHConfigDialog> {
     _serverAliveIntervalController.dispose();
     _serverAliveCountMaxController.dispose();
     _extraOptionsController.dispose();
+    _patternsFocusNode.dispose();
+    _hostnameFocusNode.dispose();
+    _userFocusNode.dispose();
+    _portFocusNode.dispose();
+    _identityFileFocusNode.dispose();
     super.dispose();
   }
 
@@ -209,6 +221,7 @@ class _SSHConfigDialogState extends State<SSHConfigDialog> {
                       // Patterns
                       TextFormField(
                         controller: _patternsController,
+                        focusNode: _patternsFocusNode,
                         decoration: InputDecoration(
                           labelText: _entryType == SSHConfigEntryType.host
                               ? 'Host Patterns'
@@ -218,6 +231,9 @@ class _SSHConfigDialogState extends State<SSHConfigDialog> {
                               : 'e.g., host *.internal user admin',
                           helperText: 'Space-separated patterns or criteria',
                         ),
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) =>
+                            _hostnameFocusNode.requestFocus(),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'At least one pattern is required';
@@ -238,20 +254,28 @@ class _SSHConfigDialogState extends State<SSHConfigDialog> {
                           Expanded(
                             child: TextFormField(
                               controller: _hostnameController,
+                              focusNode: _hostnameFocusNode,
                               decoration: const InputDecoration(
                                 labelText: 'Hostname',
                                 hintText: 'e.g., 192.168.1.100',
                               ),
+                              textInputAction: TextInputAction.next,
+                              onFieldSubmitted: (_) =>
+                                  _userFocusNode.requestFocus(),
                             ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: TextFormField(
                               controller: _userController,
+                              focusNode: _userFocusNode,
                               decoration: const InputDecoration(
                                 labelText: 'User',
                                 hintText: 'e.g., admin',
                               ),
+                              textInputAction: TextInputAction.next,
+                              onFieldSubmitted: (_) =>
+                                  _portFocusNode.requestFocus(),
                             ),
                           ),
                         ],
@@ -266,14 +290,18 @@ class _SSHConfigDialogState extends State<SSHConfigDialog> {
                             width: 120,
                             child: TextFormField(
                               controller: _portController,
+                              focusNode: _portFocusNode,
                               decoration: const InputDecoration(
                                 labelText: 'Port',
                                 hintText: '22',
                               ),
                               keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.next,
                               inputFormatters: [
                                 FilteringTextInputFormatter.digitsOnly,
                               ],
+                              onFieldSubmitted: (_) =>
+                                  _identityFileFocusNode.requestFocus(),
                               validator: (value) {
                                 if (value != null && value.isNotEmpty) {
                                   final port = int.tryParse(value);
@@ -291,6 +319,7 @@ class _SSHConfigDialogState extends State<SSHConfigDialog> {
                           Expanded(
                             child: TextFormField(
                               controller: _identityFileController,
+                              focusNode: _identityFileFocusNode,
                               decoration: InputDecoration(
                                 labelText: 'Identity File',
                                 hintText: '~/.ssh/id_ed25519',
@@ -300,6 +329,8 @@ class _SSHConfigDialogState extends State<SSHConfigDialog> {
                                   onPressed: _showKeyPicker,
                                 ),
                               ),
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted: (_) => _onSave(),
                             ),
                           ),
                         ],

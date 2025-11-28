@@ -98,6 +98,11 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
   final _userController = TextEditingController();
   final _passphraseController = TextEditingController();
 
+  final _hostFocusNode = FocusNode();
+  final _userFocusNode = FocusNode();
+  final _portFocusNode = FocusNode();
+  final _passphraseFocusNode = FocusNode();
+
   ServicePreset? _selectedPreset;
   bool _useCustom = false;
   bool _obscurePassphrase = true;
@@ -123,6 +128,10 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
     _portController.dispose();
     _userController.dispose();
     _passphraseController.dispose();
+    _hostFocusNode.dispose();
+    _userFocusNode.dispose();
+    _portFocusNode.dispose();
+    _passphraseFocusNode.dispose();
     super.dispose();
   }
 
@@ -236,11 +245,15 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
                         children: [
                           TextFormField(
                             controller: _hostController,
+                            focusNode: _hostFocusNode,
                             decoration: const InputDecoration(
                               labelText: 'Host',
                               hintText: 'e.g., my-server.com',
                             ),
+                            textInputAction: TextInputAction.next,
                             enabled: !isLoading,
+                            onFieldSubmitted: (_) =>
+                                _userFocusNode.requestFocus(),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter a host';
@@ -255,11 +268,15 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
                                 flex: 2,
                                 child: TextFormField(
                                   controller: _userController,
+                                  focusNode: _userFocusNode,
                                   decoration: const InputDecoration(
                                     labelText: 'User',
                                     hintText: 'e.g., root',
                                   ),
+                                  textInputAction: TextInputAction.next,
                                   enabled: !isLoading,
+                                  onFieldSubmitted: (_) =>
+                                      _portFocusNode.requestFocus(),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
                                       return 'Please enter a user';
@@ -272,11 +289,22 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
                               Expanded(
                                 child: TextFormField(
                                   controller: _portController,
+                                  focusNode: _portFocusNode,
                                   decoration: const InputDecoration(
                                     labelText: 'Port',
                                   ),
                                   keyboardType: TextInputType.number,
+                                  textInputAction: _currentNeedsPassphrase
+                                      ? TextInputAction.next
+                                      : TextInputAction.done,
                                   enabled: !isLoading,
+                                  onFieldSubmitted: (_) {
+                                    if (_currentNeedsPassphrase) {
+                                      _passphraseFocusNode.requestFocus();
+                                    } else {
+                                      _onTest();
+                                    }
+                                  },
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
                                       return 'Required';
@@ -306,6 +334,7 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
                       key: _selectedPreset != null ? _formKey : null,
                       child: TextFormField(
                         controller: _passphraseController,
+                        focusNode: _passphraseFocusNode,
                         decoration: InputDecoration(
                           labelText: 'Key Passphrase',
                           helperText:
@@ -324,7 +353,9 @@ class _TestConnectionDialogState extends State<TestConnectionDialog> {
                           ),
                         ),
                         obscureText: _obscurePassphrase,
+                        textInputAction: TextInputAction.done,
                         enabled: !isLoading,
+                        onFieldSubmitted: (_) => _onTest(),
                         validator: (value) {
                           if (_currentNeedsPassphrase &&
                               (value == null || value.isEmpty)) {

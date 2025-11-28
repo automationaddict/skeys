@@ -21,6 +21,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../core/backend/daemon_status_service.dart';
@@ -40,14 +41,28 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
 
   /// Creates a RemoteBloc with the given repository.
   RemoteBloc(this._repository) : super(const RemoteState()) {
-    on<RemoteLoadRequested>(_onLoadRequested);
-    on<RemoteAddRequested>(_onAddRequested);
-    on<RemoteDeleteRequested>(_onDeleteRequested);
-    on<RemoteConnectRequested>(_onConnectRequested);
-    on<RemoteDisconnectRequested>(_onDisconnectRequested);
-    on<RemoteLoadConnectionsRequested>(_onLoadConnections);
-    on<RemoteWatchConnectionsRequested>(_onWatchConnections);
-    on<RemoteExecuteCommandRequested>(_onExecuteCommand);
+    // Use restartable for watch (cancels previous stream on new request)
+    on<RemoteWatchConnectionsRequested>(
+      _onWatchConnections,
+      transformer: restartable(),
+    );
+    // Use concurrent/droppable for actions so they don't block on watch stream
+    on<RemoteLoadRequested>(_onLoadRequested, transformer: concurrent());
+    on<RemoteAddRequested>(_onAddRequested, transformer: droppable());
+    on<RemoteDeleteRequested>(_onDeleteRequested, transformer: droppable());
+    on<RemoteConnectRequested>(_onConnectRequested, transformer: droppable());
+    on<RemoteDisconnectRequested>(
+      _onDisconnectRequested,
+      transformer: droppable(),
+    );
+    on<RemoteLoadConnectionsRequested>(
+      _onLoadConnections,
+      transformer: concurrent(),
+    );
+    on<RemoteExecuteCommandRequested>(
+      _onExecuteCommand,
+      transformer: droppable(),
+    );
     _log.debug('RemoteBloc initialized');
 
     // Listen for reconnection events to refresh streams

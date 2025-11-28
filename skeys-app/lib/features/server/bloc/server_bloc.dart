@@ -21,6 +21,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../core/backend/daemon_status_service.dart';
@@ -40,13 +41,18 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
   /// Creates a ServerBloc with the given repository.
   ServerBloc(this._repository) : super(const ServerState()) {
-    on<ServerWatchRequested>(_onWatchRequested);
-    on<ServerStartRequested>(_onStartRequested);
-    on<ServerStopRequested>(_onStopRequested);
-    on<ServerRestartRequested>(_onRestartRequested);
-    on<ServerEnableRequested>(_onEnableRequested);
-    on<ServerDisableRequested>(_onDisableRequested);
-    on<ServerActionResultCleared>(_onActionResultCleared);
+    // Use restartable for watch (cancels previous stream on new request)
+    on<ServerWatchRequested>(_onWatchRequested, transformer: restartable());
+    // Use droppable for actions so they don't block on watch stream
+    on<ServerStartRequested>(_onStartRequested, transformer: droppable());
+    on<ServerStopRequested>(_onStopRequested, transformer: droppable());
+    on<ServerRestartRequested>(_onRestartRequested, transformer: droppable());
+    on<ServerEnableRequested>(_onEnableRequested, transformer: droppable());
+    on<ServerDisableRequested>(_onDisableRequested, transformer: droppable());
+    on<ServerActionResultCleared>(
+      _onActionResultCleared,
+      transformer: concurrent(),
+    );
     _log.debug('ServerBloc initialized');
 
     // Listen for reconnection events to refresh streams

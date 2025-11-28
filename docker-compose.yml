@@ -15,6 +15,7 @@ services:
     volumes:
       - /tmp:/tmp
       - /run/user/${UID:-1000}:/run/user/${UID:-1000}
+      - /run/user/${UID:-1000}/skeys:/run/user/${UID:-1000}/skeys
       - ${HOME}/.ssh:${HOME}/.ssh
       - ${HOME}/.local/share/skeys:${HOME}/.local/share/skeys
       - /tmp/sshd_config_test:/etc/ssh/sshd_config

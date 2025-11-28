@@ -38,12 +38,15 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
   final AgentRepository _repository;
   final AppLogger _log = AppLogger('bloc.agent');
   StreamSubscription<void>? _reconnectionSubscription;
+  StreamSubscription<AgentWatchState>? _watchSubscription;
 
   /// Creates an AgentBloc with the given repository.
   AgentBloc(this._repository) : super(const AgentState()) {
+    on<AgentWatchRequested>(_onWatchRequested);
+    on<_AgentWatchUpdated>(_onWatchUpdated);
+    on<_AgentWatchError>(_onWatchError);
     on<AgentLoadStatusRequested>(_onLoadStatus);
     on<AgentLoadKeysRequested>(_onLoadKeys);
-    on<AgentWatchRequested>(_onWatchRequested);
     on<AgentAddKeyRequested>(_onAddKey);
     on<AgentRemoveKeyRequested>(_onRemoveKey);
     on<AgentRemoveAllKeysRequested>(_onRemoveAllKeys);
@@ -65,6 +68,7 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
   @override
   Future<void> close() {
     _reconnectionSubscription?.cancel();
+    _watchSubscription?.cancel();
     return super.close();
   }
 
@@ -121,34 +125,42 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
     }
   }
 
-  Future<void> _onWatchRequested(
-    AgentWatchRequested event,
-    Emitter<AgentState> emit,
-  ) async {
+  void _onWatchRequested(AgentWatchRequested event, Emitter<AgentState> emit) {
     _log.debug('subscribing to agent stream');
+    // Cancel any existing subscription
+    _watchSubscription?.cancel();
     emit(state.copyWith(status: AgentBlocStatus.loading));
 
-    await emit.forEach<AgentWatchState>(
-      _repository.watchAgent(),
-      onData: (watchState) {
-        _log.debug('agent stream update', {
-          'running': watchState.status.isRunning,
-          'locked': watchState.status.isLocked,
-          'key_count': watchState.keys.length,
-        });
-        return state.copyWith(
-          status: AgentBlocStatus.success,
-          agentStatus: watchState.status,
-          loadedKeys: watchState.keys,
-        );
-      },
-      onError: (error, stackTrace) {
-        _log.error('agent stream error', error, stackTrace);
-        return state.copyWith(
-          status: AgentBlocStatus.failure,
-          errorMessage: error.toString(),
-        );
-      },
+    // Use manual subscription so it doesn't block other events
+    _watchSubscription = _repository.watchAgent().listen(
+      (watchState) => add(_AgentWatchUpdated(watchState)),
+      onError: (error, stackTrace) => add(_AgentWatchError(error.toString())),
+    );
+  }
+
+  void _onWatchUpdated(_AgentWatchUpdated event, Emitter<AgentState> emit) {
+    _log.debug('agent stream update', {
+      'running': event.watchState.status.isRunning,
+      'locked': event.watchState.status.isLocked,
+      'key_count': event.watchState.keys.length,
+    });
+    emit(
+      state.copyWith(
+        status: AgentBlocStatus.success,
+        agentStatus: event.watchState.status,
+        loadedKeys: event.watchState.keys,
+        lastCompletedAction: AgentCompletedAction.watchUpdate,
+      ),
+    );
+  }
+
+  void _onWatchError(_AgentWatchError event, Emitter<AgentState> emit) {
+    _log.error('agent stream error: ${event.error}');
+    emit(
+      state.copyWith(
+        status: AgentBlocStatus.failure,
+        errorMessage: event.error,
+      ),
     );
   }
 
@@ -186,6 +198,7 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
           status: AgentBlocStatus.success,
           loadedKeys: keys,
           agentStatus: agentStatus,
+          lastCompletedAction: AgentCompletedAction.addKey,
         ),
       );
     } catch (e, st) {
@@ -217,6 +230,7 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
           status: AgentBlocStatus.success,
           loadedKeys: keys,
           agentStatus: agentStatus,
+          lastCompletedAction: AgentCompletedAction.removeKey,
         ),
       );
     } catch (e, st) {
@@ -249,6 +263,7 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
           status: AgentBlocStatus.success,
           loadedKeys: [],
           agentStatus: agentStatus,
+          lastCompletedAction: AgentCompletedAction.removeAllKeys,
         ),
       );
     } catch (e, st) {
@@ -277,6 +292,7 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
         state.copyWith(
           status: AgentBlocStatus.success,
           agentStatus: agentStatus,
+          lastCompletedAction: AgentCompletedAction.lock,
         ),
       );
     } catch (e, st) {
@@ -305,6 +321,7 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
         state.copyWith(
           status: AgentBlocStatus.success,
           agentStatus: agentStatus,
+          lastCompletedAction: AgentCompletedAction.unlock,
         ),
       );
     } catch (e, st) {

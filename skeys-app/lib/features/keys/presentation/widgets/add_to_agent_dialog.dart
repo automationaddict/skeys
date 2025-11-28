@@ -102,6 +102,11 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
   final _userController = TextEditingController();
   final _passphraseController = TextEditingController();
 
+  final _hostFocusNode = FocusNode();
+  final _userFocusNode = FocusNode();
+  final _portFocusNode = FocusNode();
+  final _passphraseFocusNode = FocusNode();
+
   ServicePreset? _selectedPreset;
   bool _useCustom = false;
   bool _obscurePassphrase = true;
@@ -114,6 +119,10 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
     _portController.dispose();
     _userController.dispose();
     _passphraseController.dispose();
+    _hostFocusNode.dispose();
+    _userFocusNode.dispose();
+    _portFocusNode.dispose();
+    _passphraseFocusNode.dispose();
     super.dispose();
   }
 
@@ -176,7 +185,9 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
           listener: (context, agentState) {
             if (!_addingToAgent) return;
 
-            if (agentState.status == AgentBlocStatus.success) {
+            // Only react to addKey completion, not watch stream updates
+            if (agentState.status == AgentBlocStatus.success &&
+                agentState.lastCompletedAction == AgentCompletedAction.addKey) {
               // Key added successfully - store metadata and close
               _onAgentAddSuccess();
             } else if (agentState.status == AgentBlocStatus.failure) {
@@ -251,11 +262,15 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
                           children: [
                             TextFormField(
                               controller: _hostController,
+                              focusNode: _hostFocusNode,
                               decoration: const InputDecoration(
                                 labelText: 'Host',
                                 hintText: 'e.g., my-server.com',
                               ),
+                              textInputAction: TextInputAction.next,
                               enabled: !isLoading,
+                              onFieldSubmitted: (_) =>
+                                  _userFocusNode.requestFocus(),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter a host';
@@ -270,11 +285,15 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
                                   flex: 2,
                                   child: TextFormField(
                                     controller: _userController,
+                                    focusNode: _userFocusNode,
                                     decoration: const InputDecoration(
                                       labelText: 'User',
                                       hintText: 'e.g., root',
                                     ),
+                                    textInputAction: TextInputAction.next,
                                     enabled: !isLoading,
+                                    onFieldSubmitted: (_) =>
+                                        _portFocusNode.requestFocus(),
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return 'Please enter a user';
@@ -287,11 +306,23 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
                                 Expanded(
                                   child: TextFormField(
                                     controller: _portController,
+                                    focusNode: _portFocusNode,
                                     decoration: const InputDecoration(
                                       labelText: 'Port',
                                     ),
                                     keyboardType: TextInputType.number,
+                                    textInputAction:
+                                        widget.keyEntity.hasPassphrase
+                                        ? TextInputAction.next
+                                        : TextInputAction.done,
                                     enabled: !isLoading,
+                                    onFieldSubmitted: (_) {
+                                      if (widget.keyEntity.hasPassphrase) {
+                                        _passphraseFocusNode.requestFocus();
+                                      } else {
+                                        _onVerifyAndAdd();
+                                      }
+                                    },
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return 'Required';
@@ -321,6 +352,7 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
                         key: _selectedPreset != null ? _formKey : null,
                         child: TextFormField(
                           controller: _passphraseController,
+                          focusNode: _passphraseFocusNode,
                           decoration: InputDecoration(
                             labelText: 'Key Passphrase',
                             helperText: 'Required to unlock your private key',
@@ -338,7 +370,9 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
                             ),
                           ),
                           obscureText: _obscurePassphrase,
+                          textInputAction: TextInputAction.done,
                           enabled: !isLoading,
+                          onFieldSubmitted: (_) => _onVerifyAndAdd(),
                           validator: (value) {
                             if (widget.keyEntity.hasPassphrase &&
                                 (value == null || value.isEmpty)) {

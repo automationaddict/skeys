@@ -40,6 +40,11 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
   final _passphraseController = TextEditingController();
   final _confirmPassphraseController = TextEditingController();
 
+  final _nameFocusNode = FocusNode();
+  final _commentFocusNode = FocusNode();
+  final _passphraseFocusNode = FocusNode();
+  final _confirmPassphraseFocusNode = FocusNode();
+
   KeyType _selectedType = KeyType.ed25519;
   int? _selectedBits;
   bool _showPassphrase = false;
@@ -51,6 +56,10 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
     _commentController.dispose();
     _passphraseController.dispose();
     _confirmPassphraseController.dispose();
+    _nameFocusNode.dispose();
+    _commentFocusNode.dispose();
+    _passphraseFocusNode.dispose();
+    _confirmPassphraseFocusNode.dispose();
     super.dispose();
   }
 
@@ -68,10 +77,13 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
             children: [
               TextFormField(
                 controller: _nameController,
+                focusNode: _nameFocusNode,
                 decoration: const InputDecoration(
                   labelText: 'Key Name',
                   hintText: 'e.g., id_ed25519_github',
                 ),
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) => _commentFocusNode.requestFocus(),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a key name';
@@ -145,14 +157,18 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _commentController,
+                focusNode: _commentFocusNode,
                 decoration: const InputDecoration(
                   labelText: 'Comment (optional)',
                   hintText: 'e.g., user@hostname',
                 ),
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) => _passphraseFocusNode.requestFocus(),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _passphraseController,
+                focusNode: _passphraseFocusNode,
                 obscureText: !_showPassphrase,
                 decoration: InputDecoration(
                   labelText: 'Passphrase (optional)',
@@ -167,6 +183,14 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
                     },
                   ),
                 ),
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) {
+                  if (_passphraseController.text.isNotEmpty) {
+                    _confirmPassphraseFocusNode.requestFocus();
+                  } else {
+                    _onGenerate();
+                  }
+                },
                 onChanged: (_) {
                   // Trigger rebuild to show/hide confirm passphrase field
                   setState(() {});
@@ -176,6 +200,7 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _confirmPassphraseController,
+                  focusNode: _confirmPassphraseFocusNode,
                   obscureText: !_showPassphrase,
                   decoration: InputDecoration(
                     labelText: 'Confirm Passphrase',
@@ -192,6 +217,8 @@ class _GenerateKeyDialogState extends State<GenerateKeyDialog> {
                       },
                     ),
                   ),
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _onGenerate(),
                   validator: (value) {
                     if (_passphraseController.text.isNotEmpty &&
                         value != _passphraseController.text) {

@@ -49,6 +49,9 @@ class _ExportDialogState extends State<ExportDialog> {
   final _confirmController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  final _passphraseFocusNode = FocusNode();
+  final _confirmFocusNode = FocusNode();
+
   bool _includeKeys = true;
   bool _includeConfig = true;
   bool _includeKnownHosts = true;
@@ -61,6 +64,8 @@ class _ExportDialogState extends State<ExportDialog> {
   void dispose() {
     _passphraseController.dispose();
     _confirmController.dispose();
+    _passphraseFocusNode.dispose();
+    _confirmFocusNode.dispose();
     super.dispose();
   }
 
@@ -165,6 +170,7 @@ class _ExportDialogState extends State<ExportDialog> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _passphraseController,
+                  focusNode: _passphraseFocusNode,
                   obscureText: _obscurePassphrase,
                   decoration: InputDecoration(
                     labelText: 'Passphrase',
@@ -182,6 +188,8 @@ class _ExportDialogState extends State<ExportDialog> {
                     ),
                     border: const OutlineInputBorder(),
                   ),
+                  textInputAction: TextInputAction.next,
+                  onFieldSubmitted: (_) => _confirmFocusNode.requestFocus(),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Passphrase is required';
@@ -195,6 +203,7 @@ class _ExportDialogState extends State<ExportDialog> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _confirmController,
+                  focusNode: _confirmFocusNode,
                   obscureText: _obscurePassphrase,
                   decoration: const InputDecoration(
                     labelText: 'Confirm Passphrase',
@@ -202,6 +211,8 @@ class _ExportDialogState extends State<ExportDialog> {
                     prefixIcon: Icon(Icons.lock_outline),
                     border: OutlineInputBorder(),
                   ),
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _export(),
                   validator: (value) {
                     if (value != _passphraseController.text) {
                       return 'Passphrases do not match';

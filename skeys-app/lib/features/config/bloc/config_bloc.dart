@@ -21,6 +21,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../core/backend/daemon_status_service.dart';
@@ -41,29 +42,80 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
 
   /// Creates a ConfigBloc with the given repository.
   ConfigBloc(this._repository) : super(const ConfigState()) {
-    // New unified SSH config API handlers
-    on<ConfigLoadSSHEntriesRequested>(_onLoadSSHEntries);
-    on<ConfigWatchSSHEntriesRequested>(_onWatchSSHEntries);
-    on<ConfigCreateSSHEntryRequested>(_onCreateSSHEntry);
-    on<ConfigUpdateSSHEntryRequested>(_onUpdateSSHEntry);
-    on<ConfigDeleteSSHEntryRequested>(_onDeleteSSHEntry);
-    on<ConfigReorderSSHEntriesRequested>(_onReorderSSHEntries);
+    // Use restartable for watch (cancels previous stream on new request)
+    on<ConfigWatchSSHEntriesRequested>(
+      _onWatchSSHEntries,
+      transformer: restartable(),
+    );
+
+    // Use concurrent/droppable for actions so they don't block on watch stream
+    // SSH config handlers
+    on<ConfigLoadSSHEntriesRequested>(
+      _onLoadSSHEntries,
+      transformer: concurrent(),
+    );
+    on<ConfigCreateSSHEntryRequested>(
+      _onCreateSSHEntry,
+      transformer: droppable(),
+    );
+    on<ConfigUpdateSSHEntryRequested>(
+      _onUpdateSSHEntry,
+      transformer: droppable(),
+    );
+    on<ConfigDeleteSSHEntryRequested>(
+      _onDeleteSSHEntry,
+      transformer: droppable(),
+    );
+    on<ConfigReorderSSHEntriesRequested>(
+      _onReorderSSHEntries,
+      transformer: droppable(),
+    );
 
     // Global directives handlers
-    on<ConfigLoadGlobalDirectivesRequested>(_onLoadGlobalDirectives);
-    on<ConfigSetGlobalDirectiveRequested>(_onSetGlobalDirective);
-    on<ConfigDeleteGlobalDirectiveRequested>(_onDeleteGlobalDirective);
+    on<ConfigLoadGlobalDirectivesRequested>(
+      _onLoadGlobalDirectives,
+      transformer: concurrent(),
+    );
+    on<ConfigSetGlobalDirectiveRequested>(
+      _onSetGlobalDirective,
+      transformer: droppable(),
+    );
+    on<ConfigDeleteGlobalDirectiveRequested>(
+      _onDeleteGlobalDirective,
+      transformer: droppable(),
+    );
 
     // Legacy client host handlers
-    on<ConfigLoadClientHostsRequested>(_onLoadClientHosts);
-    on<ConfigAddClientHostRequested>(_onAddClientHost);
-    on<ConfigUpdateClientHostRequested>(_onUpdateClientHost);
-    on<ConfigDeleteClientHostRequested>(_onDeleteClientHost);
+    on<ConfigLoadClientHostsRequested>(
+      _onLoadClientHosts,
+      transformer: concurrent(),
+    );
+    on<ConfigAddClientHostRequested>(
+      _onAddClientHost,
+      transformer: droppable(),
+    );
+    on<ConfigUpdateClientHostRequested>(
+      _onUpdateClientHost,
+      transformer: droppable(),
+    );
+    on<ConfigDeleteClientHostRequested>(
+      _onDeleteClientHost,
+      transformer: droppable(),
+    );
 
     // Server config handlers
-    on<ConfigLoadServerConfigRequested>(_onLoadServerConfig);
-    on<ConfigUpdateServerOptionRequested>(_onUpdateServerOption);
-    on<ConfigRestartSSHServerRequested>(_onRestartSSHServer);
+    on<ConfigLoadServerConfigRequested>(
+      _onLoadServerConfig,
+      transformer: concurrent(),
+    );
+    on<ConfigUpdateServerOptionRequested>(
+      _onUpdateServerOption,
+      transformer: droppable(),
+    );
+    on<ConfigRestartSSHServerRequested>(
+      _onRestartSSHServer,
+      transformer: droppable(),
+    );
 
     _log.debug('ConfigBloc initialized');
 

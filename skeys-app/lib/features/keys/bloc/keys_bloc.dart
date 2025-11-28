@@ -21,6 +21,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../core/backend/daemon_status_service.dart';
@@ -44,14 +45,28 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
   /// Creates a KeysBloc with the given repositories.
   KeysBloc(this._repository, this._remoteRepository)
     : super(const KeysState()) {
-    on<KeysLoadRequested>(_onLoadRequested);
-    on<KeysWatchRequested>(_onWatchRequested);
-    on<KeysGenerateRequested>(_onGenerateRequested);
-    on<KeysDeleteRequested>(_onDeleteRequested);
-    on<KeysChangePassphraseRequested>(_onChangePassphraseRequested);
-    on<KeysCopyPublicKeyRequested>(_onCopyPublicKeyRequested);
-    on<KeysTestConnectionRequested>(_onTestConnectionRequested);
-    on<KeysTestConnectionCleared>(_onTestConnectionCleared);
+    // Use restartable for watch (cancels previous stream on new request)
+    on<KeysWatchRequested>(_onWatchRequested, transformer: restartable());
+    // Use concurrent/droppable for actions so they don't block on watch stream
+    on<KeysLoadRequested>(_onLoadRequested, transformer: concurrent());
+    on<KeysGenerateRequested>(_onGenerateRequested, transformer: droppable());
+    on<KeysDeleteRequested>(_onDeleteRequested, transformer: droppable());
+    on<KeysChangePassphraseRequested>(
+      _onChangePassphraseRequested,
+      transformer: droppable(),
+    );
+    on<KeysCopyPublicKeyRequested>(
+      _onCopyPublicKeyRequested,
+      transformer: concurrent(),
+    );
+    on<KeysTestConnectionRequested>(
+      _onTestConnectionRequested,
+      transformer: droppable(),
+    );
+    on<KeysTestConnectionCleared>(
+      _onTestConnectionCleared,
+      transformer: concurrent(),
+    );
     _log.debug('KeysBloc initialized');
 
     // Listen for reconnection events to refresh streams

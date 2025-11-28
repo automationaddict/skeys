@@ -35,6 +35,30 @@ enum AgentBlocStatus {
   failure,
 }
 
+/// Identifies which action was last completed in the AgentBloc.
+enum AgentCompletedAction {
+  /// No action has completed yet.
+  none,
+
+  /// Watch stream received an update.
+  watchUpdate,
+
+  /// A key was added to the agent.
+  addKey,
+
+  /// A key was removed from the agent.
+  removeKey,
+
+  /// All keys were removed from the agent.
+  removeAllKeys,
+
+  /// The agent was locked.
+  lock,
+
+  /// The agent was unlocked.
+  unlock,
+}
+
 /// State of the SSH agent BLoC.
 final class AgentState extends Equatable {
   /// The current status of BLoC operations.
@@ -49,12 +73,16 @@ final class AgentState extends Equatable {
   /// Error message if the last operation failed.
   final String? errorMessage;
 
+  /// The last action that completed successfully.
+  final AgentCompletedAction lastCompletedAction;
+
   /// Creates an AgentState.
   const AgentState({
     this.status = AgentBlocStatus.initial,
     this.agentStatus,
     this.loadedKeys = const [],
     this.errorMessage,
+    this.lastCompletedAction = AgentCompletedAction.none,
   });
 
   /// Creates a copy of this state with the given fields replaced.
@@ -63,15 +91,23 @@ final class AgentState extends Equatable {
     AgentStatus? agentStatus,
     List<AgentKeyEntry>? loadedKeys,
     String? errorMessage,
+    AgentCompletedAction? lastCompletedAction,
   }) {
     return AgentState(
       status: status ?? this.status,
       agentStatus: agentStatus ?? this.agentStatus,
       loadedKeys: loadedKeys ?? this.loadedKeys,
       errorMessage: errorMessage,
+      lastCompletedAction: lastCompletedAction ?? this.lastCompletedAction,
     );
   }
 
   @override
-  List<Object?> get props => [status, agentStatus, loadedKeys, errorMessage];
+  List<Object?> get props => [
+    status,
+    agentStatus,
+    loadedKeys,
+    errorMessage,
+    lastCompletedAction,
+  ];
 }

@@ -114,3 +114,29 @@ final class AgentUnlockRequested extends AgentEvent {
   @override
   List<Object?> get props => [passphrase];
 }
+
+// Internal events for watch stream updates (not part of public API)
+
+/// Internal event emitted when watch stream receives an update.
+final class _AgentWatchUpdated extends AgentEvent {
+  /// The updated watch state from the stream.
+  final AgentWatchState watchState;
+
+  /// Creates an _AgentWatchUpdated event.
+  const _AgentWatchUpdated(this.watchState);
+
+  @override
+  List<Object?> get props => [watchState];
+}
+
+/// Internal event emitted when watch stream has an error.
+final class _AgentWatchError extends AgentEvent {
+  /// The error message.
+  final String error;
+
+  /// Creates an _AgentWatchError event.
+  const _AgentWatchError(this.error);
+
+  @override
+  List<Object?> get props => [error];
+}

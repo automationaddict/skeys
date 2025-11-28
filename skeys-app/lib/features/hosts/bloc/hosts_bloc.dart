@@ -21,6 +21,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../core/backend/daemon_status_service.dart';
@@ -40,17 +41,46 @@ class HostsBloc extends Bloc<HostsEvent, HostsState> {
 
   /// Creates a HostsBloc with the given repository.
   HostsBloc(this._repository) : super(const HostsState()) {
-    on<HostsLoadKnownHostsRequested>(_onLoadKnownHosts);
-    on<HostsWatchKnownHostsRequested>(_onWatchKnownHosts);
-    on<HostsRemoveKnownHostRequested>(_onRemoveKnownHost);
-    on<HostsHashKnownHostsRequested>(_onHashKnownHosts);
-    on<HostsLoadAuthorizedKeysRequested>(_onLoadAuthorizedKeys);
-    on<HostsWatchAuthorizedKeysRequested>(_onWatchAuthorizedKeys);
-    on<HostsAddAuthorizedKeyRequested>(_onAddAuthorizedKey);
-    on<HostsRemoveAuthorizedKeyRequested>(_onRemoveAuthorizedKey);
-    on<HostsScanHostKeysRequested>(_onScanHostKeys);
-    on<HostsAddKnownHostRequested>(_onAddKnownHost);
-    on<HostsClearScannedKeysRequested>(_onClearScannedKeys);
+    // Use restartable for watch (cancels previous stream on new request)
+    on<HostsWatchKnownHostsRequested>(
+      _onWatchKnownHosts,
+      transformer: restartable(),
+    );
+    on<HostsWatchAuthorizedKeysRequested>(
+      _onWatchAuthorizedKeys,
+      transformer: restartable(),
+    );
+    // Use concurrent/droppable for actions so they don't block on watch stream
+    on<HostsLoadKnownHostsRequested>(
+      _onLoadKnownHosts,
+      transformer: concurrent(),
+    );
+    on<HostsRemoveKnownHostRequested>(
+      _onRemoveKnownHost,
+      transformer: droppable(),
+    );
+    on<HostsHashKnownHostsRequested>(
+      _onHashKnownHosts,
+      transformer: droppable(),
+    );
+    on<HostsLoadAuthorizedKeysRequested>(
+      _onLoadAuthorizedKeys,
+      transformer: concurrent(),
+    );
+    on<HostsAddAuthorizedKeyRequested>(
+      _onAddAuthorizedKey,
+      transformer: droppable(),
+    );
+    on<HostsRemoveAuthorizedKeyRequested>(
+      _onRemoveAuthorizedKey,
+      transformer: droppable(),
+    );
+    on<HostsScanHostKeysRequested>(_onScanHostKeys, transformer: droppable());
+    on<HostsAddKnownHostRequested>(_onAddKnownHost, transformer: droppable());
+    on<HostsClearScannedKeysRequested>(
+      _onClearScannedKeys,
+      transformer: concurrent(),
+    );
     _log.debug('HostsBloc initialized');
 
     // Listen for reconnection events to refresh streams

@@ -50,6 +50,8 @@ class _ServerDirectiveDialogState extends State<ServerDirectiveDialog> {
   late TextEditingController _valueController;
   String? _selectedDropdownValue;
 
+  final _valueFocusNode = FocusNode();
+
   SshdDirectiveDefinition? get _directive =>
       sshdDirectiveMap[widget.directiveKey];
 
@@ -72,6 +74,7 @@ class _ServerDirectiveDialogState extends State<ServerDirectiveDialog> {
   @override
   void dispose() {
     _valueController.dispose();
+    _valueFocusNode.dispose();
     super.dispose();
   }
 
@@ -269,6 +272,7 @@ class _ServerDirectiveDialogState extends State<ServerDirectiveDialog> {
     // Otherwise show appropriate text field
     return TextFormField(
       controller: _valueController,
+      focusNode: _valueFocusNode,
       decoration: InputDecoration(
         labelText: 'Value',
         prefixIcon: Icon(_getInputIcon()),
@@ -276,6 +280,8 @@ class _ServerDirectiveDialogState extends State<ServerDirectiveDialog> {
         helperText: _directive?.hint,
       ),
       keyboardType: _getKeyboardType(),
+      textInputAction: TextInputAction.done,
+      onFieldSubmitted: (_) => _save(),
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Please enter a value';
