@@ -36,6 +36,7 @@ import '../grpc/grpc_client.dart';
 import '../help/help_navigation_service.dart';
 import '../logging/app_logger.dart';
 import '../notifications/app_toast.dart';
+import '../theme/app_theme.dart';
 import 'settings_service.dart';
 
 /// Settings dialog with tabbed interface.
@@ -512,6 +513,8 @@ class _DisplayTab extends StatelessWidget {
                                         : null,
                                   ),
                                 ),
+                                const SizedBox(height: 8),
+                                _buildColorSwatches(context, mode),
                               ],
                             ),
                           ),
@@ -525,7 +528,7 @@ class _DisplayTab extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            selectedTheme.description,
+            _getThemeDescription(context, selectedTheme),
             style: theme.textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -544,6 +547,82 @@ class _DisplayTab extends StatelessWidget {
       case AppThemeMode.dark:
         return Icons.dark_mode;
     }
+  }
+
+  /// Build color preview swatches for a theme mode.
+  Widget _buildColorSwatches(BuildContext context, AppThemeMode mode) {
+    // For system theme, detect current platform brightness
+    final brightness = mode == AppThemeMode.system
+        ? MediaQuery.of(context).platformBrightness
+        : (mode == AppThemeMode.light ? Brightness.light : Brightness.dark);
+
+    final previewScheme = _getColorSchemeForBrightness(brightness);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildColorSwatch(
+          previewScheme.primary,
+          size: 16,
+          tooltip: 'Primary',
+        ),
+        const SizedBox(width: 4),
+        _buildColorSwatch(
+          previewScheme.surfaceContainer,
+          size: 16,
+          tooltip: 'Surface',
+        ),
+        const SizedBox(width: 4),
+        _buildColorSwatch(
+          previewScheme.surfaceContainerHighest,
+          size: 16,
+          tooltip: 'Background',
+        ),
+      ],
+    );
+  }
+
+  /// Build a single color swatch circle.
+  Widget _buildColorSwatch(Color color, {double size = 16, String? tooltip}) {
+    final swatch = Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.black.withValues(alpha: 0.2),
+          width: 0.5,
+        ),
+      ),
+    );
+
+    if (tooltip != null) {
+      return Tooltip(
+        message: tooltip,
+        child: swatch,
+      );
+    }
+    return swatch;
+  }
+
+  /// Get the color scheme for a specific brightness.
+  ColorScheme _getColorSchemeForBrightness(Brightness brightness) {
+    if (brightness == Brightness.light) {
+      return AppTheme.lightTheme.colorScheme;
+    } else {
+      return AppTheme.darkTheme.colorScheme;
+    }
+  }
+
+  /// Get the description for a theme mode, including system status.
+  String _getThemeDescription(BuildContext context, AppThemeMode mode) {
+    if (mode == AppThemeMode.system) {
+      final brightness = MediaQuery.of(context).platformBrightness;
+      final current = brightness == Brightness.light ? 'light' : 'dark';
+      return '${mode.description} (currently $current)';
+    }
+    return mode.description;
   }
 }
 
