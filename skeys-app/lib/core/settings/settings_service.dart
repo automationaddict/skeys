@@ -160,11 +160,29 @@ class SettingsService extends ChangeNotifier {
 
   /// Get the current text scale.
   TextScale get textScale {
-    final scaleStr = _prefs.getString(_textScaleKey) ?? 'normal';
-    return TextScale.values.firstWhere(
-      (s) => s.name == scaleStr,
-      orElse: () => TextScale.normal,
-    );
+    final scaleStr = _prefs.getString(_textScaleKey);
+
+    // No saved value - use default
+    if (scaleStr == null) {
+      _log.trace('no saved text scale, using default');
+      return TextScale.normal;
+    }
+
+    // Try to find matching enum value
+    try {
+      final scale = TextScale.values.firstWhere((s) => s.name == scaleStr);
+      _log.trace('loaded text scale', {'scale': scaleStr});
+      return scale;
+    } on StateError {
+      // Invalid value in preferences - log warning and use default
+      _log.warning('invalid text scale in preferences, using default', {
+        'invalid_value': scaleStr,
+        'default': TextScale.normal.name,
+      });
+      // Clean up invalid data
+      _prefs.remove(_textScaleKey);
+      return TextScale.normal;
+    }
   }
 
   /// Set the text scale and persist it.
@@ -173,11 +191,20 @@ class SettingsService extends ChangeNotifier {
     if (textScale == scale) return;
 
     try {
-      await _prefs.setString(_textScaleKey, scale.name);
+      final success = await _prefs.setString(_textScaleKey, scale.name);
+      if (!success) {
+        _log.error(
+          'failed to persist text scale to SharedPreferences',
+          null,
+          null,
+          {'scale': scale.name},
+        );
+        throw StateError('Failed to save text scale preference');
+      }
       _log.info('text scale changed', {'scale': scale.name});
       notifyListeners();
     } catch (e, st) {
-      _log.error('failed to persist text scale', e, st);
+      _log.error('error persisting text scale', e, st, {'scale': scale.name});
       // Still notify listeners so UI updates even if persistence fails
       notifyListeners();
       rethrow;
@@ -186,11 +213,29 @@ class SettingsService extends ChangeNotifier {
 
   /// Get the current theme mode.
   AppThemeMode get themeMode {
-    final modeStr = _prefs.getString(_themeModeKey) ?? 'system';
-    return AppThemeMode.values.firstWhere(
-      (m) => m.name == modeStr,
-      orElse: () => AppThemeMode.system,
-    );
+    final modeStr = _prefs.getString(_themeModeKey);
+
+    // No saved value - use default
+    if (modeStr == null) {
+      _log.trace('no saved theme mode, using default');
+      return AppThemeMode.system;
+    }
+
+    // Try to find matching enum value
+    try {
+      final mode = AppThemeMode.values.firstWhere((m) => m.name == modeStr);
+      _log.trace('loaded theme mode', {'mode': modeStr});
+      return mode;
+    } on StateError {
+      // Invalid value in preferences - log warning and use default
+      _log.warning('invalid theme mode in preferences, using default', {
+        'invalid_value': modeStr,
+        'default': AppThemeMode.system.name,
+      });
+      // Clean up invalid data
+      _prefs.remove(_themeModeKey);
+      return AppThemeMode.system;
+    }
   }
 
   /// Set the theme mode and persist it.
@@ -199,11 +244,20 @@ class SettingsService extends ChangeNotifier {
     if (themeMode == mode) return;
 
     try {
-      await _prefs.setString(_themeModeKey, mode.name);
+      final success = await _prefs.setString(_themeModeKey, mode.name);
+      if (!success) {
+        _log.error(
+          'failed to persist theme mode to SharedPreferences',
+          null,
+          null,
+          {'mode': mode.name},
+        );
+        throw StateError('Failed to save theme mode preference');
+      }
       _log.info('theme mode changed', {'mode': mode.name});
       notifyListeners();
     } catch (e, st) {
-      _log.error('failed to persist theme mode', e, st);
+      _log.error('error persisting theme mode', e, st, {'mode': mode.name});
       // Still notify listeners so UI updates even if persistence fails
       notifyListeners();
       rethrow;
