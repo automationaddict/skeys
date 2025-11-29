@@ -20,7 +20,7 @@ All notable changes to this project will be documented in this file.
 - Simplify AddToAgentDialog BLoC dependencies
 - Rename /review command to /code-review
 - Move branch cleanup to pre-work step in /issue workflow
-- Use constructor injection for SettingsService in _DisplayTab (#21)
+- Remove GetIt dependency from Display settings (#21) (#284)
 
 ### Documentation
 
@@ -35,7 +35,6 @@ All notable changes to this project will be documented in this file.
 - Add required permissions to auto-merge workflow (#140)
 - Eliminate race condition in Display settings by using ListenableBuilder
 - Include PR body in squash commits to enable auto-close of issues (#143)
-- Improve auto-merge reliability and branch cleanup
 - Add validation and logging to TextScale and AppThemeMode enum loading (#22) (#145)
 - Revert to automatic merge commit message to prevent unintended auto-close
 
@@ -43,10 +42,7 @@ All notable changes to this project will be documented in this file.
 
 - Add build artifacts to gitignore
 - Remove stray CHANGELOG from .claude/commands
-
-### Other
-
-- Merge master into feature/issue-21-remove-getit-dependency
+- Remove overcomplicated workflow automation
 
 ### Performance
 
