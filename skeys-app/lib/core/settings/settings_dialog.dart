@@ -36,6 +36,7 @@ import '../grpc/grpc_client.dart';
 import '../help/help_navigation_service.dart';
 import '../logging/app_logger.dart';
 import '../notifications/app_toast.dart';
+import '../theme/app_theme.dart';
 import 'settings_service.dart';
 
 /// Settings dialog with tabbed interface.
@@ -512,6 +513,24 @@ class _DisplayTab extends StatelessWidget {
                                         : null,
                                   ),
                                 ),
+                                const SizedBox(height: 8),
+                                // Color preview swatches
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    _ColorSwatch(
+                                      color: _getThemeColor(context, mode, 'primary'),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    _ColorSwatch(
+                                      color: _getThemeColor(context, mode, 'surface'),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    _ColorSwatch(
+                                      color: _getThemeColor(context, mode, 'surfaceContainerHighest'),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ),
                           ),
@@ -544,6 +563,45 @@ class _DisplayTab extends StatelessWidget {
       case AppThemeMode.dark:
         return Icons.dark_mode;
     }
+  }
+
+  Color _getThemeColor(BuildContext context, AppThemeMode mode, String type) {
+    final ThemeData themeData = switch (mode) {
+      AppThemeMode.light => AppTheme.lightTheme,
+      AppThemeMode.dark => AppTheme.darkTheme,
+      AppThemeMode.system =>
+        MediaQuery.of(context).platformBrightness == Brightness.dark
+            ? AppTheme.darkTheme
+            : AppTheme.lightTheme,
+    };
+
+    return switch (type) {
+      'primary' => themeData.colorScheme.primary,
+      'surface' => themeData.colorScheme.surface,
+      'surfaceContainerHighest' => themeData.colorScheme.surfaceContainerHighest,
+      _ => themeData.colorScheme.primary,
+    };
+  }
+}
+
+class _ColorSwatch extends StatelessWidget {
+  final Color color;
+
+  const _ColorSwatch({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 16,
+      height: 16,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+        ),
+      ),
+    );
   }
 }
 
