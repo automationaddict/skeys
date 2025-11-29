@@ -38,6 +38,59 @@ enum KeysStatus {
   testingConnection,
 }
 
+/// Status of the add-to-agent workflow.
+enum AddToAgentStatus {
+  /// No add-to-agent operation in progress.
+  idle,
+
+  /// Verifying SSH connection before adding to agent.
+  verifyingConnection,
+
+  /// Adding the key to the SSH agent.
+  addingToAgent,
+
+  /// Key was successfully added to the agent.
+  success,
+
+  /// SSH connection verification failed.
+  connectionFailed,
+
+  /// Host key is unknown and requires user approval.
+  hostKeyUnknown,
+
+  /// Host key mismatch detected (potential MITM attack).
+  hostKeyMismatch,
+
+  /// Failed to add key to the agent.
+  agentFailed,
+}
+
+/// Result of the add-to-agent workflow.
+class AddToAgentResult extends Equatable {
+  /// The status of the workflow.
+  final AddToAgentStatus status;
+
+  /// Error message if the workflow failed.
+  final String? errorMessage;
+
+  /// Host key information if host key approval is needed.
+  final HostKeyInfo? hostKeyInfo;
+
+  /// The host that was verified (for success messages).
+  final String? verifiedHost;
+
+  /// Creates an AddToAgentResult with the given parameters.
+  const AddToAgentResult({
+    required this.status,
+    this.errorMessage,
+    this.hostKeyInfo,
+    this.verifiedHost,
+  });
+
+  @override
+  List<Object?> get props => [status, errorMessage, hostKeyInfo, verifiedHost];
+}
+
 /// Result of a connection test for display purposes.
 class ConnectionTestResult {
   /// Whether the connection succeeded.
@@ -98,6 +151,12 @@ final class KeysState extends Equatable {
   /// Result of the last connection test.
   final ConnectionTestResult? testConnectionResult;
 
+  /// Status of the add-to-agent workflow.
+  final AddToAgentStatus addToAgentStatus;
+
+  /// Result of the add-to-agent workflow.
+  final AddToAgentResult? addToAgentResult;
+
   /// Creates a KeysState with the given parameters.
   const KeysState({
     this.status = KeysStatus.initial,
@@ -105,6 +164,8 @@ final class KeysState extends Equatable {
     this.errorMessage,
     this.copiedPublicKey,
     this.testConnectionResult,
+    this.addToAgentStatus = AddToAgentStatus.idle,
+    this.addToAgentResult,
   });
 
   /// Creates a copy of this state with the given fields replaced.
@@ -115,6 +176,9 @@ final class KeysState extends Equatable {
     String? copiedPublicKey,
     ConnectionTestResult? testConnectionResult,
     bool clearTestResult = false,
+    AddToAgentStatus? addToAgentStatus,
+    AddToAgentResult? addToAgentResult,
+    bool clearAddToAgentResult = false,
   }) {
     return KeysState(
       status: status ?? this.status,
@@ -124,6 +188,10 @@ final class KeysState extends Equatable {
       testConnectionResult: clearTestResult
           ? null
           : (testConnectionResult ?? this.testConnectionResult),
+      addToAgentStatus: addToAgentStatus ?? this.addToAgentStatus,
+      addToAgentResult: clearAddToAgentResult
+          ? null
+          : (addToAgentResult ?? this.addToAgentResult),
     );
   }
 
@@ -134,5 +202,7 @@ final class KeysState extends Equatable {
     errorMessage,
     copiedPublicKey,
     testConnectionResult,
+    addToAgentStatus,
+    addToAgentResult,
   ];
 }

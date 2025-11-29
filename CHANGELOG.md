@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Separate ServerConfigBloc from ConfigBloc
+- Simplify AddToAgentDialog BLoC dependencies
 
 ### Fixed
 

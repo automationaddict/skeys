@@ -24,6 +24,7 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:skeys_app/core/backend/daemon_status_service.dart';
 import 'package:skeys_app/core/di/injection.dart';
+import 'package:skeys_app/core/settings/settings_service.dart';
 import 'package:skeys_app/features/agent/bloc/agent_bloc.dart';
 import 'package:skeys_app/features/keys/bloc/keys_bloc.dart';
 import '../../../mocks/mocks.dart';
@@ -32,8 +33,10 @@ import '../../../mocks/test_helpers.dart';
 void main() {
   late MockKeysRepository mockKeysRepository;
   late MockRemoteRepository mockRemoteRepository;
+  late MockAgentRepository mockAgentRepository;
   late MockDaemonStatusService mockDaemonStatusService;
   late MockAgentBloc mockAgentBloc;
+  late MockSettingsService mockSettingsService;
 
   setUpAll(() {
     // Register fallback values for any() matchers
@@ -43,8 +46,10 @@ void main() {
   setUp(() {
     mockKeysRepository = MockKeysRepository();
     mockRemoteRepository = MockRemoteRepository();
+    mockAgentRepository = MockAgentRepository();
     mockDaemonStatusService = MockDaemonStatusService();
     mockAgentBloc = MockAgentBloc();
+    mockSettingsService = MockSettingsService();
 
     // Register mock DaemonStatusService
     if (getIt.isRegistered<DaemonStatusService>()) {
@@ -58,10 +63,19 @@ void main() {
     }
     getIt.registerSingleton<AgentBloc>(mockAgentBloc);
 
+    // Register mock SettingsService
+    if (getIt.isRegistered<SettingsService>()) {
+      getIt.unregister<SettingsService>();
+    }
+    getIt.registerSingleton<SettingsService>(mockSettingsService);
+
     // Default mock for watchKeys (used in constructor)
     when(() => mockKeysRepository.watchKeys()).thenAnswer(
       (_) => Stream.fromIterable([<KeyEntity>[]]),
     );
+
+    // Default mock for agentKeyTimeoutMinutes
+    when(() => mockSettingsService.agentKeyTimeoutMinutes).thenReturn(0);
   });
 
   tearDown(() {
@@ -70,6 +84,9 @@ void main() {
     }
     if (getIt.isRegistered<AgentBloc>()) {
       getIt.unregister<AgentBloc>();
+    }
+    if (getIt.isRegistered<SettingsService>()) {
+      getIt.unregister<SettingsService>();
     }
   });
 
@@ -82,7 +99,11 @@ void main() {
           (_) => Stream.fromIterable([keys]),
         );
       },
-      build: () => KeysBloc(mockKeysRepository, mockRemoteRepository),
+      build: () => KeysBloc(
+        mockKeysRepository,
+        mockRemoteRepository,
+        mockAgentRepository,
+      ),
       wait: const Duration(milliseconds: 100),
       verify: (bloc) {
         // Final state should have keys and success status
@@ -99,7 +120,11 @@ void main() {
           (_) => Stream.error(Exception('Network error')),
         );
       },
-      build: () => KeysBloc(mockKeysRepository, mockRemoteRepository),
+      build: () => KeysBloc(
+        mockKeysRepository,
+        mockRemoteRepository,
+        mockAgentRepository,
+      ),
       wait: const Duration(milliseconds: 100),
       verify: (bloc) {
         expect(bloc.state.status, KeysStatus.failure);
@@ -125,7 +150,11 @@ void main() {
           (_) async => [newKey],
         );
       },
-      build: () => KeysBloc(mockKeysRepository, mockRemoteRepository),
+      build: () => KeysBloc(
+        mockKeysRepository,
+        mockRemoteRepository,
+        mockAgentRepository,
+      ),
       act: (bloc) => bloc.add(
         const KeysGenerateRequested(name: 'new_key', type: KeyType.ed25519),
       ),
@@ -157,7 +186,11 @@ void main() {
           (_) async => [],
         );
       },
-      build: () => KeysBloc(mockKeysRepository, mockRemoteRepository),
+      build: () => KeysBloc(
+        mockKeysRepository,
+        mockRemoteRepository,
+        mockAgentRepository,
+      ),
       act: (bloc) => bloc.add(
         const KeysDeleteRequested('/home/user/.ssh/id_ed25519'),
       ),
@@ -180,7 +213,11 @@ void main() {
         when(() => mockKeysRepository.changePassphrase(any(), any(), any()))
             .thenAnswer((_) async {});
       },
-      build: () => KeysBloc(mockKeysRepository, mockRemoteRepository),
+      build: () => KeysBloc(
+        mockKeysRepository,
+        mockRemoteRepository,
+        mockAgentRepository,
+      ),
       act: (bloc) => bloc.add(
         const KeysChangePassphraseRequested(
           path: '/home/user/.ssh/id_ed25519',
@@ -210,7 +247,11 @@ void main() {
           (_) async => key,
         );
       },
-      build: () => KeysBloc(mockKeysRepository, mockRemoteRepository),
+      build: () => KeysBloc(
+        mockKeysRepository,
+        mockRemoteRepository,
+        mockAgentRepository,
+      ),
       act: (bloc) => bloc.add(
         const KeysCopyPublicKeyRequested('/home/user/.ssh/id_ed25519'),
       ),
@@ -238,7 +279,11 @@ void main() {
               trustHostKey: any(named: 'trustHostKey'),
             )).thenAnswer((_) async => result);
       },
-      build: () => KeysBloc(mockKeysRepository, mockRemoteRepository),
+      build: () => KeysBloc(
+        mockKeysRepository,
+        mockRemoteRepository,
+        mockAgentRepository,
+      ),
       act: (bloc) => bloc.add(
         const KeysTestConnectionRequested(
           keyPath: '/home/user/.ssh/id_ed25519',
@@ -261,7 +306,11 @@ void main() {
           (_) => const Stream.empty(),
         );
       },
-      build: () => KeysBloc(mockKeysRepository, mockRemoteRepository),
+      build: () => KeysBloc(
+        mockKeysRepository,
+        mockRemoteRepository,
+        mockAgentRepository,
+      ),
       seed: () => KeysState(
         status: KeysStatus.success,
         testConnectionResult: const ConnectionTestResult(
@@ -274,6 +323,91 @@ void main() {
       wait: const Duration(milliseconds: 100),
       verify: (bloc) {
         expect(bloc.state.testConnectionResult, isNull);
+      },
+    );
+
+    blocTest<KeysBloc, KeysState>(
+      'KeysAddToAgentRequested verifies connection and adds key to agent',
+      setUp: () {
+        final result = TestDataFactory.createTestConnectionResult();
+        when(() => mockKeysRepository.watchKeys()).thenAnswer(
+          (_) => const Stream.empty(),
+        );
+        when(() => mockRemoteRepository.testConnection(
+              host: any(named: 'host'),
+              port: any(named: 'port'),
+              user: any(named: 'user'),
+              identityFile: any(named: 'identityFile'),
+              timeoutSeconds: any(named: 'timeoutSeconds'),
+              passphrase: any(named: 'passphrase'),
+              trustHostKey: any(named: 'trustHostKey'),
+            )).thenAnswer((_) async => result);
+        when(() => mockAgentRepository.addKey(
+              any(),
+              passphrase: any(named: 'passphrase'),
+              lifetime: any(named: 'lifetime'),
+              confirm: any(named: 'confirm'),
+            )).thenAnswer((_) async {});
+      },
+      build: () => KeysBloc(
+        mockKeysRepository,
+        mockRemoteRepository,
+        mockAgentRepository,
+      ),
+      act: (bloc) => bloc.add(
+        const KeysAddToAgentRequested(
+          keyPath: '/home/user/.ssh/id_ed25519',
+          host: 'github.com',
+          port: 22,
+          user: 'git',
+        ),
+      ),
+      wait: const Duration(milliseconds: 100),
+      verify: (bloc) {
+        expect(bloc.state.addToAgentStatus, AddToAgentStatus.success);
+        verify(() => mockRemoteRepository.testConnection(
+              host: 'github.com',
+              port: 22,
+              user: 'git',
+              identityFile: '/home/user/.ssh/id_ed25519',
+              timeoutSeconds: 10,
+              passphrase: null,
+              trustHostKey: false,
+            )).called(1);
+        verify(() => mockAgentRepository.addKey(
+              '/home/user/.ssh/id_ed25519',
+              passphrase: null,
+              lifetime: null,
+              confirm: false,
+            )).called(1);
+      },
+    );
+
+    blocTest<KeysBloc, KeysState>(
+      'KeysAddToAgentCleared resets add to agent state',
+      setUp: () {
+        when(() => mockKeysRepository.watchKeys()).thenAnswer(
+          (_) => const Stream.empty(),
+        );
+      },
+      build: () => KeysBloc(
+        mockKeysRepository,
+        mockRemoteRepository,
+        mockAgentRepository,
+      ),
+      seed: () => const KeysState(
+        status: KeysStatus.success,
+        addToAgentStatus: AddToAgentStatus.success,
+        addToAgentResult: AddToAgentResult(
+          status: AddToAgentStatus.success,
+          verifiedHost: 'github.com',
+        ),
+      ),
+      act: (bloc) => bloc.add(const KeysAddToAgentCleared()),
+      wait: const Duration(milliseconds: 100),
+      verify: (bloc) {
+        expect(bloc.state.addToAgentStatus, AddToAgentStatus.idle);
+        expect(bloc.state.addToAgentResult, isNull);
       },
     );
   });
@@ -307,6 +441,8 @@ void main() {
       expect(state.errorMessage, isNull);
       expect(state.copiedPublicKey, isNull);
       expect(state.testConnectionResult, isNull);
+      expect(state.addToAgentStatus, AddToAgentStatus.idle);
+      expect(state.addToAgentResult, isNull);
     });
 
     test('copyWith preserves existing values', () {

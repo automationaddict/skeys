@@ -26,7 +26,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/notifications/app_toast.dart';
-import '../../../agent/bloc/agent_bloc.dart';
 import '../../../metadata/domain/key_metadata_entity.dart';
 import '../../../metadata/repository/metadata_repository.dart';
 import '../../../remote/domain/remote_entity.dart';
@@ -112,8 +111,6 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
   ServicePreset? _selectedPreset;
   bool _useCustom = false;
   bool _obscurePassphrase = true;
-  bool _verifyingConnection = false;
-  bool _addingToAgent = false;
   bool _connectionTakingLong = false;
   Timer? _longConnectionTimer;
 
@@ -150,70 +147,53 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<KeysBloc, KeysState>(
-          listener: (context, state) {
-            if (!_verifyingConnection) return;
+    return BlocListener<KeysBloc, KeysState>(
+      listenWhen: (previous, current) =>
+          previous.addToAgentStatus != current.addToAgentStatus,
+      listener: (context, state) {
+        _longConnectionTimer?.cancel();
 
-            if (state.testConnectionResult != null) {
-              final result = state.testConnectionResult!;
-              _longConnectionTimer?.cancel();
-
-              // Handle host key verification states
-              if (result.needsHostKeyApproval && result.hostKeyInfo != null) {
-                _showHostKeyConfirmationDialog(context, result.hostKeyInfo!);
-                return;
-              }
-
-              if (result.hasHostKeyMismatch && result.hostKeyInfo != null) {
-                _showHostKeyMismatchWarning(context, result.hostKeyInfo!);
-                setState(() => _verifyingConnection = false);
-                return;
-              }
-
-              // Connection test completed
-              if (result.success) {
-                // Connection verified! Now add to agent
-                _addKeyToAgent();
-              } else {
-                // Connection failed - show user-friendly message
-                final friendlyMessage = _getConnectionErrorMessage(
-                  result.message,
-                );
-                AppToast.error(context, message: friendlyMessage);
-                setState(() => _verifyingConnection = false);
-              }
-            }
-          },
-        ),
-        BlocListener<AgentBloc, AgentState>(
-          listener: (context, agentState) {
-            if (!_addingToAgent) return;
-
-            // Only react to addKey completion, not watch stream updates
-            if (agentState.status == AgentBlocStatus.success &&
-                agentState.lastCompletedAction == AgentCompletedAction.addKey) {
-              // Key added successfully - store metadata and close
-              _onAgentAddSuccess();
-            } else if (agentState.status == AgentBlocStatus.failure) {
-              // Key add failed
-              AppToast.error(
+        switch (state.addToAgentStatus) {
+          case AddToAgentStatus.hostKeyUnknown:
+            if (state.addToAgentResult?.hostKeyInfo != null) {
+              _showHostKeyConfirmationDialog(
                 context,
-                message:
-                    'Failed to add key: ${agentState.errorMessage ?? "Unknown error"}',
+                state.addToAgentResult!.hostKeyInfo!,
               );
-              setState(() => _addingToAgent = false);
             }
-          },
-        ),
-      ],
+          case AddToAgentStatus.hostKeyMismatch:
+            if (state.addToAgentResult?.hostKeyInfo != null) {
+              _showHostKeyMismatchWarning(
+                context,
+                state.addToAgentResult!.hostKeyInfo!,
+              );
+            }
+          case AddToAgentStatus.connectionFailed:
+            final friendlyMessage = _getConnectionErrorMessage(
+              state.addToAgentResult?.errorMessage ?? 'Connection failed',
+            );
+            AppToast.error(context, message: friendlyMessage);
+          case AddToAgentStatus.agentFailed:
+            AppToast.error(
+              context,
+              message:
+                  'Failed to add key: '
+                  '${state.addToAgentResult?.errorMessage ?? "Unknown error"}',
+            );
+          case AddToAgentStatus.success:
+            _onAgentAddSuccess();
+          case AddToAgentStatus.idle:
+          case AddToAgentStatus.verifyingConnection:
+          case AddToAgentStatus.addingToAgent:
+            // No action needed for these states
+            break;
+        }
+      },
       child: BlocBuilder<KeysBloc, KeysState>(
         builder: (context, state) {
           final isLoading =
-              _verifyingConnection ||
-              _addingToAgent ||
-              state.status == KeysStatus.testingConnection;
+              state.addToAgentStatus == AddToAgentStatus.verifyingConnection ||
+              state.addToAgentStatus == AddToAgentStatus.addingToAgent;
 
           return AlertDialog(
             title: const Text('Add Key to Agent'),
@@ -405,7 +385,8 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              _addingToAgent
+                              state.addToAgentStatus ==
+                                      AddToAgentStatus.addingToAgent
                                   ? 'Adding key to agent...'
                                   : _selectedPreset != null
                                   ? 'Verifying connection to ${_selectedPreset!.name}...'
@@ -415,7 +396,9 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
                           ),
                         ],
                       ),
-                      if (_connectionTakingLong && !_addingToAgent) ...[
+                      if (_connectionTakingLong &&
+                          state.addToAgentStatus !=
+                              AddToAgentStatus.addingToAgent) ...[
                         const SizedBox(height: 12),
                         Container(
                           padding: const EdgeInsets.all(12),
@@ -462,13 +445,9 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
                   // Always allow cancel - abort pending operations
                   _longConnectionTimer?.cancel();
                   setState(() {
-                    _verifyingConnection = false;
-                    _addingToAgent = false;
                     _connectionTakingLong = false;
                   });
-                  context.read<KeysBloc>().add(
-                    const KeysTestConnectionCleared(),
-                  );
+                  context.read<KeysBloc>().add(const KeysAddToAgentCleared());
                   Navigator.of(context).pop();
                 },
                 child: const Text('Cancel'),
@@ -523,20 +502,23 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
     }
 
     setState(() {
-      _verifyingConnection = true;
       _connectionTakingLong = false;
     });
 
     // Start a timer to show "taking longer than expected" message
     _longConnectionTimer?.cancel();
     _longConnectionTimer = Timer(const Duration(seconds: 10), () {
-      if (mounted && _verifyingConnection) {
-        setState(() => _connectionTakingLong = true);
+      if (mounted) {
+        final keysBloc = context.read<KeysBloc>();
+        if (keysBloc.state.addToAgentStatus ==
+            AddToAgentStatus.verifyingConnection) {
+          setState(() => _connectionTakingLong = true);
+        }
       }
     });
 
     context.read<KeysBloc>().add(
-      KeysTestConnectionRequested(
+      KeysAddToAgentRequested(
         keyPath: widget.keyEntity.path,
         host: host,
         port: port,
@@ -560,23 +542,6 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
       );
       Navigator.of(context).pop();
     }
-  }
-
-  void _addKeyToAgent() {
-    setState(() {
-      _verifyingConnection = false;
-      _addingToAgent = true;
-    });
-
-    // Add key to agent - the BlocListener will handle completion
-    context.read<AgentBloc>().add(
-      AgentAddKeyRequested(
-        keyPath: widget.keyEntity.path,
-        passphrase: widget.keyEntity.hasPassphrase
-            ? _passphraseController.text
-            : null,
-      ),
-    );
   }
 
   /// Called when the agent successfully adds the key.
@@ -732,7 +697,7 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
           TextButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
-              setState(() => _verifyingConnection = false);
+              context.read<KeysBloc>().add(const KeysAddToAgentCleared());
             },
             child: const Text('Cancel'),
           ),
@@ -952,7 +917,7 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
     }
 
     context.read<KeysBloc>().add(
-      KeysTestConnectionRequested(
+      KeysAddToAgentRequested(
         keyPath: widget.keyEntity.path,
         host: host,
         port: port,

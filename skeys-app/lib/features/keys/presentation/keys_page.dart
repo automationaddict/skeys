@@ -24,7 +24,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/di/injection.dart';
 import '../../../core/notifications/app_toast.dart';
-import '../../agent/bloc/agent_bloc.dart';
 import '../../metadata/repository/metadata_repository.dart';
 import '../bloc/keys_bloc.dart';
 import '../domain/key_entity.dart';
@@ -181,11 +180,8 @@ class _KeysPageState extends State<KeysPage> {
   void _addToAgent(BuildContext context, KeyEntity key) {
     showDialog(
       context: context,
-      builder: (dialogContext) => MultiBlocProvider(
-        providers: [
-          BlocProvider.value(value: context.read<KeysBloc>()),
-          BlocProvider.value(value: context.read<AgentBloc>()),
-        ],
+      builder: (dialogContext) => BlocProvider.value(
+        value: context.read<KeysBloc>(),
         child: AddToAgentDialog(keyEntity: key),
       ),
     );

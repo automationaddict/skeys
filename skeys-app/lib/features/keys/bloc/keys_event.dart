@@ -174,3 +174,57 @@ final class KeysTestConnectionCleared extends KeysEvent {
   /// Creates a KeysTestConnectionCleared event.
   const KeysTestConnectionCleared();
 }
+
+/// Event to add a key to the SSH agent with optional connection verification.
+///
+/// This event handles the complete workflow of:
+/// 1. Optionally verifying SSH connection to a host
+/// 2. Adding the key to the SSH agent
+///
+/// If host/port/user are provided, connection is verified first.
+/// If not provided, the key is added directly to the agent.
+final class KeysAddToAgentRequested extends KeysEvent {
+  /// The path to the key file.
+  final String keyPath;
+
+  /// Optional passphrase if the key is encrypted.
+  final String? passphrase;
+
+  /// The hostname to verify connection with (optional).
+  final String? host;
+
+  /// The SSH port number (optional, defaults to 22 if host is provided).
+  final int? port;
+
+  /// The username for authentication (optional).
+  final String? user;
+
+  /// Whether to trust an unknown host key during verification.
+  final bool trustHostKey;
+
+  /// Creates a KeysAddToAgentRequested event.
+  const KeysAddToAgentRequested({
+    required this.keyPath,
+    this.passphrase,
+    this.host,
+    this.port,
+    this.user,
+    this.trustHostKey = false,
+  });
+
+  @override
+  List<Object?> get props => [
+    keyPath,
+    passphrase,
+    host,
+    port,
+    user,
+    trustHostKey,
+  ];
+}
+
+/// Clear the add to agent result and reset status.
+final class KeysAddToAgentCleared extends KeysEvent {
+  /// Creates a KeysAddToAgentCleared event.
+  const KeysAddToAgentCleared();
+}

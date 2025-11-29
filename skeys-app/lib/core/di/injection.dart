@@ -146,7 +146,11 @@ Future<void> configureDependencies() async {
   // BLoCs (singletons that auto-start watching)
   _log.debug('registering BLoCs as singletons');
   getIt.registerLazySingleton<KeysBloc>(
-    () => KeysBloc(getIt<KeysRepository>(), getIt<RemoteRepository>()),
+    () => KeysBloc(
+      getIt<KeysRepository>(),
+      getIt<RemoteRepository>(),
+      getIt<AgentRepository>(),
+    ),
   );
   getIt.registerLazySingleton<ConfigBloc>(
     () => ConfigBloc(getIt<ConfigRepository>()),

@@ -27,6 +27,8 @@ import 'package:equatable/equatable.dart';
 import '../../../core/backend/daemon_status_service.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/settings/settings_service.dart';
+import '../../agent/repository/agent_repository.dart';
 import '../../remote/domain/remote_entity.dart';
 import '../../remote/repository/remote_repository.dart';
 import '../domain/key_entity.dart';
@@ -39,11 +41,12 @@ part 'keys_state.dart';
 class KeysBloc extends Bloc<KeysEvent, KeysState> {
   final KeysRepository _repository;
   final RemoteRepository _remoteRepository;
+  final AgentRepository _agentRepository;
   final AppLogger _log = AppLogger('bloc.keys');
   StreamSubscription<void>? _reconnectionSubscription;
 
   /// Creates a KeysBloc with the given repositories.
-  KeysBloc(this._repository, this._remoteRepository)
+  KeysBloc(this._repository, this._remoteRepository, this._agentRepository)
     : super(const KeysState()) {
     // Use restartable for watch (cancels previous stream on new request)
     on<KeysWatchRequested>(_onWatchRequested, transformer: restartable());
@@ -67,6 +70,11 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
       _onTestConnectionCleared,
       transformer: concurrent(),
     );
+    on<KeysAddToAgentRequested>(
+      _onAddToAgentRequested,
+      transformer: droppable(),
+    );
+    on<KeysAddToAgentCleared>(_onAddToAgentCleared, transformer: concurrent());
     _log.debug('KeysBloc initialized');
 
     // Listen for reconnection events to refresh streams
@@ -300,5 +308,155 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
     Emitter<KeysState> emit,
   ) {
     emit(state.copyWith(clearTestResult: true));
+  }
+
+  Future<void> _onAddToAgentRequested(
+    KeysAddToAgentRequested event,
+    Emitter<KeysState> emit,
+  ) async {
+    _log.info('add to agent requested', {
+      'keyPath': event.keyPath,
+      'host': event.host,
+      'verifyConnection': event.host != null,
+    });
+
+    // If host is provided, verify connection first
+    if (event.host != null && event.user != null) {
+      emit(
+        state.copyWith(
+          addToAgentStatus: AddToAgentStatus.verifyingConnection,
+          clearAddToAgentResult: true,
+        ),
+      );
+
+      try {
+        final result = await _remoteRepository.testConnection(
+          host: event.host!,
+          port: event.port ?? 22,
+          user: event.user!,
+          identityFile: event.keyPath,
+          timeoutSeconds: 10,
+          passphrase: event.passphrase,
+          trustHostKey: event.trustHostKey,
+        );
+
+        _log.info('connection test completed', {
+          'success': result.success,
+          'hostKeyStatus': result.hostKeyStatus.name,
+        });
+
+        // Handle host key verification states
+        if (result.hostKeyStatus == HostKeyVerificationStatus.unknown &&
+            result.hostKeyInfo != null) {
+          emit(
+            state.copyWith(
+              addToAgentStatus: AddToAgentStatus.hostKeyUnknown,
+              addToAgentResult: AddToAgentResult(
+                status: AddToAgentStatus.hostKeyUnknown,
+                hostKeyInfo: result.hostKeyInfo,
+                verifiedHost: event.host,
+              ),
+            ),
+          );
+          return;
+        }
+
+        if (result.hostKeyStatus == HostKeyVerificationStatus.mismatch &&
+            result.hostKeyInfo != null) {
+          emit(
+            state.copyWith(
+              addToAgentStatus: AddToAgentStatus.hostKeyMismatch,
+              addToAgentResult: AddToAgentResult(
+                status: AddToAgentStatus.hostKeyMismatch,
+                hostKeyInfo: result.hostKeyInfo,
+                verifiedHost: event.host,
+              ),
+            ),
+          );
+          return;
+        }
+
+        if (!result.success) {
+          emit(
+            state.copyWith(
+              addToAgentStatus: AddToAgentStatus.connectionFailed,
+              addToAgentResult: AddToAgentResult(
+                status: AddToAgentStatus.connectionFailed,
+                errorMessage: result.message,
+                verifiedHost: event.host,
+              ),
+            ),
+          );
+          return;
+        }
+
+        // Connection verified, proceed to add to agent
+      } catch (e, st) {
+        _log.error('connection verification failed', e, st);
+        emit(
+          state.copyWith(
+            addToAgentStatus: AddToAgentStatus.connectionFailed,
+            addToAgentResult: AddToAgentResult(
+              status: AddToAgentStatus.connectionFailed,
+              errorMessage: e.toString(),
+              verifiedHost: event.host,
+            ),
+          ),
+        );
+        return;
+      }
+    }
+
+    // Add key to agent
+    emit(state.copyWith(addToAgentStatus: AddToAgentStatus.addingToAgent));
+
+    try {
+      // Get timeout from settings
+      final settingsService = getIt<SettingsService>();
+      final timeoutMinutes = settingsService.agentKeyTimeoutMinutes;
+      final lifetime = timeoutMinutes > 0
+          ? Duration(minutes: timeoutMinutes)
+          : null;
+
+      await _agentRepository.addKey(
+        event.keyPath,
+        passphrase: event.passphrase,
+        lifetime: lifetime,
+      );
+
+      _log.info('key added to agent', {'path': event.keyPath});
+      emit(
+        state.copyWith(
+          addToAgentStatus: AddToAgentStatus.success,
+          addToAgentResult: AddToAgentResult(
+            status: AddToAgentStatus.success,
+            verifiedHost: event.host,
+          ),
+        ),
+      );
+    } catch (e, st) {
+      _log.error('failed to add key to agent', e, st, {'path': event.keyPath});
+      emit(
+        state.copyWith(
+          addToAgentStatus: AddToAgentStatus.agentFailed,
+          addToAgentResult: AddToAgentResult(
+            status: AddToAgentStatus.agentFailed,
+            errorMessage: e.toString(),
+          ),
+        ),
+      );
+    }
+  }
+
+  void _onAddToAgentCleared(
+    KeysAddToAgentCleared event,
+    Emitter<KeysState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        addToAgentStatus: AddToAgentStatus.idle,
+        clearAddToAgentResult: true,
+      ),
+    );
   }
 }
