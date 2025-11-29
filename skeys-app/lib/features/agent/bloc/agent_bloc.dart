@@ -125,13 +125,32 @@ class AgentBloc extends Bloc<AgentEvent, AgentState> {
     }
   }
 
+  /// Subscribes to the agent stream using manual [StreamSubscription] management.
+  ///
+  /// This pattern differs from other BLoCs that use `emit.forEach`. The manual
+  /// subscription approach is intentional here because:
+  ///
+  /// 1. **Non-blocking operations**: Using `emit.forEach` blocks the event
+  ///    handler until the stream completes. Since the agent stream is long-lived,
+  ///    this would prevent other events (add key, remove key, lock, unlock) from
+  ///    being processed.
+  ///
+  /// 2. **Compatible with transformers**: The `restartable` transformer on
+  ///    `AgentWatchRequested` can cancel the previous watch when a new one is
+  ///    requested. Manual subscription makes this explicit and controllable.
+  ///
+  /// 3. **Separate event handling**: Stream updates are dispatched as internal
+  ///    `_AgentWatchUpdated` events, allowing proper state management and logging
+  ///    per update while keeping the watch handler simple.
+  ///
+  /// Compare with KeysBloc which uses `emit.forEach` - the same pattern works
+  /// there because `restartable` cancels the previous forEach automatically.
+  /// Both approaches are valid; this one provides more explicit control.
   void _onWatchRequested(AgentWatchRequested event, Emitter<AgentState> emit) {
     _log.debug('subscribing to agent stream');
-    // Cancel any existing subscription
     _watchSubscription?.cancel();
     emit(state.copyWith(status: AgentBlocStatus.loading));
 
-    // Use manual subscription so it doesn't block other events
     _watchSubscription = _repository.watchAgent().listen(
       (watchState) => add(_AgentWatchUpdated(watchState)),
       onError: (error, stackTrace) => add(_AgentWatchError(error.toString())),

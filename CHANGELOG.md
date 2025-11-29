@@ -13,6 +13,10 @@ All notable changes to this project will be documented in this file.
 - Separate ServerConfigBloc from ConfigBloc
 - Simplify AddToAgentDialog BLoC dependencies
 
+### Documentation
+
+- Document AgentBloc manual subscription pattern
+
 ### Fixed
 
 - Sync key state when agent changes via daemon
