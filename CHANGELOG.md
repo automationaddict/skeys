@@ -32,6 +32,7 @@ All notable changes to this project will be documented in this file.
 - Add required permissions to issue-links workflow
 - Add required permissions to auto-merge workflow (#140)
 - Eliminate race condition in Display settings by using ListenableBuilder
+- Include PR body in squash commits to enable auto-close of issues
 
 ### Miscellaneous
 
