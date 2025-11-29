@@ -128,7 +128,20 @@ class _KeyListTileState extends State<KeyListTile>
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildExpirationIndicator(context, expirationStatus, settings),
-                if (widget.keyEntity.isInAgent)
+                if (!widget.keyEntity.isInAgent && widget.onAddToAgent != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilledButton.tonalIcon(
+                      onPressed: widget.onAddToAgent,
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Add to Agent'),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                  )
+                else if (widget.keyEntity.isInAgent)
                   Tooltip(
                     message: 'Loaded in agent',
                     child: Icon(

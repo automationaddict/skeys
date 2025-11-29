@@ -55,8 +55,9 @@ type AgentStatus struct {
 
 // Service manages the SSH agent
 type Service struct {
-	socketPath string
-	log        *logging.Logger
+	socketPath    string
+	log           *logging.Logger
+	subscriptions *Subscriptions // optional: for change notifications
 }
 
 // ServiceOption is a functional option
@@ -73,6 +74,14 @@ func WithSocketPath(path string) ServiceOption {
 func WithLogger(log *logging.Logger) ServiceOption {
 	return func(s *Service) {
 		s.log = log
+	}
+}
+
+// WithSubscriptions sets a subscriptions manager for change notifications.
+// This allows the service to implement the SubscribeChanges method.
+func WithSubscriptions(subs *Subscriptions) ServiceOption {
+	return func(s *Service) {
+		s.subscriptions = subs
 	}
 }
 
@@ -396,6 +405,44 @@ func (s *Service) RemoveKeyByFingerprint(fingerprint string) error {
 		"fingerprint": fingerprint,
 	})
 	return nil
+}
+
+// SubscribeChanges returns a channel that receives notifications when the agent changes.
+// The channel is closed when the context is cancelled.
+// This method implements the keys.AgentChecker interface.
+func (s *Service) SubscribeChanges(ctx context.Context) <-chan struct{} {
+	out := make(chan struct{}, 1)
+
+	if s.subscriptions == nil {
+		s.log.Debug("no subscriptions manager, returning closed channel")
+		close(out)
+		return out
+	}
+
+	// Subscribe to agent updates
+	agentCh := s.subscriptions.Subscribe(ctx)
+
+	// Convert AgentUpdate to struct{} notification
+	go func() {
+		defer close(out)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case _, ok := <-agentCh:
+				if !ok {
+					return
+				}
+				// Notify that agent changed (non-blocking)
+				select {
+				case out <- struct{}{}:
+				default:
+				}
+			}
+		}
+	}()
+
+	return out
 }
 
 // getBits returns the key size in bits

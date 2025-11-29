@@ -82,6 +82,9 @@ type AgentChecker interface {
 	ListLoadedFingerprints() ([]string, error)
 	// RemoveKeyByFingerprint removes a key from the agent by its fingerprint
 	RemoveKeyByFingerprint(fingerprint string) error
+	// SubscribeChanges returns a channel that receives notifications when the agent changes.
+	// The channel is closed when the context is cancelled.
+	SubscribeChanges(ctx context.Context) <-chan struct{}
 }
 
 // Service provides SSH key management operations.

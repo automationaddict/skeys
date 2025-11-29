@@ -139,6 +139,12 @@ func (m *ManagedAgent) SocketPath() string {
 	return m.socketPath
 }
 
+// Subscriptions returns the subscriptions manager for this agent.
+// This can be used to subscribe to agent state changes.
+func (m *ManagedAgent) Subscriptions() *Subscriptions {
+	return m.subscriptions
+}
+
 func (m *ManagedAgent) acceptLoop() {
 	defer m.wg.Done()
 

@@ -24,6 +24,7 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:skeys_app/core/backend/daemon_status_service.dart';
 import 'package:skeys_app/core/di/injection.dart';
+import 'package:skeys_app/features/agent/bloc/agent_bloc.dart';
 import 'package:skeys_app/features/keys/bloc/keys_bloc.dart';
 import '../../../mocks/mocks.dart';
 import '../../../mocks/test_helpers.dart';
@@ -32,6 +33,7 @@ void main() {
   late MockKeysRepository mockKeysRepository;
   late MockRemoteRepository mockRemoteRepository;
   late MockDaemonStatusService mockDaemonStatusService;
+  late MockAgentBloc mockAgentBloc;
 
   setUpAll(() {
     // Register fallback values for any() matchers
@@ -42,12 +44,19 @@ void main() {
     mockKeysRepository = MockKeysRepository();
     mockRemoteRepository = MockRemoteRepository();
     mockDaemonStatusService = MockDaemonStatusService();
+    mockAgentBloc = MockAgentBloc();
 
     // Register mock DaemonStatusService
     if (getIt.isRegistered<DaemonStatusService>()) {
       getIt.unregister<DaemonStatusService>();
     }
     getIt.registerSingleton<DaemonStatusService>(mockDaemonStatusService);
+
+    // Register mock AgentBloc
+    if (getIt.isRegistered<AgentBloc>()) {
+      getIt.unregister<AgentBloc>();
+    }
+    getIt.registerSingleton<AgentBloc>(mockAgentBloc);
 
     // Default mock for watchKeys (used in constructor)
     when(() => mockKeysRepository.watchKeys()).thenAnswer(
@@ -58,6 +67,9 @@ void main() {
   tearDown(() {
     if (getIt.isRegistered<DaemonStatusService>()) {
       getIt.unregister<DaemonStatusService>();
+    }
+    if (getIt.isRegistered<AgentBloc>()) {
+      getIt.unregister<AgentBloc>();
     }
   });
 

@@ -49,6 +49,12 @@ func (m *MockAgentChecker) RemoveKeyByFingerprint(fingerprint string) error {
 	return args.Error(0)
 }
 
+func (m *MockAgentChecker) SubscribeChanges(ctx context.Context) <-chan struct{} {
+	ch := make(chan struct{})
+	close(ch) // Return closed channel for tests
+	return ch
+}
+
 // createTestKey creates a test key and returns its path
 func createTestKey(t *testing.T, sshDir, name string, withPassphrase bool) string {
 	t.Helper()

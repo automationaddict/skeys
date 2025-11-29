@@ -148,7 +148,11 @@ func New(opts ...ServerOption) (*Server, error) {
 	})
 
 	// Initialize agent service pointing to our managed agent
-	agentService, err := agent.NewService(agent.WithSocketPath(agentSocketPath), agent.WithLogger(agentLog))
+	agentService, err := agent.NewService(
+		agent.WithSocketPath(agentSocketPath),
+		agent.WithLogger(agentLog),
+		agent.WithSubscriptions(managedAgent.Subscriptions()), // Wire subscriptions for change notifications
+	)
 	if err != nil {
 		s.log.Err(err, "failed to initialize agent service")
 		return nil, err

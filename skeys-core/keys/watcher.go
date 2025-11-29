@@ -97,6 +97,13 @@ func (w *keysWatcher) watchLoop(ctx context.Context) {
 		"path": w.service.sshDir,
 	})
 
+	// Subscribe to agent changes if available
+	var agentChanges <-chan struct{}
+	if w.service.agentChecker != nil {
+		agentChanges = w.service.agentChecker.SubscribeChanges(ctx)
+		w.service.log.Debug("subscribed to agent changes for key status updates")
+	}
+
 	// Send initial key list
 	keys, err := w.service.List(ctx)
 	if err != nil {
@@ -151,6 +158,20 @@ func (w *keysWatcher) watchLoop(ctx context.Context) {
 			})
 
 			// Debounce: reset timer on each event
+			if debounceTimer != nil {
+				debounceTimer.Stop()
+			}
+			debounceTimer = time.AfterFunc(debounceDelay, sendUpdate)
+
+		case _, ok := <-agentChanges:
+			if !ok {
+				// Agent subscription closed, set to nil to avoid busy loop
+				agentChanges = nil
+				continue
+			}
+			w.service.log.Debug("agent state changed, refreshing key list")
+			// Agent changed, refresh keys to update InAgent status
+			// Use debounce to coalesce rapid agent changes
 			if debounceTimer != nil {
 				debounceTimer.Stop()
 			}

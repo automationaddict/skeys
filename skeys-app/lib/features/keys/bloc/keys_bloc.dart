@@ -77,6 +77,8 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
         });
 
     // Auto-start watching on creation (singleton pattern)
+    // Note: The daemon's WatchKeys stream automatically updates when agent
+    // state changes (keys added/removed), so no client-side listener needed.
     add(KeysWatchRequested());
   }
 

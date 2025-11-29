@@ -585,15 +585,14 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
     await _storeServiceMetadata();
 
     // Show success and close dialog
+    // Note: The daemon's WatchKeys stream automatically updates when agent
+    // state changes, so no manual reload is needed.
     if (mounted) {
       final serviceName = _selectedPreset?.name ?? _hostController.text;
       AppToast.success(
         context,
         message: 'Key added to agent and verified with $serviceName',
       );
-
-      // Reload keys to update isInAgent status
-      context.read<KeysBloc>().add(const KeysLoadRequested());
 
       Navigator.of(context).pop();
     }
