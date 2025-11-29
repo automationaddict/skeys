@@ -30,7 +30,7 @@ All notable changes to this project will be documented in this file.
 - Sync key state when agent changes via daemon
 - Add error handling for SharedPreferences failures in Display settings (#13) (#76)
 - Add required permissions to issue-links workflow
-- Add required permissions to auto-merge workflow
+- Add required permissions to auto-merge workflow (#140)
 
 ### Miscellaneous
 
@@ -40,6 +40,7 @@ All notable changes to this project will be documented in this file.
 ### Performance
 
 - Optimize RemoteBloc and add network retry logic (#12) (#60)
+- Add state validation to prevent unnecessary settings updates (#15)
 
 ### Testing
 
