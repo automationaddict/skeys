@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - **go**: Update sftp dependency in skeys-daemon to 1.13.10
 - **go**: Bump google.golang.org/protobuf from 1.35.1 to 1.36.10 in /skeys-daemon (#6)
 - **go**: Bump golang.org/x/crypto from 0.41.0 to 0.45.0 in /skeys-core (#7)
+- **go**: Bump google.golang.org/grpc from 1.68.0 to 1.77.0 in /skeys-daemon (#8)
 
 ### CI/CD
 
