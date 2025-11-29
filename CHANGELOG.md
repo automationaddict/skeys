@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 
 - **ci**: Bump actions/checkout from 4 to 6 (#1)
 - **ci**: Bump codecov/codecov-action from 4 to 5 (#4)
+- **go**: Bump github.com/pkg/sftp from 1.13.6 to 1.13.10 in /skeys-core (#5)
 
 ### CI/CD
 
