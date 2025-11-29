@@ -7,7 +7,6 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Improve settings dialog with new features and UI enhancements
-- Add retry logic with user feedback for connection tests
 
 ### CI/CD
 
@@ -22,11 +21,11 @@ All notable changes to this project will be documented in this file.
 ### Documentation
 
 - Document AgentBloc manual subscription pattern
+- Add post-merge cleanup steps to /issue workflow
 
 ### Fixed
 
 - Sync key state when agent changes via daemon
-- Add missing timeout in scanHostKey causing infinite hangs
 
 ### Miscellaneous
 
@@ -34,7 +33,7 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
-- Optimize RemoteBloc to only refresh changed lists
+- Optimize RemoteBloc and add network retry logic (#12) (#60)
 ## [0.0.6] - 2025-11-28
 
 ### Added

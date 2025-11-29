@@ -47,6 +47,38 @@ When complete, create PR with:
 - Labels: `auto-merge` + labels from original issue
 - Auto-request merge after CI passes
 
+## Post-Merge Cleanup
+
+After the PR is merged (either automatically or manually):
+
+1. **Switch back to base branch**:
+   ```bash
+   git checkout {base}
+   ```
+
+2. **Pull the latest changes**:
+   ```bash
+   git pull
+   ```
+
+3. **Delete the local feature branch**:
+   ```bash
+   git branch -d feature/issue-{number}-{description}
+   ```
+
+4. **Prune stale remote tracking branches**:
+   ```bash
+   git fetch --prune
+   ```
+
+5. **Verify cleanup**:
+   ```bash
+   git branch -a | grep issue-{number}
+   # Should return nothing if cleanup was successful
+   ```
+
+**Note**: These cleanup steps prevent stale branches from accumulating in your local repository and keep your workspace clean.
+
 ## Example Usage
 
 - `/issue 10` - Work on issue #10, branching from master
