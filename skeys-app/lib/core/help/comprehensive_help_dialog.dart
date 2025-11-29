@@ -21,6 +21,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
+import '../settings/settings_dialog.dart';
 import 'help_navigation_service.dart';
 import 'help_service.dart';
 import 'help_tree_service.dart';
@@ -150,9 +151,10 @@ class _ComprehensiveHelpDialogState extends State<ComprehensiveHelpDialog> {
               });
             }
           }
-        case OpenSettingsAction():
-          // Close dialog - settings will be handled by shell
+        case OpenSettingsAction(:final tabIndex):
+          // Close help dialog and open settings at specific tab
           Navigator.of(context).pop();
+          SettingsDialog.show(context, initialTab: tabIndex);
       }
     }
   }

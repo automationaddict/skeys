@@ -55,6 +55,7 @@ All notable changes to this project will be documented in this file.
 - Update settings dialog help button to use comprehensive help
 - Add reactive clear button to search boxes in help dialogs
 - Wrap page shortcuts in Focus widget to enable F1 key
+- **help**: Handle skeys://settings links in comprehensive help dialog
 
 ### Miscellaneous
 
