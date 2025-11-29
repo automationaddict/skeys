@@ -8,11 +8,15 @@ All notable changes to this project will be documented in this file.
 
 - Improve settings dialog with new features and UI enhancements
 - Add keyboard navigation and focus indicators to Display settings (#20) (#144)
+- Add color swatch preview to theme selector (#387)
+- Implement comprehensive help system with tree navigation
+- **help**: Make help panel persist when navigating between pages
 
 ### Changed
 
 - Separate ServerConfigBloc from ConfigBloc
 - Simplify AddToAgentDialog BLoC dependencies
+- Remove GetIt dependency from Display settings (#21) (#284)
 
 ### Documentation
 
@@ -23,7 +27,10 @@ All notable changes to this project will be documented in this file.
 - Sync key state when agent changes via daemon
 - Add error handling for SharedPreferences failures in Display settings (#13) (#76)
 - Eliminate race condition in Display settings by using ListenableBuilder
-- Add validation and logging to TextScale and AppThemeMode enum loading (#22)
+- Add validation and logging to TextScale and AppThemeMode enum loading (#22) (#145)
+- Update settings dialog help button to use comprehensive help
+- Add reactive clear button to search boxes in help dialogs
+- Wrap page shortcuts in Focus widget to enable F1 key
 
 ### Performance
 

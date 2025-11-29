@@ -19,10 +19,14 @@
 // SOFTWARE.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/di/injection.dart';
 import '../../../core/help/help_context_service.dart';
+import '../../../core/help/help_panel.dart';
+import '../../../core/help/help_service.dart';
+import '../../../core/widgets/app_bar_with_help.dart';
 import '../bloc/config_bloc.dart';
 import '../bloc/server_config_bloc.dart';
 import '../domain/config_entity.dart';
@@ -48,6 +52,7 @@ class _ConfigPageState extends State<ConfigPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _helpContextService = getIt<HelpContextService>();
+  final _helpService = HelpService();
   int _currentTabIndex = 0;
 
   static const _tabContexts = ['client', 'server'];
@@ -82,39 +87,70 @@ class _ConfigPageState extends State<ConfigPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('SSH Configuration'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Client Config'),
-            Tab(text: 'Server Config'),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          BlocBuilder<ConfigBloc, ConfigState>(
-            builder: (context, state) => _ClientConfigTab(state: state),
-          ),
-          BlocProvider.value(
-            value: getIt<ServerConfigBloc>(),
-            child: BlocBuilder<ServerConfigBloc, ServerConfigState>(
-              builder: (context, state) => ServerConfigTab(state: state),
+    return ListenableBuilder(
+      listenable: _helpContextService,
+      builder: (context, _) {
+        return CallbackShortcuts(
+          bindings: {
+            const SingleActivator(LogicalKeyboardKey.f1):
+                _helpContextService.toggleHelp,
+          },
+          child: Focus(
+            autofocus: true,
+            child: Scaffold(
+              appBar: AppBarWithHelp(
+                title: 'SSH Configuration',
+                helpRoute: 'config',
+                onHelpPressed: _helpContextService.toggleHelp,
+                bottom: TabBar(
+                  controller: _tabController,
+                  tabs: const [
+                    Tab(text: 'Client Config'),
+                    Tab(text: 'Server Config'),
+                  ],
+                ),
+              ),
+              body: Row(
+                children: [
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        BlocBuilder<ConfigBloc, ConfigState>(
+                          builder: (context, state) =>
+                              _ClientConfigTab(state: state),
+                        ),
+                        BlocProvider.value(
+                          value: getIt<ServerConfigBloc>(),
+                          child:
+                              BlocBuilder<ServerConfigBloc, ServerConfigState>(
+                                builder: (context, state) =>
+                                    ServerConfigTab(state: state),
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_helpContextService.isHelpVisible)
+                    HelpPanel(
+                      baseRoute: '/config',
+                      helpService: _helpService,
+                      onClose: _helpContextService.hideHelp,
+                    ),
+                ],
+              ),
+              // Only show FAB on Client Config tab (index 0)
+              floatingActionButton: _currentTabIndex == 0
+                  ? FloatingActionButton.extended(
+                      onPressed: () => _showAddEntryDialog(context),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Host'),
+                    )
+                  : null,
             ),
           ),
-        ],
-      ),
-      // Only show FAB on Client Config tab (index 0)
-      floatingActionButton: _currentTabIndex == 0
-          ? FloatingActionButton.extended(
-              onPressed: () => _showAddEntryDialog(context),
-              icon: const Icon(Icons.add),
-              label: const Text('Add Host'),
-            )
-          : null,
+        );
+      },
     );
   }
 

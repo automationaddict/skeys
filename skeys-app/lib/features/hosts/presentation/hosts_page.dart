@@ -24,7 +24,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/di/injection.dart';
 import '../../../core/help/help_context_service.dart';
+import '../../../core/help/help_panel.dart';
+import '../../../core/help/help_service.dart';
 import '../../../core/notifications/app_toast.dart';
+import '../../../core/widgets/app_bar_with_help.dart';
 import '../bloc/hosts_bloc.dart';
 import '../domain/host_entity.dart';
 
@@ -41,6 +44,7 @@ class _HostsPageState extends State<HostsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _helpContextService = getIt<HelpContextService>();
+  final _helpService = HelpService();
 
   static const _tabContexts = ['known', 'authorized'];
 
@@ -70,35 +74,63 @@ class _HostsPageState extends State<HostsPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Host Management'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Known Hosts'),
-            Tab(text: 'Authorized Keys'),
-          ],
-        ),
-      ),
-      body: BlocBuilder<HostsBloc, HostsState>(
-        builder: (context, state) {
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              _buildKnownHostsTab(context, state),
-              _buildAuthorizedKeysTab(context, state),
-            ],
-          );
-        },
-      ),
-      floatingActionButton: _tabController.index == 0
-          ? FloatingActionButton.extended(
-              onPressed: () => _showScanHostDialog(context),
-              icon: const Icon(Icons.add),
-              label: const Text('Add Host'),
-            )
-          : null,
+    return ListenableBuilder(
+      listenable: _helpContextService,
+      builder: (context, _) {
+        return CallbackShortcuts(
+          bindings: {
+            const SingleActivator(LogicalKeyboardKey.f1):
+                _helpContextService.toggleHelp,
+          },
+          child: Focus(
+            autofocus: true,
+            child: Scaffold(
+              appBar: AppBarWithHelp(
+                title: 'Host Management',
+                helpRoute: 'hosts',
+                onHelpPressed: _helpContextService.toggleHelp,
+                bottom: TabBar(
+                  controller: _tabController,
+                  tabs: const [
+                    Tab(text: 'Known Hosts'),
+                    Tab(text: 'Authorized Keys'),
+                  ],
+                ),
+              ),
+              body: Row(
+                children: [
+                  Expanded(
+                    child: BlocBuilder<HostsBloc, HostsState>(
+                      builder: (context, state) {
+                        return TabBarView(
+                          controller: _tabController,
+                          children: [
+                            _buildKnownHostsTab(context, state),
+                            _buildAuthorizedKeysTab(context, state),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  if (_helpContextService.isHelpVisible)
+                    HelpPanel(
+                      baseRoute: '/hosts',
+                      helpService: _helpService,
+                      onClose: _helpContextService.hideHelp,
+                    ),
+                ],
+              ),
+              floatingActionButton: _tabController.index == 0
+                  ? FloatingActionButton.extended(
+                      onPressed: () => _showScanHostDialog(context),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Host'),
+                    )
+                  : null,
+            ),
+          ),
+        );
+      },
     );
   }
 

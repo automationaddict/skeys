@@ -33,7 +33,7 @@ import '../generated/skeys/v1/config.pb.dart';
 import '../generated/skeys/v1/update.pbgrpc.dart';
 import '../generated/skeys/v1/version.pb.dart';
 import '../grpc/grpc_client.dart';
-import '../help/help_navigation_service.dart';
+import '../help/comprehensive_help_dialog.dart';
 import '../logging/app_logger.dart';
 import '../notifications/app_toast.dart';
 import '../theme/app_theme.dart';
@@ -104,24 +104,27 @@ class _SettingsDialogState extends State<SettingsDialog>
   }
 
   void _showHelpForCurrentTab() {
-    // Map tab index to help route
-    final helpRoutes = [
-      'settings/display',
-      'settings/security',
-      'settings/backup',
-      'settings/logging',
-      'settings/update',
-      'settings/system',
-      'settings/about',
+    // Map tab index to help doc name
+    final helpDocs = [
+      'settings-display',
+      'settings-security',
+      'settings-backup',
+      'settings-logging',
+      'settings-update',
+      'settings-system',
+      'settings-about',
     ];
 
-    final route = helpRoutes[_tabController.index];
+    final docName = helpDocs[_tabController.index];
 
-    // Request help to be shown, then close the dialog
-    final helpNav = getIt<HelpNavigationService>();
-    helpNav.requestHelp(route);
-
+    // Close settings dialog and show comprehensive help at this doc
     Navigator.of(context).pop();
+
+    // Show comprehensive help dialog with the specific doc
+    showDialog(
+      context: context,
+      builder: (context) => ComprehensiveHelpDialog(initialDocName: docName),
+    );
   }
 
   @override
@@ -519,15 +522,27 @@ class _DisplayTab extends StatelessWidget {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     _ColorSwatch(
-                                      color: _getThemeColor(context, mode, 'primary'),
+                                      color: _getThemeColor(
+                                        context,
+                                        mode,
+                                        'primary',
+                                      ),
                                     ),
                                     const SizedBox(width: 4),
                                     _ColorSwatch(
-                                      color: _getThemeColor(context, mode, 'surface'),
+                                      color: _getThemeColor(
+                                        context,
+                                        mode,
+                                        'surface',
+                                      ),
                                     ),
                                     const SizedBox(width: 4),
                                     _ColorSwatch(
-                                      color: _getThemeColor(context, mode, 'surfaceContainerHighest'),
+                                      color: _getThemeColor(
+                                        context,
+                                        mode,
+                                        'surfaceContainerHighest',
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -578,7 +593,8 @@ class _DisplayTab extends StatelessWidget {
     return switch (type) {
       'primary' => themeData.colorScheme.primary,
       'surface' => themeData.colorScheme.surface,
-      'surfaceContainerHighest' => themeData.colorScheme.surfaceContainerHighest,
+      'surfaceContainerHighest' =>
+        themeData.colorScheme.surfaceContainerHighest,
       _ => themeData.colorScheme.primary,
     };
   }

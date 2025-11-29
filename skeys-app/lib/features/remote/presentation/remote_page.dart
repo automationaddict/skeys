@@ -19,8 +19,14 @@
 // SOFTWARE.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/di/injection.dart';
+import '../../../core/help/help_context_service.dart';
+import '../../../core/help/help_panel.dart';
+import '../../../core/help/help_service.dart';
+import '../../../core/widgets/app_bar_with_help.dart';
 import '../bloc/remote_bloc.dart';
 import '../domain/remote_entity.dart';
 
@@ -34,6 +40,9 @@ class RemotePage extends StatefulWidget {
 }
 
 class _RemotePageState extends State<RemotePage> {
+  final _helpService = HelpService();
+  final _helpContextService = getIt<HelpContextService>();
+
   @override
   void initState() {
     super.initState();
@@ -43,80 +52,117 @@ class _RemotePageState extends State<RemotePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Remote Servers')),
-      body: BlocBuilder<RemoteBloc, RemoteState>(
-        builder: (context, state) {
-          if (state.status == RemoteBlocStatus.loading &&
-              state.remotes.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (state.remotes.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+    return ListenableBuilder(
+      listenable: _helpContextService,
+      builder: (context, _) {
+        return CallbackShortcuts(
+          bindings: {
+            const SingleActivator(LogicalKeyboardKey.f1):
+                _helpContextService.toggleHelp,
+          },
+          child: Focus(
+            autofocus: true,
+            child: Scaffold(
+              appBar: AppBarWithHelp(
+                title: 'Remote Servers',
+                helpRoute: 'remotes',
+                onHelpPressed: _helpContextService.toggleHelp,
+              ),
+              body: Row(
                 children: [
-                  Icon(
-                    Icons.cloud_off,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No remote servers configured',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Add a remote server to get started',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
+                  Expanded(
+                    child: BlocBuilder<RemoteBloc, RemoteState>(
+                      builder: (context, state) {
+                        if (state.status == RemoteBlocStatus.loading &&
+                            state.remotes.isEmpty) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+
+                        if (state.remotes.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.cloud_off,
+                                  size: 64,
+                                  color: Theme.of(context).colorScheme.outline,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No remote servers configured',
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Add a remote server to get started',
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.outline,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        return ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: state.remotes.length,
+                          itemBuilder: (context, index) {
+                            final remote = state.remotes[index];
+                            final connection = state.connections
+                                .where((c) => c.remoteId == remote.id)
+                                .firstOrNull;
+                            return _RemoteCard(
+                              remote: remote,
+                              connection: connection,
+                              onConnect: () {
+                                context.read<RemoteBloc>().add(
+                                  RemoteConnectRequested(remoteId: remote.id),
+                                );
+                              },
+                              onDisconnect: connection != null
+                                  ? () {
+                                      context.read<RemoteBloc>().add(
+                                        RemoteDisconnectRequested(
+                                          connection.id,
+                                        ),
+                                      );
+                                    }
+                                  : null,
+                              onDelete: () {
+                                context.read<RemoteBloc>().add(
+                                  RemoteDeleteRequested(remote.id),
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
                     ),
                   ),
+                  if (_helpContextService.isHelpVisible)
+                    HelpPanel(
+                      baseRoute: '/remotes',
+                      helpService: _helpService,
+                      onClose: _helpContextService.hideHelp,
+                    ),
                 ],
               ),
-            );
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: state.remotes.length,
-            itemBuilder: (context, index) {
-              final remote = state.remotes[index];
-              final connection = state.connections
-                  .where((c) => c.remoteId == remote.id)
-                  .firstOrNull;
-              return _RemoteCard(
-                remote: remote,
-                connection: connection,
-                onConnect: () {
-                  context.read<RemoteBloc>().add(
-                    RemoteConnectRequested(remoteId: remote.id),
-                  );
-                },
-                onDisconnect: connection != null
-                    ? () {
-                        context.read<RemoteBloc>().add(
-                          RemoteDisconnectRequested(connection.id),
-                        );
-                      }
-                    : null,
-                onDelete: () {
-                  context.read<RemoteBloc>().add(
-                    RemoteDeleteRequested(remote.id),
-                  );
-                },
-              );
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddDialog(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Add Remote'),
-      ),
+              floatingActionButton: FloatingActionButton.extended(
+                onPressed: () => _showAddDialog(context),
+                icon: const Icon(Icons.add),
+                label: const Text('Add Remote'),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

@@ -82,6 +82,11 @@ class _HelpPanelState extends State<HelpPanel> {
     _helpContextService.addListener(_onContextChanged);
     _helpNavService.addListener(_onHelpNavigationChanged);
 
+    // Listen to search controller to update clear button visibility
+    _searchController.addListener(() {
+      setState(() {});
+    });
+
     // Check for pending help navigation (e.g., from settings dialog)
     if (_helpNavService.pendingShowHelp &&
         _helpNavService.pendingHelpRoute != null) {
