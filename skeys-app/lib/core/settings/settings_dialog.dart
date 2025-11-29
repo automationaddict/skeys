@@ -184,13 +184,13 @@ class _SettingsDialogState extends State<SettingsDialog>
             Expanded(
               child: TabBarView(
                 controller: _tabController,
-                children: const [
-                  _DisplayTab(),
-                  _SecurityTab(),
-                  _BackupTab(),
-                  _LoggingTab(),
-                  _UpdateTab(),
-                  _SystemTab(),
+                children: [
+                  _DisplayTab(settingsService: getIt<SettingsService>()),
+                  const _SecurityTab(),
+                  const _BackupTab(),
+                  const _LoggingTab(),
+                  const _UpdateTab(),
+                  const _SystemTab(),
                   _AboutTab(),
                 ],
               ),
@@ -204,13 +204,14 @@ class _SettingsDialogState extends State<SettingsDialog>
 
 /// Display settings tab.
 class _DisplayTab extends StatelessWidget {
-  const _DisplayTab();
+  final SettingsService settingsService;
+
+  const _DisplayTab({required this.settingsService});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final settingsService = getIt<SettingsService>();
 
     return ListenableBuilder(
       listenable: settingsService,
