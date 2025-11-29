@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 
 - Separate ServerConfigBloc from ConfigBloc
 - Simplify AddToAgentDialog BLoC dependencies
+- Rename /review command to /code-review
 
 ### Documentation
 
