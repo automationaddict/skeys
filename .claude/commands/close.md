@@ -9,6 +9,7 @@ Close and merge the PR associated with issue $ARGUMENTS
 
 2. **Review PR status**
    - Check if CI/checks are passing
+   - **WAIT for ALL CI checks to complete before merging**
    - Verify the PR is ready to merge
 
 3. **Merge the PR** using squash merge
@@ -22,9 +23,12 @@ Close and merge the PR associated with issue $ARGUMENTS
    - Verify issue is closed
    - Report to user: "Issue #$ARGUMENTS closed and merged via PR #XXX"
 
+**IMPORTANT**: Do NOT delete branches. Branch cleanup is handled by the `/cleanup` command.
+
 ## Error Handling
 
 - If no PR found, ask user to specify PR number
+- If ANY checks are still running, WAIT for them to complete
 - If checks are failing, warn user before merging
 - If PR is already merged, report status
 

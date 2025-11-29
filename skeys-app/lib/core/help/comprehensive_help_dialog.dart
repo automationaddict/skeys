@@ -57,11 +57,8 @@ class _ComprehensiveHelpDialogState extends State<ComprehensiveHelpDialog> {
   @override
   void initState() {
     super.initState();
-    // Set initial doc or default to first leaf node
-    _currentDocName =
-        widget.initialDocName ??
-        HelpTreeService.allLeafNodes.firstOrNull?.docName ??
-        'keys';
+    // Set initial doc or default to index page
+    _currentDocName = widget.initialDocName ?? 'index';
     _loadDoc(_currentDocName);
 
     // Listen to search controller to update clear button visibility

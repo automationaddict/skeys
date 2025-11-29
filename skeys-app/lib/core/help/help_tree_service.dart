@@ -70,6 +70,32 @@ class HelpTreeService {
     icon: Icons.menu_book,
     children: [
       HelpTreeNode(
+        id: 'index',
+        title: 'Welcome',
+        docName: 'index',
+        icon: Icons.home,
+      ),
+      HelpTreeNode(
+        id: 'getting-started',
+        title: 'Getting Started',
+        docName: null,
+        icon: Icons.school,
+        children: [
+          HelpTreeNode(
+            id: 'ssh-overview',
+            title: 'SSH Overview',
+            docName: 'ssh-overview',
+            icon: Icons.info_outline,
+          ),
+          HelpTreeNode(
+            id: 'glossary',
+            title: 'Glossary',
+            docName: 'glossary',
+            icon: Icons.menu_book,
+          ),
+        ],
+      ),
+      HelpTreeNode(
         id: 'server',
         title: 'SSH Server Status',
         docName: 'server',
