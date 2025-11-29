@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
 - Improve settings dialog with new features and UI enhancements
 - Add keyboard navigation and focus indicators to Display settings (#20) (#144)
 
+### Build
+
+- **ci**: Bump actions/checkout from 4 to 6 (#1)
+
 ### CI/CD
 
 - Add GitHub workflow automation
