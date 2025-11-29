@@ -82,10 +82,34 @@ class HelpTreeService {
         icon: Icons.school,
         children: [
           HelpTreeNode(
+            id: 'quick-start',
+            title: 'Quick Start',
+            docName: 'quick-start',
+            icon: Icons.rocket_launch,
+          ),
+          HelpTreeNode(
+            id: 'install',
+            title: 'Installation',
+            docName: 'install',
+            icon: Icons.download,
+          ),
+          HelpTreeNode(
             id: 'ssh-overview',
             title: 'SSH Overview',
             docName: 'ssh-overview',
             icon: Icons.info_outline,
+          ),
+          HelpTreeNode(
+            id: 'faq',
+            title: 'FAQ',
+            docName: 'faq',
+            icon: Icons.help_outline,
+          ),
+          HelpTreeNode(
+            id: 'troubleshooting',
+            title: 'Troubleshooting',
+            docName: 'troubleshooting',
+            icon: Icons.build,
           ),
           HelpTreeNode(
             id: 'glossary',

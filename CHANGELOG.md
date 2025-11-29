@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - Add color swatch preview to theme selector (#387)
 - Implement comprehensive help system with tree navigation (#389)
 - **help**: Add index page, SSH overview, and glossary to help system
+- **help**: Add Quick Start, Installation, FAQ, and Troubleshooting guides
 
 ### Build
 
