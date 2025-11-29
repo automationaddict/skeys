@@ -519,15 +519,27 @@ class _DisplayTab extends StatelessWidget {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     _ColorSwatch(
-                                      color: _getThemeColor(context, mode, 'primary'),
+                                      color: _getThemeColor(
+                                        context,
+                                        mode,
+                                        'primary',
+                                      ),
                                     ),
                                     const SizedBox(width: 4),
                                     _ColorSwatch(
-                                      color: _getThemeColor(context, mode, 'surface'),
+                                      color: _getThemeColor(
+                                        context,
+                                        mode,
+                                        'surface',
+                                      ),
                                     ),
                                     const SizedBox(width: 4),
                                     _ColorSwatch(
-                                      color: _getThemeColor(context, mode, 'surfaceContainerHighest'),
+                                      color: _getThemeColor(
+                                        context,
+                                        mode,
+                                        'surfaceContainerHighest',
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -578,7 +590,8 @@ class _DisplayTab extends StatelessWidget {
     return switch (type) {
       'primary' => themeData.colorScheme.primary,
       'surface' => themeData.colorScheme.surface,
-      'surfaceContainerHighest' => themeData.colorScheme.surfaceContainerHighest,
+      'surfaceContainerHighest' =>
+        themeData.colorScheme.surfaceContainerHighest,
       _ => themeData.colorScheme.primary,
     };
   }

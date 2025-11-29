@@ -24,7 +24,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/backend/daemon_status_service.dart';
 import '../../../core/di/injection.dart';
+import '../../../core/help/help_panel.dart';
+import '../../../core/help/help_service.dart';
 import '../../../core/notifications/app_toast.dart';
+import '../../../core/widgets/app_bar_with_help.dart';
 import '../bloc/server_bloc.dart';
 import '../domain/server_entity.dart';
 import '../repository/server_repository.dart';
@@ -39,6 +42,9 @@ class ServerPage extends StatefulWidget {
 }
 
 class _ServerPageState extends State<ServerPage> {
+  bool _showHelp = false;
+  final _helpService = HelpService();
+
   @override
   void initState() {
     super.initState();
@@ -50,36 +56,68 @@ class _ServerPageState extends State<ServerPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('SSH Server Status')),
-      body: BlocConsumer<ServerBloc, ServerState>(
-        listener: (context, state) {
-          // Handle action results
-          if (state.actionResult != null) {
-            if (state.actionResult!.success) {
-              AppToast.success(context, message: state.actionResult!.message);
-            } else {
-              AppToast.error(context, message: state.actionResult!.message);
-            }
-            // Clear the action result
-            context.read<ServerBloc>().add(const ServerActionResultCleared());
-          }
-          if (state.status == ServerStatus.failure &&
-              state.errorMessage != null) {
-            AppToast.error(context, message: state.errorMessage!);
-          }
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.f1): () {
+          setState(() => _showHelp = !_showHelp);
         },
-        builder: (context, state) {
-          if (state.status == ServerStatus.loading && state.sshStatus == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      },
+      child: Scaffold(
+        appBar: AppBarWithHelp(
+          title: 'SSH Server Status',
+          helpRoute: 'server',
+          onHelpPressed: () => setState(() => _showHelp = !_showHelp),
+        ),
+        body: Row(
+          children: [
+            Expanded(
+              child: BlocConsumer<ServerBloc, ServerState>(
+                listener: (context, state) {
+                  // Handle action results
+                  if (state.actionResult != null) {
+                    if (state.actionResult!.success) {
+                      AppToast.success(
+                        context,
+                        message: state.actionResult!.message,
+                      );
+                    } else {
+                      AppToast.error(
+                        context,
+                        message: state.actionResult!.message,
+                      );
+                    }
+                    // Clear the action result
+                    context.read<ServerBloc>().add(
+                      const ServerActionResultCleared(),
+                    );
+                  }
+                  if (state.status == ServerStatus.failure &&
+                      state.errorMessage != null) {
+                    AppToast.error(context, message: state.errorMessage!);
+                  }
+                },
+                builder: (context, state) {
+                  if (state.status == ServerStatus.loading &&
+                      state.sshStatus == null) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-          if (state.sshStatus == null) {
-            return _buildErrorState(colorScheme, state.errorMessage);
-          }
+                  if (state.sshStatus == null) {
+                    return _buildErrorState(colorScheme, state.errorMessage);
+                  }
 
-          return _buildContent(theme, colorScheme, state);
-        },
+                  return _buildContent(theme, colorScheme, state);
+                },
+              ),
+            ),
+            if (_showHelp)
+              HelpPanel(
+                baseRoute: '/server',
+                helpService: _helpService,
+                onClose: () => setState(() => _showHelp = false),
+              ),
+          ],
+        ),
       ),
     );
   }

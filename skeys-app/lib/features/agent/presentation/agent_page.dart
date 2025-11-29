@@ -19,10 +19,14 @@
 // SOFTWARE.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/help/help_panel.dart';
+import '../../../core/help/help_service.dart';
 import '../../../core/settings/settings_service.dart';
+import '../../../core/widgets/app_bar_with_help.dart';
 import '../bloc/agent_bloc.dart';
 import 'key_countdown_widget.dart';
 
@@ -39,26 +43,52 @@ class AgentPage extends StatefulWidget {
 }
 
 class _AgentPageState extends State<AgentPage> {
+  bool _showHelp = false;
+  final _helpService = HelpService();
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('SSH Agent')),
-      body: BlocBuilder<AgentBloc, AgentState>(
-        builder: (context, state) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildStatusCard(context, state),
-                const SizedBox(height: 24),
-                _buildActionsCard(context, state),
-                const SizedBox(height: 24),
-                _buildKeysSection(context, state),
-              ],
-            ),
-          );
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.f1): () {
+          setState(() => _showHelp = !_showHelp);
         },
+      },
+      child: Scaffold(
+        appBar: AppBarWithHelp(
+          title: 'SSH Agent',
+          helpRoute: 'agent',
+          onHelpPressed: () => setState(() => _showHelp = !_showHelp),
+        ),
+        body: Row(
+          children: [
+            Expanded(
+              child: BlocBuilder<AgentBloc, AgentState>(
+                builder: (context, state) {
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildStatusCard(context, state),
+                        const SizedBox(height: 24),
+                        _buildActionsCard(context, state),
+                        const SizedBox(height: 24),
+                        _buildKeysSection(context, state),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            if (_showHelp)
+              HelpPanel(
+                baseRoute: '/agent',
+                helpService: _helpService,
+                onClose: () => setState(() => _showHelp = false),
+              ),
+          ],
+        ),
       ),
     );
   }

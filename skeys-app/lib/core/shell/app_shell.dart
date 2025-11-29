@@ -25,9 +25,8 @@ import 'package:go_router/go_router.dart';
 import '../di/injection.dart';
 import '../generated/skeys/v1/config.pb.dart';
 import '../grpc/grpc_client.dart';
+import '../help/comprehensive_help_dialog.dart';
 import '../help/help_navigation_service.dart';
-import '../help/help_panel.dart';
-import '../help/help_service.dart';
 import '../logging/app_logger.dart';
 import '../settings/settings_dialog.dart';
 import '../settings/settings_service.dart';
@@ -51,12 +50,10 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   final _log = AppLogger('app_shell');
-  final _helpService = HelpService();
   final _settingsService = getIt<SettingsService>();
   final _grpcClient = getIt<GrpcClient>();
   final _helpNavService = getIt<HelpNavigationService>();
   final _updateService = getIt<UpdateService>();
-  bool _showHelp = false;
   bool _checkedSshConfig = false;
 
   @override
@@ -88,15 +85,6 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _onHelpNavigationChanged() {
-    // Handle pending help request - just show the help panel
-    // The help panel itself listens for the specific route
-    if (_helpNavService.pendingShowHelp) {
-      setState(() {
-        _showHelp = true;
-      });
-      // Note: The help panel will pick up the pending route and navigate to it
-    }
-
     // Handle pending settings request
     if (_helpNavService.pendingOpenSettings) {
       final tabIndex = _helpNavService.pendingSettingsTab;
@@ -148,15 +136,19 @@ class _AppShellState extends State<AppShell> {
     }
   }
 
+  void _showComprehensiveHelp() {
+    showDialog(
+      context: context,
+      builder: (context) => const ComprehensiveHelpDialog(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final baseRoute = GoRouterState.of(context).uri.path;
-
     return CallbackShortcuts(
       bindings: {
-        const SingleActivator(LogicalKeyboardKey.f1): () {
-          setState(() => _showHelp = !_showHelp);
-        },
+        const SingleActivator(LogicalKeyboardKey.keyH, control: true):
+            _showComprehensiveHelp,
       },
       child: Focus(
         autofocus: true,
@@ -189,15 +181,9 @@ class _AppShellState extends State<AppShell> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
-                            icon: Icon(
-                              _showHelp ? Icons.help : Icons.help_outline,
-                              color: _showHelp
-                                  ? Theme.of(context).colorScheme.primary
-                                  : null,
-                            ),
-                            tooltip: 'Help (F1)',
-                            onPressed: () =>
-                                setState(() => _showHelp = !_showHelp),
+                            icon: const Icon(Icons.help_outline),
+                            tooltip: 'Help (Ctrl+H)',
+                            onPressed: _showComprehensiveHelp,
                           ),
                           const SizedBox(height: 8),
                           _buildSettingsButton(context),
@@ -241,13 +227,6 @@ class _AppShellState extends State<AppShell> {
               ),
               const VerticalDivider(thickness: 1, width: 1),
               Expanded(child: widget.child),
-              if (_showHelp) ...[
-                HelpPanel(
-                  baseRoute: baseRoute,
-                  helpService: _helpService,
-                  onClose: () => setState(() => _showHelp = false),
-                ),
-              ],
             ],
           ),
         ),

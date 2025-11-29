@@ -24,7 +24,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/di/injection.dart';
 import '../../../core/help/help_context_service.dart';
+import '../../../core/help/help_panel.dart';
+import '../../../core/help/help_service.dart';
 import '../../../core/notifications/app_toast.dart';
+import '../../../core/widgets/app_bar_with_help.dart';
 import '../bloc/hosts_bloc.dart';
 import '../domain/host_entity.dart';
 
@@ -41,6 +44,8 @@ class _HostsPageState extends State<HostsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _helpContextService = getIt<HelpContextService>();
+  final _helpService = HelpService();
+  bool _showHelp = false;
 
   static const _tabContexts = ['known', 'authorized'];
 
@@ -70,35 +75,56 @@ class _HostsPageState extends State<HostsPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Host Management'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Known Hosts'),
-            Tab(text: 'Authorized Keys'),
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.f1): () {
+          setState(() => _showHelp = !_showHelp);
+        },
+      },
+      child: Scaffold(
+        appBar: AppBarWithHelp(
+          title: 'Host Management',
+          helpRoute: 'hosts',
+          onHelpPressed: () => setState(() => _showHelp = !_showHelp),
+          bottom: TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(text: 'Known Hosts'),
+              Tab(text: 'Authorized Keys'),
+            ],
+          ),
+        ),
+        body: Row(
+          children: [
+            Expanded(
+              child: BlocBuilder<HostsBloc, HostsState>(
+                builder: (context, state) {
+                  return TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildKnownHostsTab(context, state),
+                      _buildAuthorizedKeysTab(context, state),
+                    ],
+                  );
+                },
+              ),
+            ),
+            if (_showHelp)
+              HelpPanel(
+                baseRoute: '/hosts',
+                helpService: _helpService,
+                onClose: () => setState(() => _showHelp = false),
+              ),
           ],
         ),
+        floatingActionButton: _tabController.index == 0
+            ? FloatingActionButton.extended(
+                onPressed: () => _showScanHostDialog(context),
+                icon: const Icon(Icons.add),
+                label: const Text('Add Host'),
+              )
+            : null,
       ),
-      body: BlocBuilder<HostsBloc, HostsState>(
-        builder: (context, state) {
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              _buildKnownHostsTab(context, state),
-              _buildAuthorizedKeysTab(context, state),
-            ],
-          );
-        },
-      ),
-      floatingActionButton: _tabController.index == 0
-          ? FloatingActionButton.extended(
-              onPressed: () => _showScanHostDialog(context),
-              icon: const Icon(Icons.add),
-              label: const Text('Add Host'),
-            )
-          : null,
     );
   }
 
