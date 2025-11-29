@@ -34,7 +34,8 @@ All notable changes to this project will be documented in this file.
 - Add required permissions to auto-merge workflow (#140)
 - Eliminate race condition in Display settings by using ListenableBuilder
 - Include PR body in squash commits to enable auto-close of issues (#143)
-- Add validation and logging to TextScale and AppThemeMode enum loading (#22)
+- Add validation and logging to TextScale and AppThemeMode enum loading (#22) (#145)
+- Revert to automatic merge commit message to prevent unintended auto-close
 
 ### Miscellaneous
 
