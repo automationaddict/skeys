@@ -39,6 +39,10 @@ All notable changes to this project will be documented in this file.
 ### Performance
 
 - Optimize RemoteBloc and add network retry logic (#12) (#60)
+
+### Testing
+
+- Add comprehensive unit and widget tests for Display settings (#14)
 ## [0.0.6] - 2025-11-28
 
 ### Added
