@@ -20,11 +20,16 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Sync key state when agent changes via daemon
-- Add error handling for SharedPreferences failures in Display settings (#13)
+- Add error handling for SharedPreferences failures in Display settings (#13) (#76)
 
 ### Performance
 
 - Optimize RemoteBloc and add network retry logic (#12) (#60)
+- Add state validation to prevent unnecessary settings updates (#15)
+
+### Testing
+
+- Add comprehensive unit and widget tests for Display settings (#14) (#139)
 ## [0.0.6] - 2025-11-28
 
 ### Added

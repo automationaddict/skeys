@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - Add error handling for SharedPreferences failures in Display settings (#13) (#76)
 - Add required permissions to issue-links workflow
 - Add required permissions to auto-merge workflow (#140)
+- Eliminate race condition in Display settings by using ListenableBuilder
 
 ### Miscellaneous
 

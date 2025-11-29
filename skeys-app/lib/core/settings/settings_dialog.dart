@@ -202,136 +202,141 @@ class _SettingsDialogState extends State<SettingsDialog>
 }
 
 /// Display settings tab.
-class _DisplayTab extends StatefulWidget {
+class _DisplayTab extends StatelessWidget {
   const _DisplayTab();
-
-  @override
-  State<_DisplayTab> createState() => _DisplayTabState();
-}
-
-class _DisplayTabState extends State<_DisplayTab> {
-  late TextScale _selectedScale;
-  late AppThemeMode _selectedTheme;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedScale = getIt<SettingsService>().textScale;
-    _selectedTheme = getIt<SettingsService>().themeMode;
-  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final settingsService = getIt<SettingsService>();
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Theme section
-          Text('Theme', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text(
-            'Choose your preferred color theme.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 16),
+    return ListenableBuilder(
+      listenable: settingsService,
+      builder: (context, child) {
+        final selectedScale = settingsService.textScale;
+        final selectedTheme = settingsService.themeMode;
 
-          // Theme mode options as segmented button
-          _buildThemeSelector(context),
-
-          const SizedBox(height: 32),
-
-          // Text size section
-          Text('Text Size', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text(
-            'Adjust the text size throughout the application for better readability.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Text scale options as styled cards
-          ...TextScale.values.map(
-            (scale) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: _buildTextScaleCard(context, scale),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Preview card
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: colorScheme.outline.withValues(alpha: 0.5),
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Theme section
+              Text('Theme', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Text(
+                'Choose your preferred color theme.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+              const SizedBox(height: 16),
+
+              // Theme mode options as segmented button
+              _buildThemeSelector(context, selectedTheme, settingsService),
+
+              const SizedBox(height: 32),
+
+              // Text size section
+              Text('Text Size', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Text(
+                'Adjust the text size throughout the application for better readability.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Text scale options as styled cards
+              ...TextScale.values.map(
+                (scale) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _buildTextScaleCard(
+                    context,
+                    scale,
+                    selectedScale,
+                    settingsService,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Preview card
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: colorScheme.outline.withValues(alpha: 0.5),
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.preview, color: colorScheme.primary, size: 24),
-                    const SizedBox(width: 12),
-                    Text('Preview', style: theme.textTheme.titleSmall),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.preview,
+                          color: colorScheme.primary,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Text('Preview', style: theme.textTheme.titleSmall),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'The quick brown fox jumps over the lazy dog.',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontSize: 14 * selectedScale.scale,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Currently using ${selectedScale.label.toLowerCase()} text size (${((selectedScale.scale * 100).round())}%)',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontSize: 12 * selectedScale.scale,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'The quick brown fox jumps over the lazy dog.',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontSize: 14 * _selectedScale.scale,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Currently using ${_selectedScale.label.toLowerCase()} text size (${((_selectedScale.scale * 100).round())}%)',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                          fontSize: 12 * _selectedScale.scale,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildTextScaleCard(BuildContext context, TextScale scale) {
+  Widget _buildTextScaleCard(
+    BuildContext context,
+    TextScale scale,
+    TextScale selectedScale,
+    SettingsService settingsService,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isSelected = _selectedScale == scale;
+    final isSelected = selectedScale == scale;
 
     return InkWell(
-      onTap: () async {
-        setState(() => _selectedScale = scale);
-        await getIt<SettingsService>().setTextScale(scale);
-      },
+      onTap: () => settingsService.setTextScale(scale),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -399,7 +404,11 @@ class _DisplayTabState extends State<_DisplayTab> {
     );
   }
 
-  Widget _buildThemeSelector(BuildContext context) {
+  Widget _buildThemeSelector(
+    BuildContext context,
+    AppThemeMode selectedTheme,
+    SettingsService settingsService,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -414,17 +423,14 @@ class _DisplayTabState extends State<_DisplayTab> {
         children: [
           Row(
             children: AppThemeMode.values.map((mode) {
-              final isSelected = _selectedTheme == mode;
+              final isSelected = selectedTheme == mode;
               return Expanded(
                 child: Padding(
                   padding: EdgeInsets.only(
                     right: mode != AppThemeMode.values.last ? 8 : 0,
                   ),
                   child: InkWell(
-                    onTap: () async {
-                      setState(() => _selectedTheme = mode);
-                      await getIt<SettingsService>().setThemeMode(mode);
-                    },
+                    onTap: () => settingsService.setThemeMode(mode),
                     borderRadius: BorderRadius.circular(8),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -465,7 +471,7 @@ class _DisplayTabState extends State<_DisplayTab> {
           ),
           const SizedBox(height: 12),
           Text(
-            _selectedTheme.description,
+            selectedTheme.description,
             style: theme.textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
