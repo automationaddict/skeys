@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Improve settings dialog with new features and UI enhancements
+- Add retry logic with user feedback for connection tests
 
 ### CI/CD
 
@@ -25,10 +26,15 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Sync key state when agent changes via daemon
+- Add missing timeout in scanHostKey causing infinite hangs
 
 ### Miscellaneous
 
 - Add build artifacts to gitignore
+
+### Performance
+
+- Optimize RemoteBloc to only refresh changed lists
 ## [0.0.6] - 2025-11-28
 
 ### Added

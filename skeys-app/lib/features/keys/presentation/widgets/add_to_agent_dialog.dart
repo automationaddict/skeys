@@ -388,17 +388,76 @@ class _AddToAgentDialogState extends State<AddToAgentDialog> {
                               state.addToAgentStatus ==
                                       AddToAgentStatus.addingToAgent
                                   ? 'Adding key to agent...'
-                                  : _selectedPreset != null
-                                  ? 'Verifying connection to ${_selectedPreset!.name}...'
-                                  : 'Verifying connection to ${_hostController.text}...',
+                                  : state.addToAgentResult?.retryMessage ??
+                                        (_selectedPreset != null
+                                            ? 'Verifying connection to ${_selectedPreset!.name}...'
+                                            : 'Verifying connection to ${_hostController.text}...'),
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ),
                         ],
                       ),
+                      // Show retry progress indicator
+                      if (state.addToAgentResult?.isRetrying == true) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.refresh,
+                                size: 20,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Retrying connection...',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimaryContainer,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Network issues detected. '
+                                      'Attempt ${state.addToAgentResult!.retryAttempt} of ${state.addToAgentResult!.maxRetries}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimaryContainer,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       if (_connectionTakingLong &&
                           state.addToAgentStatus !=
-                              AddToAgentStatus.addingToAgent) ...[
+                              AddToAgentStatus.addingToAgent &&
+                          state.addToAgentResult?.isRetrying != true) ...[
                         const SizedBox(height: 12),
                         Container(
                           padding: const EdgeInsets.all(12),

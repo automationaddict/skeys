@@ -172,12 +172,10 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
     try {
       await _repository.connect(event.remoteId, passphrase: event.passphrase);
       _log.info('connected to remote', {'remote_id': event.remoteId});
-      final remotes = await _repository.listRemotes();
       final connections = await _repository.listConnections();
       emit(
         state.copyWith(
           status: RemoteBlocStatus.success,
-          remotes: remotes,
           connections: connections,
         ),
       );
@@ -208,12 +206,10 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
       _log.info('disconnected from remote', {
         'connection_id': event.connectionId,
       });
-      final remotes = await _repository.listRemotes();
       final connections = await _repository.listConnections();
       emit(
         state.copyWith(
           status: RemoteBlocStatus.success,
-          remotes: remotes,
           connections: connections,
         ),
       );
