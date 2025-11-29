@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Improve settings dialog with new features and UI enhancements
-- Add keyboard navigation and focus indicators to Display settings (#20)
+- Add keyboard navigation and focus indicators to Display settings (#20) (#144)
 
 ### CI/CD
 
@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - Simplify AddToAgentDialog BLoC dependencies
 - Rename /review command to /code-review
 - Move branch cleanup to pre-work step in /issue workflow
+- Use constructor injection for SettingsService in _DisplayTab (#21)
 
 ### Documentation
 
@@ -34,6 +35,7 @@ All notable changes to this project will be documented in this file.
 - Add required permissions to auto-merge workflow (#140)
 - Eliminate race condition in Display settings by using ListenableBuilder
 - Include PR body in squash commits to enable auto-close of issues (#143)
+- Improve auto-merge reliability and branch cleanup
 
 ### Miscellaneous
 

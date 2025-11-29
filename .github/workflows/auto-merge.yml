@@ -1,10 +1,11 @@
 name: Auto Merge
 
 on:
-  check_suite:
-    types: [completed]
+  status: {}
   pull_request:
     types: [labeled]
+  pull_request_review:
+    types: [submitted]
 
 jobs:
   auto-merge:
@@ -12,9 +13,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    if: >
-      github.event.check_suite.conclusion == 'success' ||
-      github.event.label.name == 'auto-merge'
     steps:
       - name: Auto-merge PR
         uses: pascalgn/automerge-action@v0.16.4
@@ -22,7 +20,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MERGE_LABELS: "auto-merge,!wip,!do-not-merge"
           MERGE_METHOD: "squash"
-          MERGE_COMMIT_MESSAGE: "automatic"
+          MERGE_COMMIT_MESSAGE: "pull-request-title-and-description"
+          MERGE_DELETE_BRANCH: "true"
           MERGE_FORKS: "false"
           MERGE_RETRIES: "6"
           MERGE_RETRY_SLEEP: "10000"

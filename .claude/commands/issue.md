@@ -9,14 +9,9 @@ Before starting work, clean up any stale branches from previously merged PRs:
    git checkout {base} && git pull
    ```
 
-2. **Find and clean up merged feature branches**:
-   - List all local feature branches: `git branch | grep "^  feature/issue-"`
-   - For each branch, check if its PR was merged: `gh pr list --state merged --head {branch}`
-   - If merged, delete the local branch: `git branch -D {branch}`
-
-3. **Prune stale remote tracking branches**:
+2. **Clean up merged branches and stale remote refs**:
    ```bash
-   git fetch --prune
+   git fetch --prune && git branch --merged {base} | grep -v "^\*\|master\|dev" | xargs -r git branch -d
    ```
 
 This ensures you start with a clean workspace and don't accumulate stale branches.
