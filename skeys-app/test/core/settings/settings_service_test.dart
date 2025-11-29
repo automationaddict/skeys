@@ -88,6 +88,37 @@ void main() {
           expect(service.textScale, scale);
         }
       });
+
+      test('setTextScale does not notify listeners when value unchanged',
+          () async {
+        // Set initial value
+        await service.setTextScale(TextScale.large);
+
+        var notified = false;
+        service.addListener(() {
+          notified = true;
+        });
+
+        // Try to set the same value
+        await service.setTextScale(TextScale.large);
+
+        expect(notified, isFalse);
+      });
+
+      test('setTextScale does not persist when value unchanged', () async {
+        // Set initial value
+        await service.setTextScale(TextScale.large);
+
+        final prefs = await SharedPreferences.getInstance();
+        // Clear the mock to simulate no write
+        final initialValue = prefs.getString('text_scale');
+
+        // Try to set the same value
+        await service.setTextScale(TextScale.large);
+
+        // Value should still be the same (no additional write)
+        expect(prefs.getString('text_scale'), initialValue);
+      });
     });
 
     group('themeMode', () {
@@ -142,6 +173,36 @@ void main() {
           await service.setThemeMode(mode);
           expect(service.themeMode, mode);
         }
+      });
+
+      test('setThemeMode does not notify listeners when value unchanged',
+          () async {
+        // Set initial value
+        await service.setThemeMode(AppThemeMode.dark);
+
+        var notified = false;
+        service.addListener(() {
+          notified = true;
+        });
+
+        // Try to set the same value
+        await service.setThemeMode(AppThemeMode.dark);
+
+        expect(notified, isFalse);
+      });
+
+      test('setThemeMode does not persist when value unchanged', () async {
+        // Set initial value
+        await service.setThemeMode(AppThemeMode.dark);
+
+        final prefs = await SharedPreferences.getInstance();
+        final initialValue = prefs.getString('theme_mode');
+
+        // Try to set the same value
+        await service.setThemeMode(AppThemeMode.dark);
+
+        // Value should still be the same (no additional write)
+        expect(prefs.getString('theme_mode'), initialValue);
       });
     });
 

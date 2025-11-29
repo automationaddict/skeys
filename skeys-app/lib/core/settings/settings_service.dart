@@ -169,6 +169,9 @@ class SettingsService extends ChangeNotifier {
 
   /// Set the text scale and persist it.
   Future<void> setTextScale(TextScale scale) async {
+    // Skip if value hasn't changed
+    if (textScale == scale) return;
+
     try {
       await _prefs.setString(_textScaleKey, scale.name);
       _log.info('text scale changed', {'scale': scale.name});
@@ -192,6 +195,9 @@ class SettingsService extends ChangeNotifier {
 
   /// Set the theme mode and persist it.
   Future<void> setThemeMode(AppThemeMode mode) async {
+    // Skip if value hasn't changed
+    if (themeMode == mode) return;
+
     try {
       await _prefs.setString(_themeModeKey, mode.name);
       _log.info('theme mode changed', {'mode': mode.name});
