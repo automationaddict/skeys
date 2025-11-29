@@ -71,8 +71,11 @@ class SettingsDialog extends StatefulWidget {
   /// Tab index for the Update settings tab.
   static const int tabUpdate = 4;
 
+  /// Tab index for the System tab.
+  static const int tabSystem = 5;
+
   /// Tab index for the About tab.
-  static const int tabAbout = 5;
+  static const int tabAbout = 6;
 
   @override
   State<SettingsDialog> createState() => _SettingsDialogState();
@@ -86,7 +89,7 @@ class _SettingsDialogState extends State<SettingsDialog>
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 6,
+      length: 7,
       vsync: this,
       initialIndex: widget.initialTab,
     );
@@ -106,6 +109,7 @@ class _SettingsDialogState extends State<SettingsDialog>
       'settings/backup',
       'settings/logging',
       'settings/update',
+      'settings/system',
       'settings/about',
     ];
 
@@ -171,6 +175,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                 Tab(icon: Icon(Icons.backup_outlined), text: 'Backup'),
                 Tab(icon: Icon(Icons.article_outlined), text: 'Logging'),
                 Tab(icon: Icon(Icons.system_update_outlined), text: 'Update'),
+                Tab(icon: Icon(Icons.monitor_heart_outlined), text: 'System'),
                 Tab(icon: Icon(Icons.info_outline), text: 'About'),
               ],
             ),
@@ -184,6 +189,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                   _BackupTab(),
                   _LoggingTab(),
                   _UpdateTab(),
+                  _SystemTab(),
                   _AboutTab(),
                 ],
               ),
@@ -1013,6 +1019,95 @@ class _LoggingTabState extends State<_LoggingTab> {
               ],
             ),
           ),
+
+          const SizedBox(height: 24),
+
+          // Log locations
+          Text('Log Locations', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Text(
+            'Where to find logs for troubleshooting.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          _buildLogLocationCard(
+            context: context,
+            title: 'Desktop App',
+            icon: Icons.desktop_windows_outlined,
+            location: 'systemd journal',
+            command: 'journalctl --user -t skeys-app -f',
+          ),
+
+          const SizedBox(height: 8),
+
+          _buildLogLocationCard(
+            context: context,
+            title: 'Daemon',
+            icon: Icons.miscellaneous_services,
+            location: 'systemd journal',
+            command: 'journalctl --user -u skeys-daemon -f',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLogLocationCard({
+    required BuildContext context,
+    required String title,
+    required IconData icon,
+    required String location,
+    required String command,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: colorScheme.primary, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: theme.textTheme.titleSmall),
+                const SizedBox(height: 2),
+                Text(
+                  location,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    command,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -1171,6 +1266,7 @@ class _UpdateTab extends StatefulWidget {
 class _UpdateTabState extends State<_UpdateTab> {
   final _log = AppLogger('settings_update');
   final _grpcClient = getIt<GrpcClient>();
+  final _settingsService = getIt<SettingsService>();
 
   UpdateSettings? _settings;
   UpdateStatus? _status;
@@ -1280,19 +1376,35 @@ class _UpdateTabState extends State<_UpdateTab> {
   }
 
   Future<void> _applyUpdate() async {
-    if (_downloadedPath == null) return;
+    // Get path from local state or from status
+    final path =
+        _downloadedPath ??
+        (_status?.hasDownloadProgress() == true
+            ? _status!.downloadProgress.downloadedPath
+            : null);
+
+    if (path == null || path.isEmpty) {
+      _log.warning('no downloaded path available for update');
+      if (mounted) {
+        AppToast.error(context, message: 'No update file found');
+      }
+      return;
+    }
 
     try {
       final response = await _grpcClient.update.applyUpdate(
-        ApplyUpdateRequest(tarballPath: _downloadedPath),
+        ApplyUpdateRequest(tarballPath: path),
       );
-      if (mounted) {
-        if (response.success) {
+      if (response.success) {
+        if (mounted) {
           AppToast.success(context, message: 'Update applied! Restarting...');
-          // Give the toast time to display, then restart the app
-          await Future.delayed(const Duration(seconds: 1));
-          await _restartApp();
-        } else {
+        }
+        // Give the toast time to display, then restart the app
+        await Future.delayed(const Duration(seconds: 1));
+        await _restartApp();
+      } else {
+        _log.error('update failed', null, null, {'error': response.error});
+        if (mounted) {
           AppToast.error(context, message: 'Update failed: ${response.error}');
         }
       }
@@ -1309,6 +1421,8 @@ class _UpdateTabState extends State<_UpdateTab> {
 
     // Find the app executable - check common install locations
     final homeDir = Platform.environment['HOME'] ?? '';
+    _log.info('HOME directory', {'home': homeDir});
+
     final possiblePaths = [
       '$homeDir/.local/share/skeys/skeys-app',
       '$homeDir/.local/bin/skeys-app',
@@ -1318,7 +1432,9 @@ class _UpdateTabState extends State<_UpdateTab> {
 
     String? appPath;
     for (final path in possiblePaths) {
-      if (await File(path).exists()) {
+      final exists = await File(path).exists();
+      _log.info('checking path', {'path': path, 'exists': exists});
+      if (exists) {
         appPath = path;
         break;
       }
@@ -1334,10 +1450,24 @@ class _UpdateTabState extends State<_UpdateTab> {
 
     _log.info('launching new app instance', {'path': appPath});
 
-    // Start the new app process detached
-    await Process.start(appPath, [], mode: ProcessStartMode.detached);
+    try {
+      // Start the new app process detached
+      final process = await Process.start(
+        appPath,
+        [],
+        mode: ProcessStartMode.detached,
+      );
+      _log.info('new process started', {'pid': process.pid});
+    } catch (e, st) {
+      _log.error('failed to start new app instance', e, st);
+      if (mounted) {
+        AppToast.error(context, message: 'Failed to restart: $e');
+      }
+      return;
+    }
 
     // Exit the current app
+    _log.info('exiting current app');
     exit(0);
   }
 
@@ -1482,6 +1612,20 @@ class _UpdateTabState extends State<_UpdateTab> {
                 includePatches: v,
               ),
             ),
+          ),
+
+          const SizedBox(height: 8),
+
+          _buildSettingTile(
+            context: context,
+            icon: Icons.rocket_launch_outlined,
+            title: 'Check on app startup',
+            description: 'Check for updates when the desktop app launches',
+            value: _settingsService.checkUpdatesOnStartup,
+            onChanged: (v) async {
+              await _settingsService.setCheckUpdatesOnStartup(v);
+              setState(() {});
+            },
           ),
         ],
       ),
@@ -1640,6 +1784,729 @@ class _UpdateTabState extends State<_UpdateTab> {
   }
 }
 
+/// System monitoring tab for tracking desktop and daemon instances.
+class _SystemTab extends StatefulWidget {
+  const _SystemTab();
+
+  @override
+  State<_SystemTab> createState() => _SystemTabState();
+}
+
+class _SystemTabState extends State<_SystemTab> {
+  final _log = AppLogger('settings_system');
+
+  // Desktop process info
+  List<_ProcessInfo> _desktopProcesses = [];
+  bool _loadingDesktop = true;
+
+  // Daemon process info
+  List<_ProcessInfo> _daemonProcesses = [];
+  bool _loadingDaemon = true;
+
+  // Systemd service status
+  bool _daemonEnabled = false;
+  bool _daemonActive = false;
+  bool _loadingSystemd = true;
+  bool _executingSystemd = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAllProcessInfo();
+  }
+
+  Future<void> _loadAllProcessInfo() async {
+    await Future.wait([
+      _loadDesktopProcesses(),
+      _loadDaemonProcesses(),
+      _loadSystemdStatus(),
+    ]);
+  }
+
+  Future<void> _loadDesktopProcesses() async {
+    setState(() => _loadingDesktop = true);
+    try {
+      final processes = await _findProcesses('skeys-app');
+      if (mounted) {
+        setState(() {
+          _desktopProcesses = processes;
+          _loadingDesktop = false;
+        });
+      }
+    } catch (e, st) {
+      _log.error('error loading desktop processes', e, st);
+      if (mounted) {
+        setState(() => _loadingDesktop = false);
+      }
+    }
+  }
+
+  Future<void> _loadDaemonProcesses() async {
+    setState(() => _loadingDaemon = true);
+    try {
+      final processes = await _findProcesses('skeys-daemon');
+      if (mounted) {
+        setState(() {
+          _daemonProcesses = processes;
+          _loadingDaemon = false;
+        });
+      }
+    } catch (e, st) {
+      _log.error('error loading daemon processes', e, st);
+      if (mounted) {
+        setState(() => _loadingDaemon = false);
+      }
+    }
+  }
+
+  Future<List<_ProcessInfo>> _findProcesses(String processName) async {
+    final result = await Process.run('pgrep', ['-a', processName]);
+    if (result.exitCode != 0) {
+      // pgrep returns 1 if no processes found
+      return [];
+    }
+
+    final lines = (result.stdout as String).trim().split('\n');
+    final processes = <_ProcessInfo>[];
+
+    for (final line in lines) {
+      if (line.isEmpty) continue;
+
+      final parts = line.split(RegExp(r'\s+'));
+      if (parts.isEmpty) continue;
+
+      final pid = int.tryParse(parts[0]);
+      if (pid == null) continue;
+
+      final command = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+      final startInfo = await _getProcessStartInfo(pid);
+
+      processes.add(
+        _ProcessInfo(
+          pid: pid,
+          command: command,
+          startTime: startInfo.startTime,
+          startMethod: startInfo.method,
+        ),
+      );
+    }
+
+    return processes;
+  }
+
+  Future<_ProcessStartInfo> _getProcessStartInfo(int pid) async {
+    String? startTime;
+    String method = 'Unknown';
+
+    // Get process start time
+    try {
+      final result = await Process.run('ps', ['-o', 'lstart=', '-p', '$pid']);
+      if (result.exitCode == 0) {
+        startTime = (result.stdout as String).trim();
+      }
+    } catch (_) {}
+
+    // Determine how the process was started
+    try {
+      // Check if started by systemd
+      final systemdResult = await Process.run('systemctl', [
+        '--user',
+        'status',
+        'skeys-daemon',
+      ]);
+      final systemdOutput = systemdResult.stdout as String;
+      if (systemdOutput.contains('Main PID: $pid')) {
+        method = 'systemd (user)';
+      } else {
+        // Check parent process
+        final ppidResult = await Process.run('ps', [
+          '-o',
+          'ppid=',
+          '-p',
+          '$pid',
+        ]);
+        if (ppidResult.exitCode == 0) {
+          final ppid = int.tryParse((ppidResult.stdout as String).trim());
+          if (ppid != null) {
+            if (ppid == 1) {
+              method = 'Detached (orphan)';
+            } else {
+              // Get parent command
+              final parentResult = await Process.run('ps', [
+                '-o',
+                'comm=',
+                '-p',
+                '$ppid',
+              ]);
+              if (parentResult.exitCode == 0) {
+                final parentComm = (parentResult.stdout as String).trim();
+                if (parentComm == 'systemd') {
+                  method = 'systemd (session)';
+                } else if (parentComm.contains('skeys')) {
+                  method = 'App launcher';
+                } else if (parentComm == 'tilt' ||
+                    parentComm.contains('tilt')) {
+                  method = 'Tilt (dev)';
+                } else if (parentComm == 'bash' ||
+                    parentComm == 'zsh' ||
+                    parentComm == 'sh') {
+                  method = 'Terminal';
+                } else {
+                  method = 'Parent: $parentComm';
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (_) {}
+
+    return _ProcessStartInfo(startTime: startTime, method: method);
+  }
+
+  Future<void> _loadSystemdStatus() async {
+    setState(() => _loadingSystemd = true);
+    try {
+      // Check if service is enabled
+      final enabledResult = await Process.run('systemctl', [
+        '--user',
+        'is-enabled',
+        'skeys-daemon',
+      ]);
+      final isEnabled = enabledResult.exitCode == 0;
+
+      // Check if service is active
+      final activeResult = await Process.run('systemctl', [
+        '--user',
+        'is-active',
+        'skeys-daemon',
+      ]);
+      final isActive = activeResult.exitCode == 0;
+
+      if (mounted) {
+        setState(() {
+          _daemonEnabled = isEnabled;
+          _daemonActive = isActive;
+          _loadingSystemd = false;
+        });
+      }
+    } catch (e, st) {
+      _log.error('error loading systemd status', e, st);
+      if (mounted) {
+        setState(() => _loadingSystemd = false);
+      }
+    }
+  }
+
+  Future<void> _executeSystemdCommand(String command) async {
+    setState(() => _executingSystemd = true);
+    try {
+      final result = await Process.run('systemctl', [
+        '--user',
+        command,
+        'skeys-daemon',
+      ]);
+
+      if (result.exitCode != 0) {
+        _log.warning('systemctl $command failed: ${result.stderr}');
+      }
+
+      // Refresh all status after command
+      await Future.wait([_loadDaemonProcesses(), _loadSystemdStatus()]);
+    } catch (e, st) {
+      _log.error('error executing systemctl $command', e, st);
+    } finally {
+      if (mounted) {
+        setState(() => _executingSystemd = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Desktop App Card
+          _buildProcessCard(
+            context: context,
+            icon: Icons.desktop_windows_outlined,
+            title: 'Desktop Application',
+            description: 'skeys-app processes currently running',
+            processes: _desktopProcesses,
+            isLoading: _loadingDesktop,
+            onRefresh: _loadDesktopProcesses,
+          ),
+
+          const SizedBox(height: 16),
+
+          // Daemon Card
+          _buildProcessCard(
+            context: context,
+            icon: Icons.miscellaneous_services,
+            title: 'Daemon',
+            description: 'skeys-daemon processes currently running',
+            processes: _daemonProcesses,
+            isLoading: _loadingDaemon,
+            onRefresh: _loadDaemonProcesses,
+          ),
+
+          const SizedBox(height: 16),
+
+          // Systemd Controls Card
+          _buildSystemdCard(context),
+
+          const SizedBox(height: 16),
+
+          // Info box
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.info_outline, size: 20, color: colorScheme.primary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'The daemon should be managed by systemd for automatic startup. '
+                    'Multiple desktop instances may indicate the single-instance lock failed.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProcessCard({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String description,
+    required List<_ProcessInfo> processes,
+    required bool isLoading,
+    required VoidCallback onRefresh,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final hasMultiple = processes.length > 1;
+    final borderColor = isLoading
+        ? colorScheme.outline.withValues(alpha: 0.5)
+        : hasMultiple
+        ? Colors.orange
+        : processes.isNotEmpty
+        ? Colors.green
+        : colorScheme.outline.withValues(alpha: 0.5);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: borderColor,
+          width: !isLoading && hasMultiple ? 2 : 1,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        color: !isLoading && hasMultiple
+            ? Colors.orange.withValues(alpha: 0.1)
+            : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: colorScheme.primary, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(title, style: theme.textTheme.titleSmall),
+                        const SizedBox(width: 8),
+                        if (isLoading)
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        else
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: processes.isEmpty
+                                  ? colorScheme.errorContainer
+                                  : hasMultiple
+                                  ? Colors.orange.withValues(alpha: 0.2)
+                                  : Colors.green.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '${processes.length} running',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: processes.isEmpty
+                                    ? colorScheme.onErrorContainer
+                                    : hasMultiple
+                                    ? Colors.orange.shade700
+                                    : Colors.green.shade700,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    Text(
+                      description,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.refresh, size: 20),
+                onPressed: isLoading ? null : onRefresh,
+                tooltip: 'Refresh',
+              ),
+            ],
+          ),
+          if (processes.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
+            ...processes.map((p) => _buildProcessRow(context, p)),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProcessRow(BuildContext context, _ProcessInfo process) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'PID ${process.pid}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontFamily: 'monospace',
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    process.startMethod,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSecondaryContainer,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (process.startTime != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                'Started: ${process.startTime}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+            const SizedBox(height: 4),
+            Text(
+              process.command,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontFamily: 'monospace',
+                fontSize: 10,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSystemdCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.auto_mode, color: colorScheme.primary, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Systemd Service', style: theme.textTheme.titleSmall),
+                    Text(
+                      'skeys-daemon.service (user)',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (_loadingSystemd)
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                IconButton(
+                  icon: const Icon(Icons.refresh, size: 20),
+                  onPressed: _loadSystemdStatus,
+                  tooltip: 'Refresh status',
+                ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Status indicators
+          if (_loadingSystemd)
+            const SizedBox(
+              height: 28,
+              child: Center(
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            )
+          else
+            Row(
+              children: [
+                _buildStatusChip(
+                  context,
+                  label: _daemonActive ? 'Active' : 'Inactive',
+                  isActive: _daemonActive,
+                  activeColor: Colors.green,
+                  inactiveColor: colorScheme.error,
+                ),
+                const SizedBox(width: 8),
+                _buildStatusChip(
+                  context,
+                  label: _daemonEnabled ? 'Enabled' : 'Disabled',
+                  isActive: _daemonEnabled,
+                  activeColor: Colors.blue,
+                  inactiveColor: Colors.grey,
+                ),
+              ],
+            ),
+
+          const SizedBox(height: 16),
+
+          // Control buttons
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildControlButton(
+                context,
+                label: 'Start',
+                icon: Icons.play_arrow,
+                onPressed: _daemonActive
+                    ? null
+                    : () => _executeSystemdCommand('start'),
+              ),
+              _buildControlButton(
+                context,
+                label: 'Stop',
+                icon: Icons.stop,
+                onPressed: _daemonActive
+                    ? () => _executeSystemdCommand('stop')
+                    : null,
+              ),
+              _buildControlButton(
+                context,
+                label: 'Restart',
+                icon: Icons.refresh,
+                onPressed: () => _executeSystemdCommand('restart'),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Enable/Disable toggle
+          Row(
+            children: [
+              Text('Start on login', style: theme.textTheme.bodyMedium),
+              const Spacer(),
+              if (_executingSystemd)
+                const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                Switch(
+                  value: _daemonEnabled,
+                  onChanged: (value) =>
+                      _executeSystemdCommand(value ? 'enable' : 'disable'),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(
+    BuildContext context, {
+    required String label,
+    required bool isActive,
+    required Color activeColor,
+    required Color inactiveColor,
+  }) {
+    final color = isActive ? activeColor : inactiveColor;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildControlButton(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required VoidCallback? onPressed,
+  }) {
+    return OutlinedButton.icon(
+      onPressed: _executingSystemd ? null : onPressed,
+      icon: _executingSystemd && onPressed != null
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Icon(icon, size: 18),
+      label: Text(label),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        visualDensity: VisualDensity.compact,
+      ),
+    );
+  }
+}
+
+class _ProcessInfo {
+  final int pid;
+  final String command;
+  final String? startTime;
+  final String startMethod;
+
+  const _ProcessInfo({
+    required this.pid,
+    required this.command,
+    this.startTime,
+    required this.startMethod,
+  });
+}
+
+class _ProcessStartInfo {
+  final String? startTime;
+  final String method;
+
+  const _ProcessStartInfo({this.startTime, required this.method});
+}
+
 /// About tab with version cards for Flutter app and Go backend.
 class _AboutTab extends StatefulWidget {
   const _AboutTab();
@@ -1743,8 +2610,7 @@ class _AboutTabState extends State<_AboutTab> {
           // Flutter App Card
           _buildVersionCard(
             context: context,
-            icon: Icons.flutter_dash,
-            iconColor: const Color(0xFF02569B),
+            iconWidget: const FlutterLogo(size: 24),
             title: 'Flutter App',
             isLoading: _loadingApp,
             rows: _packageInfo != null
@@ -1761,7 +2627,7 @@ class _AboutTabState extends State<_AboutTab> {
           // Core Library Card
           _buildVersionCard(
             context: context,
-            icon: Icons.library_books_outlined,
+            icon: Icons.hub,
             iconColor: const Color(0xFF00ADD8),
             title: 'Core Library',
             isLoading: _loadingBackend,
@@ -1781,8 +2647,11 @@ class _AboutTabState extends State<_AboutTab> {
           // Go Daemon Card
           _buildVersionCard(
             context: context,
-            icon: Icons.dns_outlined,
-            iconColor: const Color(0xFF00ADD8),
+            iconWidget: Image.asset(
+              'assets/images/go_logo.png',
+              width: 24,
+              height: 24,
+            ),
             title: 'Go Daemon',
             isLoading: _loadingBackend,
             rows: _backendVersion != null
@@ -1795,6 +2664,72 @@ class _AboutTabState extends State<_AboutTab> {
                     _VersionRow('Go', _backendVersion!.goVersion),
                   ]
                 : [],
+          ),
+
+          const SizedBox(height: 24),
+
+          // Data locations
+          Text('Data Locations', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 12),
+
+          _buildDataLocationRow(context, 'SSH Keys', '~/.ssh/', Icons.key),
+          const SizedBox(height: 8),
+          _buildDataLocationRow(
+            context,
+            'Configuration',
+            '~/.config/skeys/',
+            Icons.settings,
+          ),
+          const SizedBox(height: 8),
+          _buildDataLocationRow(
+            context,
+            'Application',
+            '~/.local/share/skeys/',
+            Icons.folder,
+          ),
+          const SizedBox(height: 8),
+          _buildDataLocationRow(
+            context,
+            'Cache',
+            '~/.cache/skeys/',
+            Icons.cached,
+          ),
+
+          const SizedBox(height: 24),
+
+          // Reset to defaults
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: colorScheme.outline.withValues(alpha: 0.5),
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.restart_alt, color: colorScheme.onSurfaceVariant),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Reset Settings', style: theme.textTheme.titleSmall),
+                      Text(
+                        'Restore all settings to their default values',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                OutlinedButton(
+                  onPressed: () => _showResetConfirmation(context),
+                  child: const Text('Reset'),
+                ),
+              ],
+            ),
           ),
 
           const SizedBox(height: 16),
@@ -1814,10 +2749,83 @@ class _AboutTabState extends State<_AboutTab> {
     );
   }
 
+  Widget _buildDataLocationRow(
+    BuildContext context,
+    String label,
+    String path,
+    IconData icon,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              path,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontFamily: 'monospace',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showResetConfirmation(BuildContext dialogContext) async {
+    final confirmed = await showDialog<bool>(
+      context: dialogContext,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Reset Settings?'),
+        content: const Text(
+          'This will restore all settings to their default values. '
+          'Your SSH keys and data will not be affected.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      if (!mounted) return;
+      await getIt<SettingsService>().resetToDefaults();
+      if (!mounted) return;
+      // ignore: use_build_context_synchronously
+      AppToast.success(context, message: 'Settings reset to defaults');
+    }
+  }
+
   Widget _buildVersionCard({
     required BuildContext context,
-    required IconData icon,
-    required Color iconColor,
+    IconData? icon,
+    Color? iconColor,
+    Widget? iconWidget,
     required String title,
     required bool isLoading,
     required List<_VersionRow> rows,
@@ -1839,10 +2847,12 @@ class _AboutTabState extends State<_AboutTab> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
+                  color: (iconColor ?? colorScheme.primary).withValues(
+                    alpha: 0.1,
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: iconColor, size: 24),
+                child: iconWidget ?? Icon(icon, color: iconColor, size: 24),
               ),
               const SizedBox(width: 12),
               Text(
@@ -1851,51 +2861,45 @@ class _AboutTabState extends State<_AboutTab> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
+              const Spacer(),
+              if (isLoading)
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else if (rows.isEmpty)
+                Text(
+                  'Unable to load version info',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.error,
+                  ),
+                )
+              else
+                ...rows.map(
+                  (row) => Padding(
+                    padding: const EdgeInsets.only(left: 12),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${row.label}: ',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        Text(
+                          row.value,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
-          const SizedBox(height: 12),
-          if (isLoading)
-            const Center(
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            )
-          else if (rows.isEmpty)
-            Text(
-              'Unable to load version info',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.error,
-              ),
-            )
-          else
-            ...rows.map(
-              (row) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 70,
-                      child: Text(
-                        row.label,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        row.value,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
         ],
       ),
     );

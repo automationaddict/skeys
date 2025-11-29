@@ -120,9 +120,9 @@ install_files() {
     # Symlink daemon to PATH
     ln -sf "${INSTALL_DIR}/skeys-daemon" "${BIN_DIR}/skeys-daemon"
 
-    # Install .desktop file with correct path
+    # Install .desktop file with correct path and journal logging
     info "Installing desktop entry..."
-    sed "s|Exec=skeys-app|Exec=${INSTALL_DIR}/skeys-app|g" \
+    sed "s|Exec=skeys-app|Exec=systemd-cat -t skeys-app ${INSTALL_DIR}/skeys-app|g" \
         "${INSTALL_DIR}/com.skeys.skeys-app.desktop" > \
         "${APPLICATIONS_DIR}/com.skeys.skeys-app.desktop"
 

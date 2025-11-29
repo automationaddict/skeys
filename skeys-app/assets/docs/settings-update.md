@@ -53,6 +53,22 @@ When enabled, downloaded updates are installed automatically and the daemon rest
 
 Enable this to receive beta and preview versions. Prereleases may include new features but could be less stable than regular releases.
 
+### Include Patch Updates
+
+Controls whether you're notified about patch releases (e.g., v1.2.1 → v1.2.2). Patch releases typically contain:
+
+- Bug fixes
+- Security patches
+- Minor improvements
+
+This is enabled by default. Disable it if you only want to be notified about feature releases (minor/major version bumps like v1.2.0 → v1.3.0).
+
+### Check on App Startup
+
+When enabled, the desktop application checks for updates when it launches. This is separate from the daemon's automatic check and ensures you're notified of updates even if the daemon has been running for a while.
+
+Disable this if you prefer to check for updates manually or if startup time is a concern.
+
 ## Update Process
 
 ### What Gets Updated

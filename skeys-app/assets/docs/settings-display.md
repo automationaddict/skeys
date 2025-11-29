@@ -4,6 +4,26 @@
 
 The Display tab allows you to customize the visual appearance of SKeys for better readability and comfort.
 
+## Theme
+
+Choose your preferred color theme for the application.
+
+### Available Themes
+
+- **System**: Follows your desktop environment's theme. If your system is set to dark mode, SKeys will use dark mode automatically.
+- **Light**: Always use the light color scheme with a bright background.
+- **Dark**: Always use the dark color scheme with a dark background.
+
+### When to Use Each
+
+| Theme | Best For |
+|-------|----------|
+| System | Seamless integration with your desktop |
+| Light | Bright environments, daytime use |
+| Dark | Low-light environments, reducing eye strain |
+
+Changes take effect immediately.
+
 ## Text Size
 
 Adjust the text size throughout the application. This affects all text elements including labels, buttons, and content.

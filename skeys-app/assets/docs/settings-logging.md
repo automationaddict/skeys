@@ -53,12 +53,47 @@ From most to least verbose:
 | Running on limited resources | Warning |
 | Production/stable environment | Warning or Error |
 
-## Where Logs Go
+## Log Locations
 
-Application logs are written to standard error (stderr) and can be viewed:
-- In the terminal if running from command line
-- In system journal (`journalctl`)
-- In application log files (if configured)
+Both the desktop app and daemon log to the systemd journal, which handles storage, rotation, and retention automatically.
+
+### Desktop App
+
+Logs are tagged with `skeys-app`. To view:
+
+```
+journalctl --user -t skeys-app -f
+```
+
+### Daemon
+
+Logs are from the `skeys-daemon` service. To view:
+
+```
+journalctl --user -u skeys-daemon -f
+```
+
+### Useful Commands
+
+View all SKeys logs together:
+```
+journalctl --user -t skeys-app -u skeys-daemon -f
+```
+
+View logs from the last hour:
+```
+journalctl --user -t skeys-app --since "1 hour ago"
+```
+
+View logs from a specific boot:
+```
+journalctl --user -t skeys-app -b
+```
+
+Export logs to a file:
+```
+journalctl --user -t skeys-app -u skeys-daemon --no-pager > skeys-logs.txt
+```
 
 ## Troubleshooting with Logs
 

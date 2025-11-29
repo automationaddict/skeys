@@ -31,6 +31,31 @@ SKeys uses a two-process architecture:
 
 These communicate over a Unix socket using gRPC. The Flutter app automatically starts and manages the daemon process.
 
+## Data Locations
+
+SKeys stores data in the following locations:
+
+| Location | Purpose |
+|----------|---------|
+| `~/.ssh/` | Your SSH keys (private and public) |
+| `~/.config/skeys/` | SKeys configuration files |
+| `~/.local/share/skeys/` | Application binaries and data |
+| `~/.cache/skeys/` | Temporary cache files |
+
+These paths follow the XDG Base Directory Specification for Linux applications.
+
+## Reset Settings
+
+If you need to restore all settings to their default values, use the **Reset** button on this tab. This will reset:
+
+- Theme and text size preferences
+- Log level
+- Key expiration warning thresholds
+- Agent timeout settings
+- Update check preferences
+
+Your SSH keys and data are **never affected** by a reset. Only application preferences are restored to defaults.
+
 ## Reporting Issues
 
 When reporting bugs or issues, please include:

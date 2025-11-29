@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Improve settings dialog with new features and UI enhancements
 ## [0.0.6] - 2025-11-28
 
 ### Added

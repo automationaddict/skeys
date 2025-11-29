@@ -27,6 +27,7 @@ import '../generated/google/protobuf/empty.pb.dart';
 import '../generated/skeys/v1/update.pbgrpc.dart';
 import '../grpc/grpc_client.dart';
 import '../logging/app_logger.dart';
+import '../settings/settings_service.dart';
 
 /// Service for managing update status and notifications.
 ///
@@ -58,8 +59,14 @@ class UpdateService extends ChangeNotifier {
   Future<void> initialize() async {
     _log.info('initializing update service');
 
-    // Do an initial check
-    await checkForUpdates();
+    final settings = getIt<SettingsService>();
+
+    // Do an initial check if enabled
+    if (settings.checkUpdatesOnStartup) {
+      await checkForUpdates();
+    } else {
+      _log.info('skipping startup update check (disabled in settings)');
+    }
 
     // Start periodic checks (every 6 hours)
     _checkTimer?.cancel();

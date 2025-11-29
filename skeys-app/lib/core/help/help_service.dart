@@ -45,6 +45,7 @@ class HelpService {
     'settings/backup': 'settings-backup',
     'settings/logging': 'settings-logging',
     'settings/update': 'settings-update',
+    'settings/system': 'settings-system',
     'settings/about': 'settings-about',
   };
 
