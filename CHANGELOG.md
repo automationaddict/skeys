@@ -25,6 +25,10 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Sync key state when agent changes via daemon
+
+### Miscellaneous
+
+- Add build artifacts to gitignore
 ## [0.0.6] - 2025-11-28
 
 ### Added

@@ -34,3 +34,7 @@ Thumbs.db
 # Local environment
 .env
 .env.local
+
+# Build artifacts
+skeys-daemon/skeys-daemon
+revive.log
