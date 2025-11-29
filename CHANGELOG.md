@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 ### Build
 
 - **ci**: Bump actions/checkout from 4 to 6 (#1)
+- **ci**: Bump codecov/codecov-action from 4 to 5 (#4)
 
 ### CI/CD
 

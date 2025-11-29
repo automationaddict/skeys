@@ -33,7 +33,7 @@ jobs:
           go test -race -coverprofile=coverage.out -covermode=atomic ./...
 
       - name: Upload Go coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: skeys-core/coverage.out,skeys-daemon/coverage.out
           flags: go
@@ -67,7 +67,7 @@ jobs:
           flutter test --coverage
 
       - name: Upload Flutter coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: skeys-app/coverage/lcov.info
           flags: flutter
