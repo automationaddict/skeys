@@ -103,20 +103,6 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
       transformer: droppable(),
     );
 
-    // Server config handlers
-    on<ConfigLoadServerConfigRequested>(
-      _onLoadServerConfig,
-      transformer: concurrent(),
-    );
-    on<ConfigUpdateServerOptionRequested>(
-      _onUpdateServerOption,
-      transformer: droppable(),
-    );
-    on<ConfigRestartSSHServerRequested>(
-      _onRestartSSHServer,
-      transformer: droppable(),
-    );
-
     _log.debug('ConfigBloc initialized');
 
     // Listen for reconnection events to refresh streams
@@ -470,89 +456,6 @@ class ConfigBloc extends Bloc<ConfigEvent, ConfigState> {
       emit(state.copyWith(status: ConfigStatus.success, clientHosts: hosts));
     } catch (e, st) {
       _log.error('failed to delete client host', e, st, {'host': event.host});
-      emit(
-        state.copyWith(
-          status: ConfigStatus.failure,
-          errorMessage: e.toString(),
-        ),
-      );
-    }
-  }
-
-  Future<void> _onLoadServerConfig(
-    ConfigLoadServerConfigRequested event,
-    Emitter<ConfigState> emit,
-  ) async {
-    _log.debug('loading server config');
-    emit(state.copyWith(status: ConfigStatus.loading));
-
-    try {
-      final config = await _repository.getServerConfig();
-      _log.info('server config loaded', {'options': config.options.length});
-      emit(state.copyWith(status: ConfigStatus.success, serverConfig: config));
-    } catch (e, st) {
-      _log.error('failed to load server config', e, st);
-      emit(
-        state.copyWith(
-          status: ConfigStatus.failure,
-          errorMessage: e.toString(),
-        ),
-      );
-    }
-  }
-
-  Future<void> _onUpdateServerOption(
-    ConfigUpdateServerOptionRequested event,
-    Emitter<ConfigState> emit,
-  ) async {
-    _log.info('updating server option', {
-      'key': event.key,
-      'value': event.value,
-    });
-    emit(state.copyWith(status: ConfigStatus.loading));
-
-    try {
-      await _repository.updateServerConfig([
-        ServerConfigUpdate(key: event.key, value: event.value),
-      ]);
-      _log.info('server option updated', {'key': event.key});
-      final config = await _repository.getServerConfig();
-      emit(
-        state.copyWith(
-          status: ConfigStatus.success,
-          serverConfig: config,
-          serverConfigPendingRestart: true,
-        ),
-      );
-    } catch (e, st) {
-      _log.error('failed to update server option', e, st, {'key': event.key});
-      emit(
-        state.copyWith(
-          status: ConfigStatus.failure,
-          errorMessage: e.toString(),
-        ),
-      );
-    }
-  }
-
-  Future<void> _onRestartSSHServer(
-    ConfigRestartSSHServerRequested event,
-    Emitter<ConfigState> emit,
-  ) async {
-    _log.info('restarting SSH server');
-    emit(state.copyWith(status: ConfigStatus.loading));
-
-    try {
-      await _repository.restartSSHServer();
-      _log.info('SSH server restarted');
-      emit(
-        state.copyWith(
-          status: ConfigStatus.success,
-          serverConfigPendingRestart: false,
-        ),
-      );
-    } catch (e, st) {
-      _log.error('failed to restart SSH server', e, st);
       emit(
         state.copyWith(
           status: ConfigStatus.failure,

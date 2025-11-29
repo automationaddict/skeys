@@ -343,52 +343,6 @@ void main() {
         verify(() => mockConfigRepository.listHostConfigs()).called(1);
       },
     );
-
-    blocTest<ConfigBloc, ConfigState>(
-      'ConfigLoadServerConfigRequested loads server config',
-      setUp: () {
-        final serverConfig = TestDataFactory.createServerConfig();
-        when(() => mockConfigRepository.watchSSHConfigEntries()).thenAnswer(
-          (_) => const Stream.empty(),
-        );
-        when(() => mockConfigRepository.getServerConfig()).thenAnswer(
-          (_) async => serverConfig,
-        );
-      },
-      build: () => ConfigBloc(mockConfigRepository),
-      act: (bloc) => bloc.add(ConfigLoadServerConfigRequested()),
-      wait: const Duration(milliseconds: 100),
-      verify: (bloc) {
-        expect(bloc.state.status, ConfigStatus.success);
-        expect(bloc.state.serverConfig, isNotNull);
-        expect(bloc.state.serverConfig!.options.length, 2);
-        verify(() => mockConfigRepository.getServerConfig()).called(1);
-      },
-    );
-
-    blocTest<ConfigBloc, ConfigState>(
-      'ConfigRestartSSHServerRequested restarts server and clears pending flag',
-      setUp: () {
-        when(() => mockConfigRepository.watchSSHConfigEntries()).thenAnswer(
-          (_) => const Stream.empty(),
-        );
-        when(() => mockConfigRepository.restartSSHServer()).thenAnswer(
-          (_) async {},
-        );
-      },
-      build: () => ConfigBloc(mockConfigRepository),
-      seed: () => const ConfigState(
-        status: ConfigStatus.success,
-        serverConfigPendingRestart: true,
-      ),
-      act: (bloc) => bloc.add(ConfigRestartSSHServerRequested()),
-      wait: const Duration(milliseconds: 100),
-      verify: (bloc) {
-        expect(bloc.state.status, ConfigStatus.success);
-        expect(bloc.state.serverConfigPendingRestart, false);
-        verify(() => mockConfigRepository.restartSSHServer()).called(1);
-      },
-    );
   });
 
   group('ConfigState', () {
@@ -399,8 +353,6 @@ void main() {
       expect(state.sshEntries, isEmpty);
       expect(state.globalDirectives, isEmpty);
       expect(state.clientHosts, isEmpty);
-      expect(state.serverConfig, isNull);
-      expect(state.serverConfigPendingRestart, false);
       expect(state.errorMessage, isNull);
     });
 

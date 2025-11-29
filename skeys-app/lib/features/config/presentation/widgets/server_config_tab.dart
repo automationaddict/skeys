@@ -22,14 +22,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/notifications/app_toast.dart';
-import '../../bloc/config_bloc.dart';
+import '../../bloc/server_config_bloc.dart';
 import '../../domain/sshd_directives.dart';
 import 'server_directive_dialog.dart';
 
 /// Server config tab with expandable sections for all SSH server settings.
 class ServerConfigTab extends StatefulWidget {
-  /// The current config state.
-  final ConfigState state;
+  /// The current server config state.
+  final ServerConfigState state;
 
   /// Creates a ServerConfigTab widget.
   const ServerConfigTab({super.key, required this.state});
@@ -100,7 +100,7 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.state.serverConfig == null) {
+    if (widget.state.config == null) {
       return _buildEmptyState(context);
     }
 
@@ -206,8 +206,8 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
           const SizedBox(height: 24),
           FilledButton.icon(
             onPressed: () {
-              context.read<ConfigBloc>().add(
-                const ConfigLoadServerConfigRequested(),
+              context.read<ServerConfigBloc>().add(
+                const ServerConfigLoadRequested(),
               );
             },
             icon: const Icon(Icons.download),
@@ -228,7 +228,7 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
   Widget _buildHeader(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final pendingRestart = widget.state.serverConfigPendingRestart;
+    final pendingRestart = widget.state.pendingRestart;
 
     return Card(
       margin: const EdgeInsets.all(16),
@@ -252,8 +252,7 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
                         ),
                       ),
                       Text(
-                        widget.state.serverConfig?.path ??
-                            '/etc/ssh/sshd_config',
+                        widget.state.config?.path ?? '/etc/ssh/sshd_config',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                           fontFamily: 'monospace',
@@ -372,8 +371,8 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
           FilledButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              context.read<ConfigBloc>().add(
-                const ConfigRestartSSHServerRequested(),
+              context.read<ServerConfigBloc>().add(
+                const ServerConfigRestartRequested(),
               );
               AppToast.success(context, message: 'SSH service restarting...');
             },
@@ -570,8 +569,8 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
     SshdDirectiveCategory category,
     List<SshdDirectiveDefinition> visibleDirectives,
   ) {
-    if (widget.state.serverConfig == null) return 0;
-    final configuredKeys = widget.state.serverConfig!.options
+    if (widget.state.config == null) return 0;
+    final configuredKeys = widget.state.config!.options
         .map((o) => o.key)
         .toSet();
     return visibleDirectives
@@ -580,11 +579,9 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
   }
 
   String? _getCurrentValue(String key) {
-    if (widget.state.serverConfig == null) return null;
+    if (widget.state.config == null) return null;
     try {
-      return widget.state.serverConfig!.options
-          .firstWhere((o) => o.key == key)
-          .value;
+      return widget.state.config!.options.firstWhere((o) => o.key == key).value;
     } catch (_) {
       return null;
     }
@@ -601,8 +598,8 @@ class _ServerConfigTabState extends State<ServerConfigTab> {
         directiveKey: directive.key,
         currentValue: currentValue,
         onSave: (value) {
-          context.read<ConfigBloc>().add(
-            ConfigUpdateServerOptionRequested(key: directive.key, value: value),
+          context.read<ServerConfigBloc>().add(
+            ServerConfigUpdateOptionRequested(key: directive.key, value: value),
           );
         },
       ),

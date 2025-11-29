@@ -31,6 +31,7 @@ import '../update/update_service.dart';
 import '../../features/keys/bloc/keys_bloc.dart';
 import '../../features/keys/repository/keys_repository.dart';
 import '../../features/config/bloc/config_bloc.dart';
+import '../../features/config/bloc/server_config_bloc.dart';
 import '../../features/config/repository/config_repository.dart';
 import '../../features/hosts/bloc/hosts_bloc.dart';
 import '../../features/hosts/repository/hosts_repository.dart';
@@ -161,6 +162,9 @@ Future<void> configureDependencies() async {
   );
   getIt.registerLazySingleton<ServerBloc>(
     () => ServerBloc(getIt<ServerRepository>()),
+  );
+  getIt.registerLazySingleton<ServerConfigBloc>(
+    () => ServerConfigBloc(getIt<ConfigRepository>()),
   );
 
   _log.info('dependency injection configured successfully');

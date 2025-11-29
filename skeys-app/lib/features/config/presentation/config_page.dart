@@ -24,6 +24,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/help/help_context_service.dart';
 import '../bloc/config_bloc.dart';
+import '../bloc/server_config_bloc.dart';
 import '../domain/config_entity.dart';
 import '../domain/ssh_client_directives.dart';
 import '../domain/ssh_config_entry.dart';
@@ -92,16 +93,19 @@ class _ConfigPageState extends State<ConfigPage>
           ],
         ),
       ),
-      body: BlocBuilder<ConfigBloc, ConfigState>(
-        builder: (context, state) {
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              _ClientConfigTab(state: state),
-              ServerConfigTab(state: state),
-            ],
-          );
-        },
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          BlocBuilder<ConfigBloc, ConfigState>(
+            builder: (context, state) => _ClientConfigTab(state: state),
+          ),
+          BlocProvider.value(
+            value: getIt<ServerConfigBloc>(),
+            child: BlocBuilder<ServerConfigBloc, ServerConfigState>(
+              builder: (context, state) => ServerConfigTab(state: state),
+            ),
+          ),
+        ],
       ),
       // Only show FAB on Client Config tab (index 0)
       floatingActionButton: _currentTabIndex == 0

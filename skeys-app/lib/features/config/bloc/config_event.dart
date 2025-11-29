@@ -184,37 +184,3 @@ final class ConfigDeleteClientHostRequested extends ConfigEvent {
   @override
   List<Object?> get props => [host];
 }
-
-// ============================================================
-// Server config events
-// ============================================================
-
-/// Event to load the SSH server configuration.
-final class ConfigLoadServerConfigRequested extends ConfigEvent {
-  /// Creates a ConfigLoadServerConfigRequested event.
-  const ConfigLoadServerConfigRequested();
-}
-
-/// Event to update an SSH server configuration option.
-final class ConfigUpdateServerOptionRequested extends ConfigEvent {
-  /// The option key to update.
-  final String key;
-
-  /// The value to set for the option.
-  final String value;
-
-  /// Creates a ConfigUpdateServerOptionRequested event.
-  const ConfigUpdateServerOptionRequested({
-    required this.key,
-    required this.value,
-  });
-
-  @override
-  List<Object?> get props => [key, value];
-}
-
-/// Event to restart the SSH server service to apply config changes.
-final class ConfigRestartSSHServerRequested extends ConfigEvent {
-  /// Creates a ConfigRestartSSHServerRequested event.
-  const ConfigRestartSSHServerRequested();
-}

@@ -18,10 +18,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-part of 'config_bloc.dart';
+part of 'server_config_bloc.dart';
 
-/// Status of the ConfigBloc operations.
-enum ConfigStatus {
+/// Status of the ServerConfigBloc operations.
+enum ServerConfigStatus {
   /// Initial state before any operation.
   initial,
 
@@ -35,57 +35,43 @@ enum ConfigStatus {
   failure,
 }
 
-/// State of the SSH client configuration BLoC.
-///
-/// Note: Server configuration (sshd_config) is managed by [ServerConfigBloc].
-final class ConfigState extends Equatable {
+/// State of the SSH server configuration BLoC.
+final class ServerConfigState extends Equatable {
   /// The current status of BLoC operations.
-  final ConfigStatus status;
+  final ServerConfigStatus status;
 
-  /// Unified SSH config entries (Host and Match blocks).
-  final List<SSHConfigEntry> sshEntries;
+  /// Server configuration (sshd_config).
+  final ServerConfig? config;
 
-  /// Global directives (options outside Host/Match blocks).
-  final List<GlobalDirective> globalDirectives;
-
-  /// Legacy client hosts (for backward compatibility).
-  final List<ConfigHostEntry> clientHosts;
+  /// Whether the server config has pending changes requiring SSH service restart.
+  final bool pendingRestart;
 
   /// Error message if the last operation failed.
   final String? errorMessage;
 
-  /// Creates a ConfigState.
-  const ConfigState({
-    this.status = ConfigStatus.initial,
-    this.sshEntries = const [],
-    this.globalDirectives = const [],
-    this.clientHosts = const [],
+  /// Creates a ServerConfigState.
+  const ServerConfigState({
+    this.status = ServerConfigStatus.initial,
+    this.config,
+    this.pendingRestart = false,
     this.errorMessage,
   });
 
   /// Creates a copy of this state with the given fields replaced.
-  ConfigState copyWith({
-    ConfigStatus? status,
-    List<SSHConfigEntry>? sshEntries,
-    List<GlobalDirective>? globalDirectives,
-    List<ConfigHostEntry>? clientHosts,
+  ServerConfigState copyWith({
+    ServerConfigStatus? status,
+    ServerConfig? config,
+    bool? pendingRestart,
     String? errorMessage,
   }) {
-    return ConfigState(
+    return ServerConfigState(
       status: status ?? this.status,
-      sshEntries: sshEntries ?? this.sshEntries,
-      globalDirectives: globalDirectives ?? this.globalDirectives,
-      clientHosts: clientHosts ?? this.clientHosts,
+      config: config ?? this.config,
+      pendingRestart: pendingRestart ?? this.pendingRestart,
       errorMessage: errorMessage,
     );
   }
 
   @override
-  List<Object?> get props => [
-    status,
-    sshEntries,
-    globalDirectives,
-    clientHosts,
-    errorMessage,
-  ];
+  List<Object?> get props => [status, config, pendingRestart, errorMessage];
 }
