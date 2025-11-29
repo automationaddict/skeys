@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Sync key state when agent changes via daemon
+- Add error handling for SharedPreferences failures in Display settings (#13)
 
 ### Miscellaneous
 

@@ -132,10 +132,16 @@ class SettingsService extends ChangeNotifier {
 
   /// Initialize the settings service.
   static Future<SettingsService> init() async {
-    final prefs = await SharedPreferences.getInstance();
-    final service = SettingsService._(prefs);
-    service._log.debug('settings service initialized');
-    return service;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final service = SettingsService._(prefs);
+      service._log.debug('settings service initialized');
+      return service;
+    } catch (e, st) {
+      final log = AppLogger('settings');
+      log.error('failed to initialize SharedPreferences', e, st);
+      rethrow;
+    }
   }
 
   /// Get the current log level.
@@ -163,9 +169,16 @@ class SettingsService extends ChangeNotifier {
 
   /// Set the text scale and persist it.
   Future<void> setTextScale(TextScale scale) async {
-    await _prefs.setString(_textScaleKey, scale.name);
-    _log.info('text scale changed', {'scale': scale.name});
-    notifyListeners();
+    try {
+      await _prefs.setString(_textScaleKey, scale.name);
+      _log.info('text scale changed', {'scale': scale.name});
+      notifyListeners();
+    } catch (e, st) {
+      _log.error('failed to persist text scale', e, st);
+      // Still notify listeners so UI updates even if persistence fails
+      notifyListeners();
+      rethrow;
+    }
   }
 
   /// Get the current theme mode.
@@ -179,9 +192,16 @@ class SettingsService extends ChangeNotifier {
 
   /// Set the theme mode and persist it.
   Future<void> setThemeMode(AppThemeMode mode) async {
-    await _prefs.setString(_themeModeKey, mode.name);
-    _log.info('theme mode changed', {'mode': mode.name});
-    notifyListeners();
+    try {
+      await _prefs.setString(_themeModeKey, mode.name);
+      _log.info('theme mode changed', {'mode': mode.name});
+      notifyListeners();
+    } catch (e, st) {
+      _log.error('failed to persist theme mode', e, st);
+      // Still notify listeners so UI updates even if persistence fails
+      notifyListeners();
+      rethrow;
+    }
   }
 
   Level _parseLevel(String level) {
