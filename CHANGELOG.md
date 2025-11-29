@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Improve settings dialog with new features and UI enhancements
 - Add keyboard navigation and focus indicators to Display settings (#20) (#144)
+- Add Claude Code GitHub Workflow (#384)
+- Add color swatch preview to theme selector (#387)
+- Implement comprehensive help system with tree navigation
+- **help**: Make help panel persist when navigating between pages
 
 ### Build
 
@@ -48,6 +52,9 @@ All notable changes to this project will be documented in this file.
 - Include PR body in squash commits to enable auto-close of issues (#143)
 - Add validation and logging to TextScale and AppThemeMode enum loading (#22) (#145)
 - Revert to automatic merge commit message to prevent unintended auto-close
+- Update settings dialog help button to use comprehensive help
+- Add reactive clear button to search boxes in help dialogs
+- Wrap page shortcuts in Focus widget to enable F1 key
 
 ### Miscellaneous
 

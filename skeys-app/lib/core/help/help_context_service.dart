@@ -20,13 +20,17 @@
 
 import 'package:flutter/foundation.dart';
 
-/// Service for managing the current help context.
+/// Service for managing the current help context and visibility.
 /// Pages can update this to provide more specific help context (e.g., tabs).
 class HelpContextService extends ChangeNotifier {
   String? _contextSuffix;
+  bool _isHelpVisible = false;
 
   /// Get the current context suffix (e.g., 'client' for config/client).
   String? get contextSuffix => _contextSuffix;
+
+  /// Get whether the help panel is currently visible.
+  bool get isHelpVisible => _isHelpVisible;
 
   /// Set a context suffix to append to the current route.
   /// For example, setting 'client' when on /config will result in 'config/client'.
@@ -51,5 +55,27 @@ class HelpContextService extends ChangeNotifier {
       return '$route/$_contextSuffix';
     }
     return route;
+  }
+
+  /// Show the help panel.
+  void showHelp() {
+    if (!_isHelpVisible) {
+      _isHelpVisible = true;
+      notifyListeners();
+    }
+  }
+
+  /// Hide the help panel.
+  void hideHelp() {
+    if (_isHelpVisible) {
+      _isHelpVisible = false;
+      notifyListeners();
+    }
+  }
+
+  /// Toggle the help panel visibility.
+  void toggleHelp() {
+    _isHelpVisible = !_isHelpVisible;
+    notifyListeners();
   }
 }

@@ -45,7 +45,6 @@ class _HostsPageState extends State<HostsPage>
   late TabController _tabController;
   final _helpContextService = getIt<HelpContextService>();
   final _helpService = HelpService();
-  bool _showHelp = false;
 
   static const _tabContexts = ['known', 'authorized'];
 
@@ -75,59 +74,63 @@ class _HostsPageState extends State<HostsPage>
 
   @override
   Widget build(BuildContext context) {
-    return CallbackShortcuts(
-      bindings: {
-        const SingleActivator(LogicalKeyboardKey.f1): () {
-          setState(() => _showHelp = !_showHelp);
-        },
-      },
-      child: Focus(
-        autofocus: true,
-        child: Scaffold(
-          appBar: AppBarWithHelp(
-            title: 'Host Management',
-            helpRoute: 'hosts',
-            onHelpPressed: () => setState(() => _showHelp = !_showHelp),
-            bottom: TabBar(
-              controller: _tabController,
-              tabs: const [
-                Tab(text: 'Known Hosts'),
-                Tab(text: 'Authorized Keys'),
-              ],
-            ),
-          ),
-          body: Row(
-            children: [
-              Expanded(
-                child: BlocBuilder<HostsBloc, HostsState>(
-                  builder: (context, state) {
-                    return TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _buildKnownHostsTab(context, state),
-                        _buildAuthorizedKeysTab(context, state),
-                      ],
-                    );
-                  },
+    return ListenableBuilder(
+      listenable: _helpContextService,
+      builder: (context, _) {
+        return CallbackShortcuts(
+          bindings: {
+            const SingleActivator(LogicalKeyboardKey.f1):
+                _helpContextService.toggleHelp,
+          },
+          child: Focus(
+            autofocus: true,
+            child: Scaffold(
+              appBar: AppBarWithHelp(
+                title: 'Host Management',
+                helpRoute: 'hosts',
+                onHelpPressed: _helpContextService.toggleHelp,
+                bottom: TabBar(
+                  controller: _tabController,
+                  tabs: const [
+                    Tab(text: 'Known Hosts'),
+                    Tab(text: 'Authorized Keys'),
+                  ],
                 ),
               ),
-              if (_showHelp)
-                HelpPanel(
-                  baseRoute: '/hosts',
-                  helpService: _helpService,
-                  onClose: () => setState(() => _showHelp = false),
-                ),
-            ],
+              body: Row(
+                children: [
+                  Expanded(
+                    child: BlocBuilder<HostsBloc, HostsState>(
+                      builder: (context, state) {
+                        return TabBarView(
+                          controller: _tabController,
+                          children: [
+                            _buildKnownHostsTab(context, state),
+                            _buildAuthorizedKeysTab(context, state),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  if (_helpContextService.isHelpVisible)
+                    HelpPanel(
+                      baseRoute: '/hosts',
+                      helpService: _helpService,
+                      onClose: _helpContextService.hideHelp,
+                    ),
+                ],
+              ),
+              floatingActionButton: _tabController.index == 0
+                  ? FloatingActionButton.extended(
+                      onPressed: () => _showScanHostDialog(context),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Host'),
+                    )
+                  : null,
+            ),
           ),
-          floatingActionButton: _tabController.index == 0
-              ? FloatingActionButton.extended(
-                  onPressed: () => _showScanHostDialog(context),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Host'),
-                )
-              : null,
-        ),
-      ),
+        );
+      },
     );
   }
 

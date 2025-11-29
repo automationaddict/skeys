@@ -23,6 +23,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/help/help_context_service.dart';
 import '../../../core/help/help_panel.dart';
 import '../../../core/help/help_service.dart';
 import '../../../core/settings/settings_service.dart';
@@ -43,56 +44,60 @@ class AgentPage extends StatefulWidget {
 }
 
 class _AgentPageState extends State<AgentPage> {
-  bool _showHelp = false;
   final _helpService = HelpService();
+  final _helpContextService = getIt<HelpContextService>();
 
   @override
   Widget build(BuildContext context) {
-    return CallbackShortcuts(
-      bindings: {
-        const SingleActivator(LogicalKeyboardKey.f1): () {
-          setState(() => _showHelp = !_showHelp);
-        },
-      },
-      child: Focus(
-        autofocus: true,
-        child: Scaffold(
-          appBar: AppBarWithHelp(
-            title: 'SSH Agent',
-            helpRoute: 'agent',
-            onHelpPressed: () => setState(() => _showHelp = !_showHelp),
-          ),
-          body: Row(
-            children: [
-              Expanded(
-                child: BlocBuilder<AgentBloc, AgentState>(
-                  builder: (context, state) {
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildStatusCard(context, state),
-                          const SizedBox(height: 24),
-                          _buildActionsCard(context, state),
-                          const SizedBox(height: 24),
-                          _buildKeysSection(context, state),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+    return ListenableBuilder(
+      listenable: _helpContextService,
+      builder: (context, _) {
+        return CallbackShortcuts(
+          bindings: {
+            const SingleActivator(LogicalKeyboardKey.f1):
+                _helpContextService.toggleHelp,
+          },
+          child: Focus(
+            autofocus: true,
+            child: Scaffold(
+              appBar: AppBarWithHelp(
+                title: 'SSH Agent',
+                helpRoute: 'agent',
+                onHelpPressed: _helpContextService.toggleHelp,
               ),
-              if (_showHelp)
-                HelpPanel(
-                  baseRoute: '/agent',
-                  helpService: _helpService,
-                  onClose: () => setState(() => _showHelp = false),
-                ),
-            ],
+              body: Row(
+                children: [
+                  Expanded(
+                    child: BlocBuilder<AgentBloc, AgentState>(
+                      builder: (context, state) {
+                        return SingleChildScrollView(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildStatusCard(context, state),
+                              const SizedBox(height: 24),
+                              _buildActionsCard(context, state),
+                              const SizedBox(height: 24),
+                              _buildKeysSection(context, state),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  if (_helpContextService.isHelpVisible)
+                    HelpPanel(
+                      baseRoute: '/agent',
+                      helpService: _helpService,
+                      onClose: _helpContextService.hideHelp,
+                    ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

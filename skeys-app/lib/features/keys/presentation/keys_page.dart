@@ -23,6 +23,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/help/help_context_service.dart';
 import '../../../core/help/help_panel.dart';
 import '../../../core/help/help_service.dart';
 import '../../../core/notifications/app_toast.dart';
@@ -44,139 +45,145 @@ class KeysPage extends StatefulWidget {
 }
 
 class _KeysPageState extends State<KeysPage> {
-  bool _showHelp = false;
   final _helpService = HelpService();
+  final _helpContextService = getIt<HelpContextService>();
 
   @override
   Widget build(BuildContext context) {
-    return CallbackShortcuts(
-      bindings: {
-        const SingleActivator(LogicalKeyboardKey.f1): () {
-          setState(() => _showHelp = !_showHelp);
-        },
-      },
-      child: Focus(
-        autofocus: true,
-        child: Scaffold(
-          appBar: AppBarWithHelp(
-            title: 'SSH Keys',
-            helpRoute: 'keys',
-            onHelpPressed: () => setState(() => _showHelp = !_showHelp),
-          ),
-          body: Row(
-            children: [
-              Expanded(
-                child: BlocConsumer<KeysBloc, KeysState>(
-                  listener: (context, state) {
-                    if (state.copiedPublicKey != null) {
-                      Clipboard.setData(
-                        ClipboardData(text: state.copiedPublicKey!),
-                      );
-                      AppToast.success(
-                        context,
-                        message: 'Public key copied to clipboard',
-                      );
-                    }
-                    if (state.status == KeysStatus.failure &&
-                        state.errorMessage != null) {
-                      AppToast.error(context, message: state.errorMessage!);
-                    }
-                    // Handle test connection result from immediate tests
-                    if (state.testConnectionResult != null) {
-                      final result = state.testConnectionResult!;
-                      // Only show toast for immediate tests (not ones from dialog)
-                      // The dialog handles its own toast
-                      if (!result.needsHostKeyApproval &&
-                          !result.hasHostKeyMismatch) {
-                        AppToast.connectionResult(
-                          context,
-                          success: result.success,
-                          message: result.message,
-                          serverVersion: result.serverVersion,
-                          latencyMs: result.latencyMs,
-                        );
-                        // Clear the result
-                        context.read<KeysBloc>().add(
-                          const KeysTestConnectionCleared(),
-                        );
-                      }
-                    }
-                  },
-                  builder: (context, state) {
-                    if (state.status == KeysStatus.loading &&
-                        state.keys.isEmpty) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    if (state.keys.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.key_off,
-                              size: 64,
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No SSH keys found',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Generate a new key to get started',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.outline,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: state.keys.length,
-                      itemBuilder: (context, index) {
-                        final key = state.keys[index];
-                        return KeyListTile(
-                          keyEntity: key,
-                          onCopyPublicKey: () {
+    return ListenableBuilder(
+      listenable: _helpContextService,
+      builder: (context, _) {
+        return CallbackShortcuts(
+          bindings: {
+            const SingleActivator(LogicalKeyboardKey.f1):
+                _helpContextService.toggleHelp,
+          },
+          child: Focus(
+            autofocus: true,
+            child: Scaffold(
+              appBar: AppBarWithHelp(
+                title: 'SSH Keys',
+                helpRoute: 'keys',
+                onHelpPressed: _helpContextService.toggleHelp,
+              ),
+              body: Row(
+                children: [
+                  Expanded(
+                    child: BlocConsumer<KeysBloc, KeysState>(
+                      listener: (context, state) {
+                        if (state.copiedPublicKey != null) {
+                          Clipboard.setData(
+                            ClipboardData(text: state.copiedPublicKey!),
+                          );
+                          AppToast.success(
+                            context,
+                            message: 'Public key copied to clipboard',
+                          );
+                        }
+                        if (state.status == KeysStatus.failure &&
+                            state.errorMessage != null) {
+                          AppToast.error(context, message: state.errorMessage!);
+                        }
+                        // Handle test connection result from immediate tests
+                        if (state.testConnectionResult != null) {
+                          final result = state.testConnectionResult!;
+                          // Only show toast for immediate tests (not ones from dialog)
+                          // The dialog handles its own toast
+                          if (!result.needsHostKeyApproval &&
+                              !result.hasHostKeyMismatch) {
+                            AppToast.connectionResult(
+                              context,
+                              success: result.success,
+                              message: result.message,
+                              serverVersion: result.serverVersion,
+                              latencyMs: result.latencyMs,
+                            );
+                            // Clear the result
                             context.read<KeysBloc>().add(
-                              KeysCopyPublicKeyRequested(key.path),
+                              const KeysTestConnectionCleared(),
+                            );
+                          }
+                        }
+                      },
+                      builder: (context, state) {
+                        if (state.status == KeysStatus.loading &&
+                            state.keys.isEmpty) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+
+                        if (state.keys.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.key_off,
+                                  size: 64,
+                                  color: Theme.of(context).colorScheme.outline,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No SSH keys found',
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Generate a new key to get started',
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.outline,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        return ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: state.keys.length,
+                          itemBuilder: (context, index) {
+                            final key = state.keys[index];
+                            return KeyListTile(
+                              keyEntity: key,
+                              onCopyPublicKey: () {
+                                context.read<KeysBloc>().add(
+                                  KeysCopyPublicKeyRequested(key.path),
+                                );
+                              },
+                              onDelete: () => _confirmDelete(context, key),
+                              onAddToAgent: () => _addToAgent(context, key),
+                              // Only show Test Connection when key is in agent
+                              onTestConnection: key.isInAgent
+                                  ? () => _testConnection(context, key)
+                                  : null,
                             );
                           },
-                          onDelete: () => _confirmDelete(context, key),
-                          onAddToAgent: () => _addToAgent(context, key),
-                          // Only show Test Connection when key is in agent
-                          onTestConnection: key.isInAgent
-                              ? () => _testConnection(context, key)
-                              : null,
                         );
                       },
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                  if (_helpContextService.isHelpVisible)
+                    HelpPanel(
+                      baseRoute: '/keys',
+                      helpService: _helpService,
+                      onClose: _helpContextService.hideHelp,
+                    ),
+                ],
               ),
-              if (_showHelp)
-                HelpPanel(
-                  baseRoute: '/keys',
-                  helpService: _helpService,
-                  onClose: () => setState(() => _showHelp = false),
-                ),
-            ],
+              floatingActionButton: FloatingActionButton.extended(
+                onPressed: () => _showGenerateDialog(context),
+                icon: const Icon(Icons.add),
+                label: const Text('Generate Key'),
+              ),
+            ),
           ),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () => _showGenerateDialog(context),
-            icon: const Icon(Icons.add),
-            label: const Text('Generate Key'),
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 
