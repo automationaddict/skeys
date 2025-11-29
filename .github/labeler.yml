@@ -1,0 +1,15 @@
+flutter:
+  - changed-files:
+      - any-glob-to-any-file: 'skeys-app/**'
+
+go:
+  - changed-files:
+      - any-glob-to-any-file: ['skeys-core/**', 'skeys-daemon/**']
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file: '.github/**'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: ['**/*.md', 'docs/**']

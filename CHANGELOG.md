@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Improve settings dialog with new features and UI enhancements
 
+### CI/CD
+
+- Add GitHub workflow automation
+
 ### Changed
 
 - Separate ServerConfigBloc from ConfigBloc
