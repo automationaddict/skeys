@@ -320,91 +320,142 @@ class KeysBloc extends Bloc<KeysEvent, KeysState> {
       'verifyConnection': event.host != null,
     });
 
-    // If host is provided, verify connection first
+    // If host is provided, verify connection first with retry logic
     if (event.host != null && event.user != null) {
-      emit(
-        state.copyWith(
-          addToAgentStatus: AddToAgentStatus.verifyingConnection,
-          clearAddToAgentResult: true,
-        ),
-      );
+      const maxRetries = 3;
+      bool connectionSucceeded = false;
+      TestConnectionResult? lastResult;
+      Exception? lastException;
 
-      try {
-        final result = await _remoteRepository.testConnection(
-          host: event.host!,
-          port: event.port ?? 22,
-          user: event.user!,
-          identityFile: event.keyPath,
-          timeoutSeconds: 10,
-          passphrase: event.passphrase,
-          trustHostKey: event.trustHostKey,
-        );
-
-        _log.info('connection test completed', {
-          'success': result.success,
-          'hostKeyStatus': result.hostKeyStatus.name,
-        });
-
-        // Handle host key verification states
-        if (result.hostKeyStatus == HostKeyVerificationStatus.unknown &&
-            result.hostKeyInfo != null) {
+      for (
+        int attempt = 1;
+        attempt <= maxRetries && !connectionSucceeded;
+        attempt++
+      ) {
+        // Show retry status to user
+        if (attempt > 1) {
           emit(
             state.copyWith(
-              addToAgentStatus: AddToAgentStatus.hostKeyUnknown,
+              addToAgentStatus: AddToAgentStatus.verifyingConnection,
               addToAgentResult: AddToAgentResult(
-                status: AddToAgentStatus.hostKeyUnknown,
-                hostKeyInfo: result.hostKeyInfo,
+                status: AddToAgentStatus.verifyingConnection,
+                retryAttempt: attempt,
+                maxRetries: maxRetries,
+                retryMessage: 'Connection attempt $attempt of $maxRetries...',
                 verifiedHost: event.host,
               ),
             ),
           );
-          return;
-        }
 
-        if (result.hostKeyStatus == HostKeyVerificationStatus.mismatch &&
-            result.hostKeyInfo != null) {
+          // Add a small delay between retries (exponential backoff)
+          await Future.delayed(Duration(seconds: attempt - 1));
+        } else {
           emit(
             state.copyWith(
-              addToAgentStatus: AddToAgentStatus.hostKeyMismatch,
-              addToAgentResult: AddToAgentResult(
-                status: AddToAgentStatus.hostKeyMismatch,
-                hostKeyInfo: result.hostKeyInfo,
-                verifiedHost: event.host,
-              ),
+              addToAgentStatus: AddToAgentStatus.verifyingConnection,
+              clearAddToAgentResult: true,
             ),
           );
-          return;
         }
 
-        if (!result.success) {
-          emit(
-            state.copyWith(
-              addToAgentStatus: AddToAgentStatus.connectionFailed,
-              addToAgentResult: AddToAgentResult(
-                status: AddToAgentStatus.connectionFailed,
-                errorMessage: result.message,
-                verifiedHost: event.host,
-              ),
-            ),
+        try {
+          final result = await _remoteRepository.testConnection(
+            host: event.host!,
+            port: event.port ?? 22,
+            user: event.user!,
+            identityFile: event.keyPath,
+            timeoutSeconds: 10,
+            passphrase: event.passphrase,
+            trustHostKey: event.trustHostKey,
           );
-          return;
-        }
 
-        // Connection verified, proceed to add to agent
-      } catch (e, st) {
-        _log.error('connection verification failed', e, st);
+          lastResult = result;
+
+          _log.info('connection test completed', {
+            'attempt': attempt,
+            'success': result.success,
+            'hostKeyStatus': result.hostKeyStatus.name,
+          });
+
+          // Handle host key verification states (don't retry these)
+          if (result.hostKeyStatus == HostKeyVerificationStatus.unknown &&
+              result.hostKeyInfo != null) {
+            emit(
+              state.copyWith(
+                addToAgentStatus: AddToAgentStatus.hostKeyUnknown,
+                addToAgentResult: AddToAgentResult(
+                  status: AddToAgentStatus.hostKeyUnknown,
+                  hostKeyInfo: result.hostKeyInfo,
+                  verifiedHost: event.host,
+                ),
+              ),
+            );
+            return;
+          }
+
+          if (result.hostKeyStatus == HostKeyVerificationStatus.mismatch &&
+              result.hostKeyInfo != null) {
+            emit(
+              state.copyWith(
+                addToAgentStatus: AddToAgentStatus.hostKeyMismatch,
+                addToAgentResult: AddToAgentResult(
+                  status: AddToAgentStatus.hostKeyMismatch,
+                  hostKeyInfo: result.hostKeyInfo,
+                  verifiedHost: event.host,
+                ),
+              ),
+            );
+            return;
+          }
+
+          if (result.success) {
+            connectionSucceeded = true;
+            break; // Success! Exit retry loop
+          }
+
+          // Connection failed but might be retryable
+          if (attempt < maxRetries) {
+            _log.info('connection failed, will retry', {
+              'attempt': attempt,
+              'message': result.message,
+            });
+          }
+        } catch (e, st) {
+          lastException = e is Exception ? e : Exception(e.toString());
+          _log.error('connection verification failed', e, st, {
+            'attempt': attempt,
+          });
+
+          // Don't retry on certain errors
+          if (attempt < maxRetries) {
+            _log.info('will retry after error');
+          }
+        }
+      }
+
+      // Check final result after all retries
+      if (!connectionSucceeded) {
+        final errorMessage =
+            lastResult?.message ??
+            lastException?.toString() ??
+            'Connection failed after $maxRetries attempts';
+
         emit(
           state.copyWith(
             addToAgentStatus: AddToAgentStatus.connectionFailed,
             addToAgentResult: AddToAgentResult(
               status: AddToAgentStatus.connectionFailed,
-              errorMessage: e.toString(),
+              errorMessage: errorMessage,
               verifiedHost: event.host,
+              retryAttempt: maxRetries,
+              maxRetries: maxRetries,
             ),
           ),
         );
         return;
       }
+
+      // Connection verified, proceed to add to agent
     }
 
     // Add key to agent

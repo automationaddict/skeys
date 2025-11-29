@@ -79,16 +79,42 @@ class AddToAgentResult extends Equatable {
   /// The host that was verified (for success messages).
   final String? verifiedHost;
 
+  /// Current retry attempt (1-based, 0 means no retry).
+  final int retryAttempt;
+
+  /// Maximum number of retry attempts.
+  final int maxRetries;
+
+  /// Message describing what we're retrying.
+  final String? retryMessage;
+
   /// Creates an AddToAgentResult with the given parameters.
   const AddToAgentResult({
     required this.status,
     this.errorMessage,
     this.hostKeyInfo,
     this.verifiedHost,
+    this.retryAttempt = 0,
+    this.maxRetries = 3,
+    this.retryMessage,
   });
 
+  /// Whether we're currently in a retry state.
+  bool get isRetrying => retryAttempt > 0;
+
+  /// Whether we can retry again.
+  bool get canRetry => retryAttempt < maxRetries;
+
   @override
-  List<Object?> get props => [status, errorMessage, hostKeyInfo, verifiedHost];
+  List<Object?> get props => [
+    status,
+    errorMessage,
+    hostKeyInfo,
+    verifiedHost,
+    retryAttempt,
+    maxRetries,
+    retryMessage,
+  ];
 }
 
 /// Result of a connection test for display purposes.
