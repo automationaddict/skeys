@@ -53,6 +53,7 @@ All notable changes to this project will be documented in this file.
 - Include PR body in squash commits to enable auto-close of issues (#143)
 - Add validation and logging to TextScale and AppThemeMode enum loading (#22) (#145)
 - Revert to automatic merge commit message to prevent unintended auto-close
+- **help**: Add missing settings tabs to HelpNavigationService
 
 ### Miscellaneous
 

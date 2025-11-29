@@ -103,8 +103,12 @@ class HelpNavigationService extends ChangeNotifier {
         return 2;
       case 'logging':
         return 3;
-      case 'about':
+      case 'update':
         return 4;
+      case 'system':
+        return 5;
+      case 'about':
+        return 6;
       default:
         return 0;
     }
