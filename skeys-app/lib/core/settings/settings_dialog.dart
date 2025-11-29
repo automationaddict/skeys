@@ -21,6 +21,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -335,71 +336,95 @@ class _DisplayTab extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final isSelected = selectedScale == scale;
 
-    return InkWell(
-      onTap: () => settingsService.setTextScale(scale),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isSelected
-                ? colorScheme.primary
-                : colorScheme.outline.withValues(alpha: 0.5),
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          color: isSelected
-              ? colorScheme.primaryContainer.withValues(alpha: 0.3)
-              : null,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
+    return Focus(
+      onKeyEvent: (node, event) {
+        if (event is KeyDownEvent) {
+          if (event.logicalKey == LogicalKeyboardKey.enter ||
+              event.logicalKey == LogicalKeyboardKey.space) {
+            settingsService.setTextScale(scale);
+            return KeyEventResult.handled;
+          }
+        }
+        return KeyEventResult.ignored;
+      },
+      child: Builder(
+        builder: (context) {
+          final hasFocus = Focus.of(context).hasFocus;
+
+          return InkWell(
+            onTap: () => settingsService.setTextScale(scale),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isSelected
-                    ? colorScheme.primary.withValues(alpha: 0.1)
-                    : colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Center(
-                child: Text(
-                  'Aa',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontSize: 14 * scale.scale,
-                    color: isSelected
-                        ? colorScheme.primary
-                        : colorScheme.onSurface,
-                    fontWeight: FontWeight.w500,
-                  ),
+                border: Border.all(
+                  color: hasFocus
+                      ? colorScheme.primary
+                      : (isSelected
+                            ? colorScheme.primary
+                            : colorScheme.outline.withValues(alpha: 0.5)),
+                  width: hasFocus ? 3 : (isSelected ? 2 : 1),
                 ),
+                borderRadius: BorderRadius.circular(12),
+                color: isSelected
+                    ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+                    : null,
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Text(
-                    scale.label,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: isSelected ? colorScheme.primary : null,
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? colorScheme.primary.withValues(alpha: 0.1)
+                          : colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Aa',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontSize: 14 * scale.scale,
+                          color: isSelected
+                              ? colorScheme.primary
+                              : colorScheme.onSurface,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                   ),
-                  Text(
-                    '${(scale.scale * 100).round()}% of normal size',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          scale.label,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: isSelected ? colorScheme.primary : null,
+                          ),
+                        ),
+                        Text(
+                          '${(scale.scale * 100).round()}% of normal size',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                  if (isSelected)
+                    Icon(
+                      Icons.check_circle,
+                      color: colorScheme.primary,
+                      size: 24,
+                    ),
                 ],
               ),
             ),
-            if (isSelected)
-              Icon(Icons.check_circle, color: colorScheme.primary, size: 24),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -429,40 +454,68 @@ class _DisplayTab extends StatelessWidget {
                   padding: EdgeInsets.only(
                     right: mode != AppThemeMode.values.last ? 8 : 0,
                   ),
-                  child: InkWell(
-                    onTap: () => settingsService.setThemeMode(mode),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? colorScheme.primaryContainer
-                            : colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(8),
-                        border: isSelected
-                            ? Border.all(color: colorScheme.primary, width: 2)
-                            : null,
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            _getThemeIcon(mode),
-                            color: isSelected
-                                ? colorScheme.onPrimaryContainer
-                                : colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            mode.label,
-                            style: theme.textTheme.labelMedium?.copyWith(
+                  child: Focus(
+                    onKeyEvent: (node, event) {
+                      if (event is KeyDownEvent) {
+                        if (event.logicalKey == LogicalKeyboardKey.enter ||
+                            event.logicalKey == LogicalKeyboardKey.space) {
+                          settingsService.setThemeMode(mode);
+                          return KeyEventResult.handled;
+                        }
+                      }
+                      return KeyEventResult.ignored;
+                    },
+                    child: Builder(
+                      builder: (context) {
+                        final hasFocus = Focus.of(context).hasFocus;
+
+                        return InkWell(
+                          onTap: () => settingsService.setThemeMode(mode),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
                               color: isSelected
-                                  ? colorScheme.onPrimaryContainer
-                                  : colorScheme.onSurfaceVariant,
-                              fontWeight: isSelected ? FontWeight.w600 : null,
+                                  ? colorScheme.primaryContainer
+                                  : colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(8),
+                              border: hasFocus
+                                  ? Border.all(
+                                      color: colorScheme.primary,
+                                      width: 3,
+                                    )
+                                  : (isSelected
+                                        ? Border.all(
+                                            color: colorScheme.primary,
+                                            width: 2,
+                                          )
+                                        : null),
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  _getThemeIcon(mode),
+                                  color: isSelected
+                                      ? colorScheme.onPrimaryContainer
+                                      : colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  mode.label,
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: isSelected
+                                        ? colorScheme.onPrimaryContainer
+                                        : colorScheme.onSurfaceVariant,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : null,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                   ),
                 ),
