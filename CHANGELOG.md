@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 ### CI/CD
 
 - Add GitHub workflow automation
+- Add /review command for production-readiness audits
 
 ### Changed
 
