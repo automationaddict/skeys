@@ -1,5 +1,26 @@
 Work on GitHub issue #$ARGUMENTS
 
+## Pre-Work Cleanup
+
+Before starting work, clean up any stale branches from previously merged PRs:
+
+1. **Checkout and update base branch**:
+   ```bash
+   git checkout {base} && git pull
+   ```
+
+2. **Find and clean up merged feature branches**:
+   - List all local feature branches: `git branch | grep "^  feature/issue-"`
+   - For each branch, check if its PR was merged: `gh pr list --state merged --head {branch}`
+   - If merged, delete the local branch: `git branch -D {branch}`
+
+3. **Prune stale remote tracking branches**:
+   ```bash
+   git fetch --prune
+   ```
+
+This ensures you start with a clean workspace and don't accumulate stale branches.
+
 ## Pre-Work Checks
 
 1. **Fetch issue details**: `gh issue view {number} --json title,body,labels,state`
@@ -18,9 +39,9 @@ Work on GitHub issue #$ARGUMENTS
 1. Parse arguments:
    - First argument: Issue number (required)
    - `--base <branch>`: Base branch (default: master)
-2. Create branch from base:
-   - `git checkout {base} && git pull`
+2. Create branch from base (already on updated base from cleanup):
    - Branch name: `feature/issue-{number}-{short-kebab-description}`
+   - `git checkout -b {branch_name}`
 3. Work on the issue following normal development practices
 4. Commit with conventional commit format referencing issue
 
@@ -47,37 +68,9 @@ When complete, create PR with:
 - Labels: `auto-merge` + labels from original issue
 - Auto-request merge after CI passes
 
-## Post-Merge Cleanup
+## Post-Merge
 
-After the PR is merged (either automatically or manually):
-
-1. **Switch back to base branch**:
-   ```bash
-   git checkout {base}
-   ```
-
-2. **Pull the latest changes**:
-   ```bash
-   git pull
-   ```
-
-3. **Delete the local feature branch**:
-   ```bash
-   git branch -d feature/issue-{number}-{description}
-   ```
-
-4. **Prune stale remote tracking branches**:
-   ```bash
-   git fetch --prune
-   ```
-
-5. **Verify cleanup**:
-   ```bash
-   git branch -a | grep issue-{number}
-   # Should return nothing if cleanup was successful
-   ```
-
-**Note**: These cleanup steps prevent stale branches from accumulating in your local repository and keep your workspace clean.
+After the PR is merged, the feature branch cleanup will happen automatically the next time you run `/issue` (during the Pre-Work Cleanup step).
 
 ## Example Usage
 
