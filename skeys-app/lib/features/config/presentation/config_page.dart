@@ -94,54 +94,58 @@ class _ConfigPageState extends State<ConfigPage>
           setState(() => _showHelp = !_showHelp);
         },
       },
-      child: Scaffold(
-        appBar: AppBarWithHelp(
-          title: 'SSH Configuration',
-          helpRoute: 'config',
-          onHelpPressed: () => setState(() => _showHelp = !_showHelp),
-          bottom: TabBar(
-            controller: _tabController,
-            tabs: const [
-              Tab(text: 'Client Config'),
-              Tab(text: 'Server Config'),
+      child: Focus(
+        autofocus: true,
+        child: Scaffold(
+          appBar: AppBarWithHelp(
+            title: 'SSH Configuration',
+            helpRoute: 'config',
+            onHelpPressed: () => setState(() => _showHelp = !_showHelp),
+            bottom: TabBar(
+              controller: _tabController,
+              tabs: const [
+                Tab(text: 'Client Config'),
+                Tab(text: 'Server Config'),
+              ],
+            ),
+          ),
+          body: Row(
+            children: [
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    BlocBuilder<ConfigBloc, ConfigState>(
+                      builder: (context, state) =>
+                          _ClientConfigTab(state: state),
+                    ),
+                    BlocProvider.value(
+                      value: getIt<ServerConfigBloc>(),
+                      child: BlocBuilder<ServerConfigBloc, ServerConfigState>(
+                        builder: (context, state) =>
+                            ServerConfigTab(state: state),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (_showHelp)
+                HelpPanel(
+                  baseRoute: '/config',
+                  helpService: _helpService,
+                  onClose: () => setState(() => _showHelp = false),
+                ),
             ],
           ),
+          // Only show FAB on Client Config tab (index 0)
+          floatingActionButton: _currentTabIndex == 0
+              ? FloatingActionButton.extended(
+                  onPressed: () => _showAddEntryDialog(context),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Host'),
+                )
+              : null,
         ),
-        body: Row(
-          children: [
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  BlocBuilder<ConfigBloc, ConfigState>(
-                    builder: (context, state) => _ClientConfigTab(state: state),
-                  ),
-                  BlocProvider.value(
-                    value: getIt<ServerConfigBloc>(),
-                    child: BlocBuilder<ServerConfigBloc, ServerConfigState>(
-                      builder: (context, state) =>
-                          ServerConfigTab(state: state),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (_showHelp)
-              HelpPanel(
-                baseRoute: '/config',
-                helpService: _helpService,
-                onClose: () => setState(() => _showHelp = false),
-              ),
-          ],
-        ),
-        // Only show FAB on Client Config tab (index 0)
-        floatingActionButton: _currentTabIndex == 0
-            ? FloatingActionButton.extended(
-                onPressed: () => _showAddEntryDialog(context),
-                icon: const Icon(Icons.add),
-                label: const Text('Add Host'),
-              )
-            : null,
       ),
     );
   }

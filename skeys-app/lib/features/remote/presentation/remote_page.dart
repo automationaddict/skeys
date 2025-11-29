@@ -56,7 +56,9 @@ class _RemotePageState extends State<RemotePage> {
           setState(() => _showHelp = !_showHelp);
         },
       },
-      child: Scaffold(
+      child: Focus(
+        autofocus: true,
+        child: Scaffold(
         appBar: AppBarWithHelp(
           title: 'Remote Servers',
           helpRoute: 'remotes',
@@ -146,6 +148,7 @@ class _RemotePageState extends State<RemotePage> {
           onPressed: () => _showAddDialog(context),
           icon: const Icon(Icons.add),
           label: const Text('Add Remote'),
+        ),
         ),
       ),
     );

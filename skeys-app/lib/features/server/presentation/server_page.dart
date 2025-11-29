@@ -62,7 +62,9 @@ class _ServerPageState extends State<ServerPage> {
           setState(() => _showHelp = !_showHelp);
         },
       },
-      child: Scaffold(
+      child: Focus(
+        autofocus: true,
+        child: Scaffold(
         appBar: AppBarWithHelp(
           title: 'SSH Server Status',
           helpRoute: 'server',
@@ -117,6 +119,7 @@ class _ServerPageState extends State<ServerPage> {
                 onClose: () => setState(() => _showHelp = false),
               ),
           ],
+        ),
         ),
       ),
     );

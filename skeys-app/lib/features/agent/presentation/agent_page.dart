@@ -54,40 +54,43 @@ class _AgentPageState extends State<AgentPage> {
           setState(() => _showHelp = !_showHelp);
         },
       },
-      child: Scaffold(
-        appBar: AppBarWithHelp(
-          title: 'SSH Agent',
-          helpRoute: 'agent',
-          onHelpPressed: () => setState(() => _showHelp = !_showHelp),
-        ),
-        body: Row(
-          children: [
-            Expanded(
-              child: BlocBuilder<AgentBloc, AgentState>(
-                builder: (context, state) {
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildStatusCard(context, state),
-                        const SizedBox(height: 24),
-                        _buildActionsCard(context, state),
-                        const SizedBox(height: 24),
-                        _buildKeysSection(context, state),
-                      ],
-                    ),
-                  );
-                },
+      child: Focus(
+        autofocus: true,
+        child: Scaffold(
+          appBar: AppBarWithHelp(
+            title: 'SSH Agent',
+            helpRoute: 'agent',
+            onHelpPressed: () => setState(() => _showHelp = !_showHelp),
+          ),
+          body: Row(
+            children: [
+              Expanded(
+                child: BlocBuilder<AgentBloc, AgentState>(
+                  builder: (context, state) {
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildStatusCard(context, state),
+                          const SizedBox(height: 24),
+                          _buildActionsCard(context, state),
+                          const SizedBox(height: 24),
+                          _buildKeysSection(context, state),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            if (_showHelp)
-              HelpPanel(
-                baseRoute: '/agent',
-                helpService: _helpService,
-                onClose: () => setState(() => _showHelp = false),
-              ),
-          ],
+              if (_showHelp)
+                HelpPanel(
+                  baseRoute: '/agent',
+                  helpService: _helpService,
+                  onClose: () => setState(() => _showHelp = false),
+                ),
+            ],
+          ),
         ),
       ),
     );

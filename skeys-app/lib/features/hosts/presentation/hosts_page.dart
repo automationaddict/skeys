@@ -81,49 +81,52 @@ class _HostsPageState extends State<HostsPage>
           setState(() => _showHelp = !_showHelp);
         },
       },
-      child: Scaffold(
-        appBar: AppBarWithHelp(
-          title: 'Host Management',
-          helpRoute: 'hosts',
-          onHelpPressed: () => setState(() => _showHelp = !_showHelp),
-          bottom: TabBar(
-            controller: _tabController,
-            tabs: const [
-              Tab(text: 'Known Hosts'),
-              Tab(text: 'Authorized Keys'),
+      child: Focus(
+        autofocus: true,
+        child: Scaffold(
+          appBar: AppBarWithHelp(
+            title: 'Host Management',
+            helpRoute: 'hosts',
+            onHelpPressed: () => setState(() => _showHelp = !_showHelp),
+            bottom: TabBar(
+              controller: _tabController,
+              tabs: const [
+                Tab(text: 'Known Hosts'),
+                Tab(text: 'Authorized Keys'),
+              ],
+            ),
+          ),
+          body: Row(
+            children: [
+              Expanded(
+                child: BlocBuilder<HostsBloc, HostsState>(
+                  builder: (context, state) {
+                    return TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildKnownHostsTab(context, state),
+                        _buildAuthorizedKeysTab(context, state),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              if (_showHelp)
+                HelpPanel(
+                  baseRoute: '/hosts',
+                  helpService: _helpService,
+                  onClose: () => setState(() => _showHelp = false),
+                ),
             ],
           ),
+          floatingActionButton: _tabController.index == 0
+              ? FloatingActionButton.extended(
+                  onPressed: () => _showScanHostDialog(context),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Host'),
+                )
+              : null,
         ),
-        body: Row(
-          children: [
-            Expanded(
-              child: BlocBuilder<HostsBloc, HostsState>(
-                builder: (context, state) {
-                  return TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildKnownHostsTab(context, state),
-                      _buildAuthorizedKeysTab(context, state),
-                    ],
-                  );
-                },
-              ),
-            ),
-            if (_showHelp)
-              HelpPanel(
-                baseRoute: '/hosts',
-                helpService: _helpService,
-                onClose: () => setState(() => _showHelp = false),
-              ),
-          ],
-        ),
-        floatingActionButton: _tabController.index == 0
-            ? FloatingActionButton.extended(
-                onPressed: () => _showScanHostDialog(context),
-                icon: const Icon(Icons.add),
-                label: const Text('Add Host'),
-              )
-            : null,
       ),
     );
   }

@@ -55,121 +55,126 @@ class _KeysPageState extends State<KeysPage> {
           setState(() => _showHelp = !_showHelp);
         },
       },
-      child: Scaffold(
-        appBar: AppBarWithHelp(
-          title: 'SSH Keys',
-          helpRoute: 'keys',
-          onHelpPressed: () => setState(() => _showHelp = !_showHelp),
-        ),
-        body: Row(
-          children: [
-            Expanded(
-              child: BlocConsumer<KeysBloc, KeysState>(
-                listener: (context, state) {
-                  if (state.copiedPublicKey != null) {
-                    Clipboard.setData(
-                      ClipboardData(text: state.copiedPublicKey!),
-                    );
-                    AppToast.success(
-                      context,
-                      message: 'Public key copied to clipboard',
-                    );
-                  }
-                  if (state.status == KeysStatus.failure &&
-                      state.errorMessage != null) {
-                    AppToast.error(context, message: state.errorMessage!);
-                  }
-                  // Handle test connection result from immediate tests
-                  if (state.testConnectionResult != null) {
-                    final result = state.testConnectionResult!;
-                    // Only show toast for immediate tests (not ones from dialog)
-                    // The dialog handles its own toast
-                    if (!result.needsHostKeyApproval &&
-                        !result.hasHostKeyMismatch) {
-                      AppToast.connectionResult(
-                        context,
-                        success: result.success,
-                        message: result.message,
-                        serverVersion: result.serverVersion,
-                        latencyMs: result.latencyMs,
+      child: Focus(
+        autofocus: true,
+        child: Scaffold(
+          appBar: AppBarWithHelp(
+            title: 'SSH Keys',
+            helpRoute: 'keys',
+            onHelpPressed: () => setState(() => _showHelp = !_showHelp),
+          ),
+          body: Row(
+            children: [
+              Expanded(
+                child: BlocConsumer<KeysBloc, KeysState>(
+                  listener: (context, state) {
+                    if (state.copiedPublicKey != null) {
+                      Clipboard.setData(
+                        ClipboardData(text: state.copiedPublicKey!),
                       );
-                      // Clear the result
-                      context.read<KeysBloc>().add(
-                        const KeysTestConnectionCleared(),
+                      AppToast.success(
+                        context,
+                        message: 'Public key copied to clipboard',
                       );
                     }
-                  }
-                },
-                builder: (context, state) {
-                  if (state.status == KeysStatus.loading &&
-                      state.keys.isEmpty) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+                    if (state.status == KeysStatus.failure &&
+                        state.errorMessage != null) {
+                      AppToast.error(context, message: state.errorMessage!);
+                    }
+                    // Handle test connection result from immediate tests
+                    if (state.testConnectionResult != null) {
+                      final result = state.testConnectionResult!;
+                      // Only show toast for immediate tests (not ones from dialog)
+                      // The dialog handles its own toast
+                      if (!result.needsHostKeyApproval &&
+                          !result.hasHostKeyMismatch) {
+                        AppToast.connectionResult(
+                          context,
+                          success: result.success,
+                          message: result.message,
+                          serverVersion: result.serverVersion,
+                          latencyMs: result.latencyMs,
+                        );
+                        // Clear the result
+                        context.read<KeysBloc>().add(
+                          const KeysTestConnectionCleared(),
+                        );
+                      }
+                    }
+                  },
+                  builder: (context, state) {
+                    if (state.status == KeysStatus.loading &&
+                        state.keys.isEmpty) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                  if (state.keys.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.key_off,
-                            size: 64,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No SSH keys found',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Generate a new key to get started',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.outline,
-                                ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: state.keys.length,
-                    itemBuilder: (context, index) {
-                      final key = state.keys[index];
-                      return KeyListTile(
-                        keyEntity: key,
-                        onCopyPublicKey: () {
-                          context.read<KeysBloc>().add(
-                            KeysCopyPublicKeyRequested(key.path),
-                          );
-                        },
-                        onDelete: () => _confirmDelete(context, key),
-                        onAddToAgent: () => _addToAgent(context, key),
-                        // Only show Test Connection when key is in agent
-                        onTestConnection: key.isInAgent
-                            ? () => _testConnection(context, key)
-                            : null,
+                    if (state.keys.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.key_off,
+                              size: 64,
+                              color: Theme.of(context).colorScheme.outline,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No SSH keys found',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Generate a new key to get started',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.outline,
+                                  ),
+                            ),
+                          ],
+                        ),
                       );
-                    },
-                  );
-                },
+                    }
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: state.keys.length,
+                      itemBuilder: (context, index) {
+                        final key = state.keys[index];
+                        return KeyListTile(
+                          keyEntity: key,
+                          onCopyPublicKey: () {
+                            context.read<KeysBloc>().add(
+                              KeysCopyPublicKeyRequested(key.path),
+                            );
+                          },
+                          onDelete: () => _confirmDelete(context, key),
+                          onAddToAgent: () => _addToAgent(context, key),
+                          // Only show Test Connection when key is in agent
+                          onTestConnection: key.isInAgent
+                              ? () => _testConnection(context, key)
+                              : null,
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-            if (_showHelp)
-              HelpPanel(
-                baseRoute: '/keys',
-                helpService: _helpService,
-                onClose: () => setState(() => _showHelp = false),
-              ),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => _showGenerateDialog(context),
-          icon: const Icon(Icons.add),
-          label: const Text('Generate Key'),
+              if (_showHelp)
+                HelpPanel(
+                  baseRoute: '/keys',
+                  helpService: _helpService,
+                  onClose: () => setState(() => _showHelp = false),
+                ),
+            ],
+          ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => _showGenerateDialog(context),
+            icon: const Icon(Icons.add),
+            label: const Text('Generate Key'),
+          ),
         ),
       ),
     );
