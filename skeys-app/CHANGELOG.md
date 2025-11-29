@@ -6,7 +6,36 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Improve settings dialog with new features and UI enhancements
+
+### Changed
+
+- Separate ServerConfigBloc from ConfigBloc
+- Simplify AddToAgentDialog BLoC dependencies
+
+### Documentation
+
+- Document AgentBloc manual subscription pattern
+
+### Fixed
+
+- Sync key state when agent changes via daemon
+- Add error handling for SharedPreferences failures in Display settings (#13)
+
+### Performance
+
+- Optimize RemoteBloc and add network retry logic (#12) (#60)
+## [0.0.6] - 2025-11-28
+
+### Added
+
 - Add include patches toggle for update settings
+- Add help tooltips and search to SSH config UI
+- Add help tooltips to client config global directives
+
+### Build
+
+- Automate version and build number in CI
 
 ### Changed
 
@@ -24,11 +53,18 @@ All notable changes to this project will be documented in this file.
 - Add public API documentation for features/keys module
 - Add public API documentation for remaining features and main
 - Fix remaining public API documentation issues
+- Add component READMEs and improve network error feedback
 
 ### Fixed
 
 - Prevent dialog freeze when network unavailable in add key to agent
 - Remove unused imports in Flutter test files
+- Improve gRPC connection resilience for long-running sessions
+- Resolve UI freeze when adding keys to SSH agent
+- Show first-start dialog after reinstall and use XDG runtime dir
+- Make help tooltips scrollable on smaller screens
+- Add missing @override annotation in test mocks
+- Add missing @override annotation in test mock
 
 ### Miscellaneous
 
