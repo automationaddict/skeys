@@ -30,7 +30,7 @@ All notable changes to this project will be documented in this file.
 - Sync key state when agent changes via daemon
 - Add error handling for SharedPreferences failures in Display settings (#13) (#76)
 - Add required permissions to issue-links workflow
-- Remove unused imports from settings_dialog_test
+- Add required permissions to auto-merge workflow
 
 ### Miscellaneous
 
@@ -43,7 +43,7 @@ All notable changes to this project will be documented in this file.
 
 ### Testing
 
-- Add comprehensive unit and widget tests for Display settings (#14)
+- Add comprehensive unit and widget tests for Display settings (#14) (#139)
 ## [0.0.6] - 2025-11-28
 
 ### Added
