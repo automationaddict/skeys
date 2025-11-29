@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Improve settings dialog with new features and UI enhancements
+- Add keyboard navigation and focus indicators to Display settings (#20) (#144)
 
 ### Changed
 
@@ -21,6 +22,8 @@ All notable changes to this project will be documented in this file.
 
 - Sync key state when agent changes via daemon
 - Add error handling for SharedPreferences failures in Display settings (#13) (#76)
+- Eliminate race condition in Display settings by using ListenableBuilder
+- Add validation and logging to TextScale and AppThemeMode enum loading (#22)
 
 ### Performance
 
