@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 
 - Add GitHub workflow automation
 - Add /review command for production-readiness audits
+- Update Go version to 1.24 to match dependency requirements
 
 ### Changed
 
@@ -52,6 +53,11 @@ All notable changes to this project will be documented in this file.
 
 - Optimize RemoteBloc and add network retry logic (#12) (#60)
 - Add state validation to prevent unnecessary settings updates (#15)
+
+### Security
+
+- **ci**: Bump actions/setup-go from 5 to 6 (#2)
+- **go**: Bump golang.org/x/crypto from 0.28.0 to 0.45.0 in /skeys-daemon (#3)
 
 ### Testing
 
