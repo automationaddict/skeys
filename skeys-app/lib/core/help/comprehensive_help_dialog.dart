@@ -63,6 +63,11 @@ class _ComprehensiveHelpDialogState extends State<ComprehensiveHelpDialog> {
         'keys';
     _loadDoc(_currentDocName);
 
+    // Listen to search controller to update clear button visibility
+    _searchController.addListener(() {
+      setState(() {});
+    });
+
     // Expand nodes in path to initial doc
     final node = HelpTreeService.findNodeByDocName(_currentDocName);
     if (node != null) {
