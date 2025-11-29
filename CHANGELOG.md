@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous
 
 - Add build artifacts to gitignore
+- Remove stray CHANGELOG from .claude/commands
 
 ### Performance
 
