@@ -32,6 +32,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/knownhosts"
@@ -244,8 +245,9 @@ func (v *HostKeyVerifier) scanHostKey(host string, port int) (ssh.PublicKey, str
 	var keyType string
 
 	config := &ssh.ClientConfig{
-		User: "probe", // Doesn't matter, we just want the host key
-		Auth: []ssh.AuthMethod{},
+		User:    "probe", // Doesn't matter, we just want the host key
+		Auth:    []ssh.AuthMethod{},
+		Timeout: 10 * time.Second,
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			hostKey = key
 			keyType = key.Type()
