@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - Eliminate race condition in Display settings by using ListenableBuilder
 - Add validation and logging to TextScale and AppThemeMode enum loading (#22) (#145)
 - **help**: Add missing settings tabs to HelpNavigationService
+- **settings**: Replace help icon with clickable inline link for text scaling help
 
 ### Performance
 

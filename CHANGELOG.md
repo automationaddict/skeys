@@ -55,6 +55,7 @@ All notable changes to this project will be documented in this file.
 - Add validation and logging to TextScale and AppThemeMode enum loading (#22) (#145)
 - Revert to automatic merge commit message to prevent unintended auto-close
 - **help**: Add missing settings tabs to HelpNavigationService
+- **settings**: Replace help icon with clickable inline link for text scaling help
 
 ### Miscellaneous
 

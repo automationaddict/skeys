@@ -20,6 +20,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
@@ -246,38 +247,47 @@ class _DisplayTab extends StatelessWidget {
               const SizedBox(height: 32),
 
               // Text size section
-              Row(
-                children: [
-                  Text('Text Size', style: theme.textTheme.titleMedium),
-                  const SizedBox(width: 8),
-                  Tooltip(
-                    message: 'Learn more about text scaling',
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.help_outline,
-                        size: 20,
-                        color: colorScheme.primary,
-                      ),
-                      iconSize: 20,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        getIt<HelpNavigationService>().requestHelp(
-                          'settings-display-text-scale',
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
+              Text('Text Size', style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
-              Text(
-                'Adjust the text size throughout the application for better '
-                'readability. This affects all text in lists, dialogs, and menus. '
-                'Some layouts may overflow at larger sizes.',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+              RichText(
+                text: TextSpan(
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  children: [
+                    const TextSpan(
+                      text:
+                          'Adjust the text size throughout the application for better readability. ',
+                    ),
+                    const TextSpan(
+                      text:
+                          'This affects all text in lists, dialogs, and menus. ',
+                    ),
+                    const TextSpan(
+                      text: 'Large text sizes may cause layout overflow. ',
+                    ),
+                    const TextSpan(
+                      text:
+                          'Icons and monospace fonts (SSH keys, fingerprints) are not affected.\n\n',
+                    ),
+                    TextSpan(
+                      text: 'Learn more about text scaling',
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        decoration: TextDecoration.underline,
+                      ),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          Navigator.of(context).pop();
+                          getIt<HelpNavigationService>().requestHelp(
+                            'settings-display-text-scale',
+                          );
+                        },
+                    ),
+                    const TextSpan(
+                      text: ' for details on limitations and troubleshooting.',
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
