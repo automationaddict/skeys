@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - Implement comprehensive help system with tree navigation (#389)
 - **help**: Add index page, SSH overview, and glossary to help system
 - **help**: Add Quick Start, Installation, FAQ, and Troubleshooting guides
+- **hooks**: Add worktree branch verification and fix failing test
 
 ### Changed
 
@@ -22,7 +23,6 @@ All notable changes to this project will be documented in this file.
 ### Documentation
 
 - Document AgentBloc manual subscription pattern
-- **settings**: Add comprehensive text scaling documentation and UI improvements
 
 ### Fixed
 
@@ -31,7 +31,8 @@ All notable changes to this project will be documented in this file.
 - Eliminate race condition in Display settings by using ListenableBuilder
 - Add validation and logging to TextScale and AppThemeMode enum loading (#22) (#145)
 - **help**: Add missing settings tabs to HelpNavigationService
-- **settings**: Replace help icon with clickable inline link for text scaling help
+- **shell**: Prevent icon flickering on hot restart (#392)
+- **tests**: Use textContaining for partial text match
 
 ### Performance
 

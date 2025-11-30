@@ -5,6 +5,53 @@ set -e
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
+# =============================================================================
+# WORKTREE BRANCH VERIFICATION
+# =============================================================================
+# Prevent committing to wrong branch in worktrees
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+git_common_dir=$(git rev-parse --git-common-dir)
+worktree_root=$(git rev-parse --show-toplevel)
+
+# Check if we're in a worktree (not the main repo)
+if [[ "$git_common_dir" != "$worktree_root/.git" ]]; then
+    # We're in a worktree - verify branch matches directory
+    worktree_name=$(basename "$worktree_root")
+
+    # Expected pattern: skeys-issue-{N} → fix/issue-{N}
+    if [[ "$worktree_name" =~ ^skeys-issue-([0-9]+)$ ]]; then
+        issue_num="${BASH_REMATCH[1]}"
+        expected_branch="fix/issue-${issue_num}"
+
+        if [[ "$current_branch" != "$expected_branch" ]]; then
+            echo ""
+            echo "╔════════════════════════════════════════════════════════════════╗"
+            echo "║  ❌ WRONG BRANCH - COMMIT BLOCKED                              ║"
+            echo "╚════════════════════════════════════════════════════════════════╝"
+            echo ""
+            echo "  Worktree:        $worktree_name"
+            echo "  Current branch:  $current_branch"
+            echo "  Expected branch: $expected_branch"
+            echo ""
+            echo "  You are trying to commit to the WRONG branch!"
+            echo "  This worktree should only commit to: $expected_branch"
+            echo ""
+            echo "  Please switch to the correct worktree or branch."
+            echo ""
+            exit 1
+        fi
+        echo "✓ Branch verification OK: $current_branch matches worktree $worktree_name"
+    else
+        # Worktree doesn't follow naming pattern - just warn
+        echo "⚠ Warning: Worktree '$worktree_name' doesn't follow naming pattern"
+        echo "  Expected: skeys-issue-{N}"
+        echo "  Current branch: $current_branch"
+    fi
+else
+    # We're in the main repo
+    echo "✓ Working in main repository on branch: $current_branch"
+fi
+
 errors=0
 
 # =============================================================================

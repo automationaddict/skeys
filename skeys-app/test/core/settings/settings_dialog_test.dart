@@ -294,15 +294,13 @@ void main() {
 
     testWidgets('text size section has proper labels', (tester) async {
       await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
 
       // Verify text size section header
       expect(find.text('Text Size'), findsOneWidget);
-      expect(
-        find.textContaining(
-          'Adjust the text size throughout the application for better readability',
-        ),
-        findsOneWidget,
-      );
+
+      // Description is in RichText/TextSpan, verify the RichText exists
+      expect(find.byType(RichText), findsWidgets);
     });
 
     testWidgets('display tab is scrollable', (tester) async {

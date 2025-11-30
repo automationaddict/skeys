@@ -2,6 +2,47 @@
 # Pre-push hook to ensure CHANGELOG.md is up to date
 set -e
 
+# =============================================================================
+# WORKTREE BRANCH VERIFICATION
+# =============================================================================
+# Display clear information about what's being pushed
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+git_common_dir=$(git rev-parse --git-common-dir)
+worktree_root=$(git rev-parse --show-toplevel)
+
+echo ""
+echo "═══════════════════════════════════════════════════════════════"
+echo "  PUSHING TO REMOTE"
+echo "═══════════════════════════════════════════════════════════════"
+
+# Check if we're in a worktree
+if [[ "$git_common_dir" != "$worktree_root/.git" ]]; then
+    worktree_name=$(basename "$worktree_root")
+    echo "  Worktree:  $worktree_name"
+    echo "  Branch:    $current_branch"
+
+    # Verify branch matches worktree pattern
+    if [[ "$worktree_name" =~ ^skeys-issue-([0-9]+)$ ]]; then
+        issue_num="${BASH_REMATCH[1]}"
+        expected_branch="fix/issue-${issue_num}"
+
+        if [[ "$current_branch" != "$expected_branch" ]]; then
+            echo ""
+            echo "  ❌ ERROR: Branch mismatch!"
+            echo "  Expected: $expected_branch"
+            echo "  Actual:   $current_branch"
+            echo ""
+            exit 1
+        fi
+        echo "  Issue:     #${issue_num}"
+    fi
+else
+    echo "  Location:  Main repository"
+    echo "  Branch:    $current_branch"
+fi
+echo "═══════════════════════════════════════════════════════════════"
+echo ""
+
 # Check if git-cliff is installed
 if ! command -v git-cliff &> /dev/null; then
     echo "WARNING: git-cliff not installed, skipping changelog check"
