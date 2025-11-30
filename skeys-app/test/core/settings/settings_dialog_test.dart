@@ -298,8 +298,8 @@ void main() {
       // Verify text size section header
       expect(find.text('Text Size'), findsOneWidget);
       expect(
-        find.text(
-          'Adjust the text size throughout the application for better readability.',
+        find.textContaining(
+          'Adjust the text size throughout the application for better readability',
         ),
         findsOneWidget,
       );

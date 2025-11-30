@@ -42,7 +42,6 @@ All notable changes to this project will be documented in this file.
 
 - Document AgentBloc manual subscription pattern
 - Add post-merge cleanup steps to /issue workflow
-- **settings**: Add comprehensive text scaling documentation and UI improvements
 
 ### Fixed
 
@@ -55,8 +54,8 @@ All notable changes to this project will be documented in this file.
 - Add validation and logging to TextScale and AppThemeMode enum loading (#22) (#145)
 - Revert to automatic merge commit message to prevent unintended auto-close
 - **help**: Add missing settings tabs to HelpNavigationService
-- **settings**: Replace help icon with clickable inline link for text scaling help
-- **shell**: Prevent icon flickering on hot restart
+- **shell**: Prevent icon flickering on hot restart (#392)
+- **tests**: Use textContaining for partial text match
 
 ### Miscellaneous
 
