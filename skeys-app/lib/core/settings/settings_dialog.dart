@@ -34,6 +34,7 @@ import '../generated/skeys/v1/update.pbgrpc.dart';
 import '../generated/skeys/v1/version.pb.dart';
 import '../grpc/grpc_client.dart';
 import '../help/comprehensive_help_dialog.dart';
+import '../help/help_navigation_service.dart';
 import '../logging/app_logger.dart';
 import '../notifications/app_toast.dart';
 import '../theme/app_theme.dart';
@@ -245,10 +246,36 @@ class _DisplayTab extends StatelessWidget {
               const SizedBox(height: 32),
 
               // Text size section
-              Text('Text Size', style: theme.textTheme.titleMedium),
+              Row(
+                children: [
+                  Text('Text Size', style: theme.textTheme.titleMedium),
+                  const SizedBox(width: 8),
+                  Tooltip(
+                    message: 'Learn more about text scaling',
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.help_outline,
+                        size: 20,
+                        color: colorScheme.primary,
+                      ),
+                      iconSize: 20,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        getIt<HelpNavigationService>().requestHelp(
+                          'settings-display-text-scale',
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
               Text(
-                'Adjust the text size throughout the application for better readability.',
+                'Adjust the text size throughout the application for better '
+                'readability. This affects all text in lists, dialogs, and menus. '
+                'Some layouts may overflow at larger sizes.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -269,6 +296,40 @@ class _DisplayTab extends StatelessWidget {
               ),
 
               const SizedBox(height: 16),
+
+              // Warning for Extra Large scale
+              if (selectedScale == TextScale.extraLarge)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: colorScheme.error.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.warning_amber,
+                        color: colorScheme.onErrorContainer,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Large text sizes may cause layout issues in some dialogs. '
+                          'If you experience problems, select "Normal" to reset.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
               // Preview card
               Container(
@@ -312,7 +373,9 @@ class _DisplayTab extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Currently using ${selectedScale.label.toLowerCase()} text size (${((selectedScale.scale * 100).round())}%)',
+                            'Currently using ${selectedScale.label.toLowerCase()} text size '
+                            '(${((selectedScale.scale * 100).round())}%). '
+                            '${selectedScale != TextScale.normal ? 'Select "Normal" to reset.' : 'This is the default size.'}',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                               fontSize: 12 * selectedScale.scale,

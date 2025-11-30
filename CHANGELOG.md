@@ -42,6 +42,7 @@ All notable changes to this project will be documented in this file.
 
 - Document AgentBloc manual subscription pattern
 - Add post-merge cleanup steps to /issue workflow
+- **settings**: Add comprehensive text scaling documentation and UI improvements
 
 ### Fixed
 
