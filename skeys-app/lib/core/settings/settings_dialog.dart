@@ -20,6 +20,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
@@ -34,6 +35,7 @@ import '../generated/skeys/v1/update.pbgrpc.dart';
 import '../generated/skeys/v1/version.pb.dart';
 import '../grpc/grpc_client.dart';
 import '../help/comprehensive_help_dialog.dart';
+import '../help/help_navigation_service.dart';
 import '../logging/app_logger.dart';
 import '../notifications/app_toast.dart';
 import '../theme/app_theme.dart';
@@ -247,10 +249,45 @@ class _DisplayTab extends StatelessWidget {
               // Text size section
               Text('Text Size', style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
-              Text(
-                'Adjust the text size throughout the application for better readability.',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+              RichText(
+                text: TextSpan(
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  children: [
+                    const TextSpan(
+                      text:
+                          'Adjust the text size throughout the application for better readability. ',
+                    ),
+                    const TextSpan(
+                      text:
+                          'This affects all text in lists, dialogs, and menus. ',
+                    ),
+                    const TextSpan(
+                      text: 'Large text sizes may cause layout overflow. ',
+                    ),
+                    const TextSpan(
+                      text:
+                          'Icons and monospace fonts (SSH keys, fingerprints) are not affected.\n\n',
+                    ),
+                    TextSpan(
+                      text: 'Learn more about text scaling',
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        decoration: TextDecoration.underline,
+                      ),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          Navigator.of(context).pop();
+                          getIt<HelpNavigationService>().requestHelp(
+                            'settings-display-text-scale',
+                          );
+                        },
+                    ),
+                    const TextSpan(
+                      text: ' for details on limitations and troubleshooting.',
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
@@ -269,6 +306,40 @@ class _DisplayTab extends StatelessWidget {
               ),
 
               const SizedBox(height: 16),
+
+              // Warning for Extra Large scale
+              if (selectedScale == TextScale.extraLarge)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: colorScheme.error.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.warning_amber,
+                        color: colorScheme.onErrorContainer,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Large text sizes may cause layout issues in some dialogs. '
+                          'If you experience problems, select "Normal" to reset.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
               // Preview card
               Container(
@@ -312,7 +383,9 @@ class _DisplayTab extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Currently using ${selectedScale.label.toLowerCase()} text size (${((selectedScale.scale * 100).round())}%)',
+                            'Currently using ${selectedScale.label.toLowerCase()} text size '
+                            '(${((selectedScale.scale * 100).round())}%). '
+                            '${selectedScale != TextScale.normal ? 'Select "Normal" to reset.' : 'This is the default size.'}',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                               fontSize: 12 * selectedScale.scale,

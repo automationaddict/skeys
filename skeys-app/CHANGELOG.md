@@ -9,8 +9,9 @@ All notable changes to this project will be documented in this file.
 - Improve settings dialog with new features and UI enhancements
 - Add keyboard navigation and focus indicators to Display settings (#20) (#144)
 - Add color swatch preview to theme selector (#387)
-- Implement comprehensive help system with tree navigation
-- **help**: Make help panel persist when navigating between pages
+- Implement comprehensive help system with tree navigation (#389)
+- **help**: Add index page, SSH overview, and glossary to help system
+- **help**: Add Quick Start, Installation, FAQ, and Troubleshooting guides
 
 ### Changed
 
@@ -21,6 +22,7 @@ All notable changes to this project will be documented in this file.
 ### Documentation
 
 - Document AgentBloc manual subscription pattern
+- **settings**: Add comprehensive text scaling documentation and UI improvements
 
 ### Fixed
 
@@ -28,9 +30,8 @@ All notable changes to this project will be documented in this file.
 - Add error handling for SharedPreferences failures in Display settings (#13) (#76)
 - Eliminate race condition in Display settings by using ListenableBuilder
 - Add validation and logging to TextScale and AppThemeMode enum loading (#22) (#145)
-- Update settings dialog help button to use comprehensive help
-- Add reactive clear button to search boxes in help dialogs
-- Wrap page shortcuts in Focus widget to enable F1 key
+- **help**: Add missing settings tabs to HelpNavigationService
+- **settings**: Replace help icon with clickable inline link for text scaling help
 
 ### Performance
 

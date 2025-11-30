@@ -200,6 +200,14 @@ class HelpTreeService {
             title: 'Display',
             docName: 'settings-display',
             icon: Icons.palette,
+            children: [
+              HelpTreeNode(
+                id: 'settings-display-text-scale',
+                title: 'Text Scaling',
+                docName: 'settings-display-text-scale',
+                icon: Icons.format_size,
+              ),
+            ],
           ),
           HelpTreeNode(
             id: 'settings-security',

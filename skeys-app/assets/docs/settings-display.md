@@ -26,7 +26,7 @@ Changes take effect immediately.
 
 ## Text Size
 
-Adjust the text size throughout the application. This affects all text elements including labels, buttons, and content.
+Adjust the text size throughout the application for better readability. This affects all text in lists, dialogs, buttons, and menus.
 
 ### Available Sizes
 
@@ -35,9 +35,17 @@ Adjust the text size throughout the application. This affects all text elements 
 - **Large** (115%): Easier to read, recommended for larger displays
 - **Extra Large** (130%): Maximum readability, ideal for accessibility needs
 
+### Important Notes
+
+- **Large text sizes may cause layout overflow** in some dialogs. If you experience issues, select "Normal" to reset.
+- Icons and monospace fonts (SSH keys, fingerprints) are not affected by text scaling.
+- Text scaling works independently from your system's display scaling settings.
+
 ### Preview
 
 As you select different text sizes, a preview shows how text will appear at that size. Changes take effect immediately throughout the app.
+
+**Need more information?** See the [detailed Text Scaling guide](skeys://help/settings-display-text-scale) for limitations, troubleshooting, and best practices.
 
 ## Tips
 
