@@ -56,6 +56,7 @@ All notable changes to this project will be documented in this file.
 - Revert to automatic merge commit message to prevent unintended auto-close
 - **help**: Add missing settings tabs to HelpNavigationService
 - **settings**: Replace help icon with clickable inline link for text scaling help
+- **shell**: Prevent icon flickering on hot restart
 
 ### Miscellaneous
 

@@ -169,6 +169,9 @@ class _AppShellState extends State<AppShell> {
                       'assets/images/skeys_icon.png',
                       width: 40,
                       height: 40,
+                      gaplessPlayback: true,
+                      // Add key to ensure proper rebuilding on hot restart
+                      key: const ValueKey('app_icon'),
                     ),
                   ),
                 ),
