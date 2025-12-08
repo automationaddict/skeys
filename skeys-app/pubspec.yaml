@@ -22,7 +22,7 @@ dependencies:
 
   # Dependency Injection
   get_it: ^9.0.0
-  injectable: ^2.7.0
+  injectable: ^2.7.1+2
 
   # Navigation
   go_router: ^17.0.0
