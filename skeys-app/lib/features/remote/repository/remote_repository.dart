@@ -47,7 +47,11 @@ abstract class RemoteRepository {
   Future<void> deleteRemote(String id);
 
   /// Connects to a remote server.
-  Future<ConnectionEntity> connect(String remoteId, {String? passphrase});
+  Future<ConnectionEntity> connect(
+    String remoteId, {
+    String? passphrase,
+    String? keyFingerprint,
+  });
 
   /// Disconnects from a remote server.
   Future<void> disconnect(String connectionId);
@@ -149,9 +153,11 @@ class RemoteRepositoryImpl implements RemoteRepository {
   Future<ConnectionEntity> connect(
     String remoteId, {
     String? passphrase,
+    String? keyFingerprint,
   }) async {
     final request = pb.ConnectRequest()..remoteId = remoteId;
     if (passphrase != null) request.passphrase = passphrase;
+    if (keyFingerprint != null) request.keyFingerprint = keyFingerprint;
 
     final response = await _client.remote.connect(request);
     return _mapConnection(response.connection);

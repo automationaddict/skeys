@@ -1136,10 +1136,12 @@ class ConnectRequest extends $pb.GeneratedMessage {
   factory ConnectRequest({
     $core.String? remoteId,
     $core.String? passphrase,
+    $core.String? keyFingerprint,
   }) {
     final result = create();
     if (remoteId != null) result.remoteId = remoteId;
     if (passphrase != null) result.passphrase = passphrase;
+    if (keyFingerprint != null) result.keyFingerprint = keyFingerprint;
     return result;
   }
 
@@ -1158,6 +1160,7 @@ class ConnectRequest extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'remoteId')
     ..aOS(2, _omitFieldNames ? '' : 'passphrase')
+    ..aOS(3, _omitFieldNames ? '' : 'keyFingerprint')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1196,6 +1199,15 @@ class ConnectRequest extends $pb.GeneratedMessage {
   $core.bool hasPassphrase() => $_has(1);
   @$pb.TagNumber(2)
   void clearPassphrase() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get keyFingerprint => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set keyFingerprint($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasKeyFingerprint() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearKeyFingerprint() => $_clearField(3);
 }
 
 class ConnectResponse extends $pb.GeneratedMessage {

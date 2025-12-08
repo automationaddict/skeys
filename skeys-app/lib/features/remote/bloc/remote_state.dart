@@ -52,6 +52,10 @@ final class RemoteState extends Equatable {
   /// Error message if the last operation failed.
   final String? errorMessage;
 
+  /// Name of a connection that was unexpectedly dropped (for toast notification).
+  /// This is set when the connection stream detects a lost connection.
+  final String? droppedConnectionName;
+
   /// Creates a RemoteState with the given parameters.
   const RemoteState({
     this.status = RemoteBlocStatus.initial,
@@ -59,6 +63,7 @@ final class RemoteState extends Equatable {
     this.connections = const [],
     this.lastCommandResult,
     this.errorMessage,
+    this.droppedConnectionName,
   });
 
   /// Creates a copy of this state with the given fields replaced.
@@ -68,6 +73,8 @@ final class RemoteState extends Equatable {
     List<ConnectionEntity>? connections,
     CommandResult? lastCommandResult,
     String? errorMessage,
+    String? droppedConnectionName,
+    bool clearDroppedConnection = false,
   }) {
     return RemoteState(
       status: status ?? this.status,
@@ -75,6 +82,9 @@ final class RemoteState extends Equatable {
       connections: connections ?? this.connections,
       lastCommandResult: lastCommandResult ?? this.lastCommandResult,
       errorMessage: errorMessage,
+      droppedConnectionName: clearDroppedConnection
+          ? null
+          : (droppedConnectionName ?? this.droppedConnectionName),
     );
   }
 
@@ -85,5 +95,6 @@ final class RemoteState extends Equatable {
     connections,
     lastCommandResult,
     errorMessage,
+    droppedConnectionName,
   ];
 }

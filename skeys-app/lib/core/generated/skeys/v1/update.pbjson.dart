@@ -192,7 +192,8 @@ final $typed_data.Uint8List updateSettingsDescriptor = $convert.base64Decode(
     'Cg5VcGRhdGVTZXR0aW5ncxIdCgphdXRvX2NoZWNrGAEgASgIUglhdXRvQ2hlY2sSIwoNYXV0b1'
     '9kb3dubG9hZBgCIAEoCFIMYXV0b0Rvd25sb2FkEh0KCmF1dG9fYXBwbHkYAyABKAhSCWF1dG9B'
     'cHBseRIvChNpbmNsdWRlX3ByZXJlbGVhc2VzGAQgASgIUhJpbmNsdWRlUHJlcmVsZWFzZXMSMA'
-    'oUY2hlY2tfaW50ZXJ2YWxfaG91cnMYBSABKAVSEmNoZWNrSW50ZXJ2YWxIb3Vycw==');
+    'oUY2hlY2tfaW50ZXJ2YWxfaG91cnMYBSABKAVSEmNoZWNrSW50ZXJ2YWxIb3VycxInCg9pbmNs'
+    'dWRlX3BhdGNoZXMYBiABKAhSDmluY2x1ZGVQYXRjaGVz');
 
 @$core.Deprecated('Use updateStatusDescriptor instead')
 const UpdateStatus$json = {

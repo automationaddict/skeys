@@ -57,9 +57,29 @@ abstract class KeysRepository {
   /// Gets the fingerprint of an SSH key.
   Future<String> getFingerprint(String keyId);
 
+  /// Pushes a public key to a remote server's authorized_keys.
+  Future<PushKeyResult> pushKeyToRemote({
+    required String keyId,
+    required String remoteId,
+    String? remoteUser,
+    bool append = true,
+  });
+
   /// Returns a stream of key list updates.
   /// The stream emits the full list whenever keys change on the server.
   Stream<List<KeyEntity>> watchKeys();
+}
+
+/// Result of pushing a key to a remote server.
+class PushKeyResult {
+  /// Whether the push was successful.
+  final bool success;
+
+  /// Message describing the result.
+  final String message;
+
+  /// Creates a PushKeyResult.
+  PushKeyResult({required this.success, required this.message});
 }
 
 /// Implementation of KeysRepository that adapts gRPC to domain interface.
@@ -144,6 +164,26 @@ class KeysRepositoryImpl implements KeysRepository {
 
     final response = await _client.keys.getFingerprint(request);
     return response.fingerprint;
+  }
+
+  @override
+  Future<PushKeyResult> pushKeyToRemote({
+    required String keyId,
+    required String remoteId,
+    String? remoteUser,
+    bool append = true,
+  }) async {
+    final request = pb.PushKeyToRemoteRequest()
+      ..keyId = keyId
+      ..remoteId = remoteId
+      ..append = append;
+
+    if (remoteUser != null) {
+      request.remoteUser = remoteUser;
+    }
+
+    final response = await _client.keys.pushKeyToRemote(request);
+    return PushKeyResult(success: response.success, message: response.message);
   }
 
   @override

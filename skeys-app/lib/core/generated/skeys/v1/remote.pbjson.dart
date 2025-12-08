@@ -313,13 +313,15 @@ const ConnectRequest$json = {
   '2': [
     {'1': 'remote_id', '3': 1, '4': 1, '5': 9, '10': 'remoteId'},
     {'1': 'passphrase', '3': 2, '4': 1, '5': 9, '10': 'passphrase'},
+    {'1': 'key_fingerprint', '3': 3, '4': 1, '5': 9, '10': 'keyFingerprint'},
   ],
 };
 
 /// Descriptor for `ConnectRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List connectRequestDescriptor = $convert.base64Decode(
     'Cg5Db25uZWN0UmVxdWVzdBIbCglyZW1vdGVfaWQYASABKAlSCHJlbW90ZUlkEh4KCnBhc3NwaH'
-    'Jhc2UYAiABKAlSCnBhc3NwaHJhc2U=');
+    'Jhc2UYAiABKAlSCnBhc3NwaHJhc2USJwoPa2V5X2ZpbmdlcnByaW50GAMgASgJUg5rZXlGaW5n'
+    'ZXJwcmludA==');
 
 @$core.Deprecated('Use connectResponseDescriptor instead')
 const ConnectResponse$json = {

@@ -170,13 +170,20 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
     emit(state.copyWith(status: RemoteBlocStatus.loading));
 
     try {
-      await _repository.connect(event.remoteId, passphrase: event.passphrase);
+      await _repository.connect(
+        event.remoteId,
+        passphrase: event.passphrase,
+        keyFingerprint: event.keyFingerprint,
+      );
       _log.info('connected to remote', {'remote_id': event.remoteId});
+      // Refresh both connections and remotes to get updated status
       final connections = await _repository.listConnections();
+      final remotes = await _repository.listRemotes();
       emit(
         state.copyWith(
           status: RemoteBlocStatus.success,
           connections: connections,
+          remotes: remotes,
         ),
       );
     } catch (e, st) {
@@ -206,11 +213,14 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
       _log.info('disconnected from remote', {
         'connection_id': event.connectionId,
       });
+      // Refresh both connections and remotes to get updated status
       final connections = await _repository.listConnections();
+      final remotes = await _repository.listRemotes();
       emit(
         state.copyWith(
           status: RemoteBlocStatus.success,
           connections: connections,
+          remotes: remotes,
         ),
       );
     } catch (e, st) {
@@ -257,7 +267,42 @@ class RemoteBloc extends Bloc<RemoteEvent, RemoteState> {
       _repository.watchConnections(),
       onData: (connections) {
         _log.debug('connections stream update', {'count': connections.length});
-        return state.copyWith(connections: connections);
+
+        // Detect dropped connections (connections that were in state but not in new list)
+        final currentIds = state.connections.map((c) => c.id).toSet();
+        final newIds = connections.map((c) => c.id).toSet();
+        final droppedIds = currentIds.difference(newIds);
+        final addedIds = newIds.difference(currentIds);
+
+        String? droppedName;
+        if (droppedIds.isNotEmpty) {
+          // Find the name of a dropped connection for notification
+          final droppedConnection = state.connections
+              .where((c) => droppedIds.contains(c.id))
+              .firstOrNull;
+          if (droppedConnection != null) {
+            // Try to find the remote name for this connection
+            final remote = state.remotes
+                .where((r) => r.id == droppedConnection.remoteId)
+                .firstOrNull;
+            droppedName = remote?.name ?? droppedConnection.remoteId;
+            _log.warning('connection dropped', {
+              'connection_id': droppedConnection.id,
+              'remote_name': droppedName,
+            });
+          }
+        }
+
+        // Trigger remotes refresh if connections changed (added or dropped)
+        if (droppedIds.isNotEmpty || addedIds.isNotEmpty) {
+          add(const RemoteLoadRequested());
+        }
+
+        return state.copyWith(
+          connections: connections,
+          droppedConnectionName: droppedName,
+          clearDroppedConnection: droppedName == null,
+        );
       },
       onError: (error, stackTrace) {
         _log.error('connections stream error', error, stackTrace);

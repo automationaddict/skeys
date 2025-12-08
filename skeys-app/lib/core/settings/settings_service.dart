@@ -94,6 +94,7 @@ class SettingsService extends ChangeNotifier {
   static const _agentKeyTimeoutMinutesKey = 'agent_key_timeout_minutes';
   static const _sshConfigPromptShownKey = 'ssh_config_prompt_shown';
   static const _checkUpdatesOnStartupKey = 'check_updates_on_startup';
+  static const _remoteKeyMappingPrefix = 'remote_key_';
 
   /// Default window width in pixels.
   static const defaultWindowWidth = 1200.0;
@@ -409,6 +410,30 @@ class SettingsService extends ChangeNotifier {
     await _prefs.setBool(_checkUpdatesOnStartupKey, check);
     _log.info('check updates on startup changed', {'check': check});
     notifyListeners();
+  }
+
+  /// Get the saved key fingerprint for a remote server.
+  /// Returns null if no key has been saved for this remote.
+  String? getRemoteKeyFingerprint(String remoteId) {
+    return _prefs.getString('$_remoteKeyMappingPrefix$remoteId');
+  }
+
+  /// Save the key fingerprint used for a remote server.
+  Future<void> setRemoteKeyFingerprint(
+    String remoteId,
+    String fingerprint,
+  ) async {
+    await _prefs.setString('$_remoteKeyMappingPrefix$remoteId', fingerprint);
+    _log.debug('remote key mapping saved', {
+      'remote_id': remoteId,
+      'fingerprint': fingerprint,
+    });
+  }
+
+  /// Clear the saved key fingerprint for a remote server.
+  Future<void> clearRemoteKeyFingerprint(String remoteId) async {
+    await _prefs.remove('$_remoteKeyMappingPrefix$remoteId');
+    _log.debug('remote key mapping cleared', {'remote_id': remoteId});
   }
 
   /// Reset all settings to their default values.

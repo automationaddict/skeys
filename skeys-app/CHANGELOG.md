@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **remote**: Connection status tracking and push key UI
+## [0.0.7] - 2025-12-05
+
+### Added
+
 - Improve settings dialog with new features and UI enhancements
 - Add keyboard navigation and focus indicators to Display settings (#20) (#144)
 - Add color swatch preview to theme selector (#387)

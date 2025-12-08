@@ -26,7 +26,12 @@ import '../../../core/di/injection.dart';
 import '../../../core/help/help_context_service.dart';
 import '../../../core/help/help_panel.dart';
 import '../../../core/help/help_service.dart';
+import '../../../core/notifications/app_toast.dart';
+import '../../../core/settings/settings_service.dart';
 import '../../../core/widgets/app_bar_with_help.dart';
+import '../../agent/domain/agent_entity.dart';
+import '../../agent/repository/agent_repository.dart';
+import '../../keys/repository/keys_repository.dart';
 import '../bloc/remote_bloc.dart';
 import '../domain/remote_entity.dart';
 
@@ -71,7 +76,26 @@ class _RemotePageState extends State<RemotePage> {
               body: Row(
                 children: [
                   Expanded(
-                    child: BlocBuilder<RemoteBloc, RemoteState>(
+                    child: BlocConsumer<RemoteBloc, RemoteState>(
+                      listener: (context, state) {
+                        if (state.status == RemoteBlocStatus.failure &&
+                            state.errorMessage != null) {
+                          AppToast.error(
+                            context,
+                            title: 'Connection Failed',
+                            message: state.errorMessage!,
+                          );
+                        }
+                        // Show toast when a connection is unexpectedly dropped
+                        if (state.droppedConnectionName != null) {
+                          AppToast.warning(
+                            context,
+                            title: 'Connection Lost',
+                            message:
+                                'Connection to ${state.droppedConnectionName} was dropped',
+                          );
+                        }
+                      },
                       builder: (context, state) {
                         if (state.status == RemoteBlocStatus.loading &&
                             state.remotes.isEmpty) {
@@ -119,27 +143,9 @@ class _RemotePageState extends State<RemotePage> {
                                 .where((c) => c.remoteId == remote.id)
                                 .firstOrNull;
                             return _RemoteCard(
+                              key: ValueKey(remote.id),
                               remote: remote,
                               connection: connection,
-                              onConnect: () {
-                                context.read<RemoteBloc>().add(
-                                  RemoteConnectRequested(remoteId: remote.id),
-                                );
-                              },
-                              onDisconnect: connection != null
-                                  ? () {
-                                      context.read<RemoteBloc>().add(
-                                        RemoteDisconnectRequested(
-                                          connection.id,
-                                        ),
-                                      );
-                                    }
-                                  : null,
-                              onDelete: () {
-                                context.read<RemoteBloc>().add(
-                                  RemoteDeleteRequested(remote.id),
-                                );
-                              },
                             );
                           },
                         );
@@ -229,24 +235,152 @@ class _RemotePageState extends State<RemotePage> {
   }
 }
 
-class _RemoteCard extends StatelessWidget {
+class _RemoteCard extends StatefulWidget {
   final RemoteEntity remote;
   final ConnectionEntity? connection;
-  final VoidCallback onConnect;
-  final VoidCallback? onDisconnect;
-  final VoidCallback onDelete;
 
-  const _RemoteCard({
-    required this.remote,
-    this.connection,
-    required this.onConnect,
-    this.onDisconnect,
-    required this.onDelete,
-  });
+  const _RemoteCard({super.key, required this.remote, this.connection});
+
+  @override
+  State<_RemoteCard> createState() => _RemoteCardState();
+}
+
+class _RemoteCardState extends State<_RemoteCard> {
+  final _agentRepository = getIt<AgentRepository>();
+  final _keysRepository = getIt<KeysRepository>();
+  final _settingsService = getIt<SettingsService>();
+
+  List<AgentKeyEntry> _keys = [];
+  AgentKeyEntry? _selectedKey;
+  bool _isLoadingKeys = true;
+  bool _isPushingKey = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadKeys();
+  }
+
+  String? get _savedKeyFingerprint =>
+      _settingsService.getRemoteKeyFingerprint(widget.remote.id);
+
+  Future<void> _loadKeys() async {
+    try {
+      final keys = await _agentRepository.listKeys();
+      if (mounted) {
+        setState(() {
+          _keys = keys;
+          _isLoadingKeys = false;
+
+          // Try to find the previously saved key for this remote
+          final savedFingerprint = _savedKeyFingerprint;
+          if (savedFingerprint != null && keys.isNotEmpty) {
+            final savedKey = keys
+                .where((k) => k.fingerprint == savedFingerprint)
+                .firstOrNull;
+            if (savedKey != null) {
+              _selectedKey = savedKey;
+              return;
+            }
+          }
+
+          // Fall back to first key if none selected
+          if (_selectedKey == null && keys.isNotEmpty) {
+            _selectedKey = keys.first;
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingKeys = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _onConnect() async {
+    if (_selectedKey == null) {
+      AppToast.warning(
+        context,
+        title: 'No Key Selected',
+        message: 'Please select a key to connect with.',
+      );
+      return;
+    }
+
+    // Save the key selection for this remote
+    await _settingsService.setRemoteKeyFingerprint(
+      widget.remote.id,
+      _selectedKey!.fingerprint,
+    );
+
+    if (!mounted) return;
+
+    context.read<RemoteBloc>().add(
+      RemoteConnectRequested(
+        remoteId: widget.remote.id,
+        keyFingerprint: _selectedKey!.fingerprint,
+      ),
+    );
+  }
+
+  Future<void> _onDisconnect() async {
+    if (widget.connection == null) return;
+    context.read<RemoteBloc>().add(
+      RemoteDisconnectRequested(widget.connection!.id),
+    );
+  }
+
+  Future<void> _onDelete() async {
+    context.read<RemoteBloc>().add(RemoteDeleteRequested(widget.remote.id));
+  }
+
+  Future<void> _onPushKey() async {
+    if (_selectedKey == null) {
+      AppToast.warning(
+        context,
+        title: 'No Key Selected',
+        message: 'Please select a key to push.',
+      );
+      return;
+    }
+
+    setState(() => _isPushingKey = true);
+
+    try {
+      final result = await _keysRepository.pushKeyToRemote(
+        keyId: _selectedKey!.fingerprint,
+        remoteId: widget.remote.id,
+      );
+
+      if (!mounted) return;
+
+      if (result.success) {
+        AppToast.success(
+          context,
+          title: 'Key Pushed',
+          message: result.message.isNotEmpty
+              ? result.message
+              : 'Public key added to authorized_keys',
+        );
+      } else {
+        AppToast.error(context, title: 'Push Failed', message: result.message);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      AppToast.error(context, title: 'Push Failed', message: e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _isPushingKey = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isConnected = remote.status == RemoteStatus.connected;
+    final isConnected = widget.remote.status == RemoteStatus.connected;
+    final isConnecting = widget.remote.status == RemoteStatus.connecting;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -255,6 +389,7 @@ class _RemoteCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header row with icon, name, and status
             Row(
               children: [
                 Container(
@@ -277,11 +412,11 @@ class _RemoteCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        remote.name,
+                        widget.remote.name,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       Text(
-                        '${remote.user}@${remote.host}:${remote.port}',
+                        '${widget.remote.user}@${widget.remote.host}:${widget.remote.port}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontFamily: 'monospace',
                         ),
@@ -292,31 +427,146 @@ class _RemoteCard extends StatelessWidget {
                 _buildStatusChip(context),
               ],
             ),
-            if (connection != null) ...[
+
+            // Connection info when connected
+            if (widget.connection != null) ...[
               const SizedBox(height: 12),
-              Text(
-                'Server: ${connection!.serverVersion}',
-                style: Theme.of(context).textTheme.bodySmall,
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Server: ${widget.connection!.serverVersion}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
-            const SizedBox(height: 12),
+
+            const SizedBox(height: 16),
+
+            // Key selection dropdown
+            Row(
+              children: [
+                Expanded(
+                  child: _isLoadingKeys
+                      ? const LinearProgressIndicator()
+                      : DropdownButtonFormField<AgentKeyEntry>(
+                          // ignore: deprecated_member_use
+                          value: _selectedKey,
+                          decoration: InputDecoration(
+                            labelText: 'SSH Key',
+                            border: const OutlineInputBorder(),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            suffixIcon: _keys.isEmpty
+                                ? Tooltip(
+                                    message:
+                                        'No keys in agent. Add keys via the Agent page.',
+                                    child: Icon(
+                                      Icons.warning_amber,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          isExpanded: true,
+                          items: _keys.map((key) {
+                            final displayName = key.comment.isNotEmpty
+                                ? key.comment
+                                : key.fingerprint.substring(0, 16);
+                            return DropdownMenuItem<AgentKeyEntry>(
+                              value: key,
+                              child: Text(
+                                '$displayName (${key.type})',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (key) {
+                            setState(() => _selectedKey = key);
+                          },
+                          hint: Text(
+                            _keys.isEmpty ? 'No keys in agent' : 'Select a key',
+                          ),
+                        ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: _loadKeys,
+                  tooltip: 'Refresh keys',
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Action buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                if (isConnected && onDisconnect != null)
+                // Push Key button (only when connected)
+                if (isConnected)
+                  OutlinedButton.icon(
+                    onPressed: _isPushingKey ? null : _onPushKey,
+                    icon: _isPushingKey
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.upload, size: 18),
+                    label: const Text('Push Key'),
+                  ),
+                if (isConnected) const SizedBox(width: 8),
+
+                // Connect/Disconnect button
+                if (isConnected)
                   OutlinedButton(
-                    onPressed: onDisconnect,
+                    onPressed: _onDisconnect,
                     child: const Text('Disconnect'),
                   )
                 else
                   FilledButton(
-                    onPressed: onConnect,
-                    child: const Text('Connect'),
+                    onPressed: isConnecting || _keys.isEmpty
+                        ? null
+                        : _onConnect,
+                    child: isConnecting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Connect'),
                   ),
+
                 const SizedBox(width: 8),
+
+                // Delete button
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
-                  onPressed: onDelete,
+                  onPressed: _onDelete,
                   tooltip: 'Delete',
                 ),
               ],
@@ -328,7 +578,7 @@ class _RemoteCard extends StatelessWidget {
   }
 
   Widget _buildStatusChip(BuildContext context) {
-    final (label, color) = switch (remote.status) {
+    final (label, color) = switch (widget.remote.status) {
       RemoteStatus.connected => ('Connected', Colors.green),
       RemoteStatus.connecting => ('Connecting', Colors.orange),
       RemoteStatus.error => ('Error', Colors.red),

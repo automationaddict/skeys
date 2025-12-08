@@ -96,11 +96,18 @@ final class RemoteConnectRequested extends RemoteEvent {
   /// Optional passphrase if key is encrypted.
   final String? passphrase;
 
+  /// The fingerprint of the key to use for authentication.
+  final String? keyFingerprint;
+
   /// Creates a RemoteConnectRequested event.
-  const RemoteConnectRequested({required this.remoteId, this.passphrase});
+  const RemoteConnectRequested({
+    required this.remoteId,
+    this.passphrase,
+    this.keyFingerprint,
+  });
 
   @override
-  List<Object?> get props => [remoteId, passphrase];
+  List<Object?> get props => [remoteId, passphrase, keyFingerprint];
 }
 
 /// Event to request disconnecting from a remote server.
