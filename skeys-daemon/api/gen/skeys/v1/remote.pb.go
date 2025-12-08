@@ -956,11 +956,12 @@ func (x *TestRemoteConnectionResponse) GetHostKeyInfo() *HostKeyInfo {
 }
 
 type ConnectRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	RemoteId      string                 `protobuf:"bytes,1,opt,name=remote_id,json=remoteId,proto3" json:"remote_id,omitempty"`
-	Passphrase    string                 `protobuf:"bytes,2,opt,name=passphrase,proto3" json:"passphrase,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	RemoteId       string                 `protobuf:"bytes,1,opt,name=remote_id,json=remoteId,proto3" json:"remote_id,omitempty"`
+	Passphrase     string                 `protobuf:"bytes,2,opt,name=passphrase,proto3" json:"passphrase,omitempty"`
+	KeyFingerprint string                 `protobuf:"bytes,3,opt,name=key_fingerprint,json=keyFingerprint,proto3" json:"key_fingerprint,omitempty"` // Fingerprint of the key to use from the agent
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ConnectRequest) Reset() {
@@ -1003,6 +1004,13 @@ func (x *ConnectRequest) GetRemoteId() string {
 func (x *ConnectRequest) GetPassphrase() string {
 	if x != nil {
 		return x.Passphrase
+	}
+	return ""
+}
+
+func (x *ConnectRequest) GetKeyFingerprint() string {
+	if x != nil {
+		return x.KeyFingerprint
 	}
 	return ""
 }
@@ -1406,12 +1414,13 @@ const file_skeys_v1_remote_proto_rawDesc = "" +
 	"\n" +
 	"latency_ms\x18\x04 \x01(\x05R\tlatencyMs\x12?\n" +
 	"\x0fhost_key_status\x18\x05 \x01(\x0e2\x17.skeys.v1.HostKeyStatusR\rhostKeyStatus\x129\n" +
-	"\rhost_key_info\x18\x06 \x01(\v2\x15.skeys.v1.HostKeyInfoR\vhostKeyInfo\"M\n" +
+	"\rhost_key_info\x18\x06 \x01(\v2\x15.skeys.v1.HostKeyInfoR\vhostKeyInfo\"v\n" +
 	"\x0eConnectRequest\x12\x1b\n" +
 	"\tremote_id\x18\x01 \x01(\tR\bremoteId\x12\x1e\n" +
 	"\n" +
 	"passphrase\x18\x02 \x01(\tR\n" +
-	"passphrase\"G\n" +
+	"passphrase\x12'\n" +
+	"\x0fkey_fingerprint\x18\x03 \x01(\tR\x0ekeyFingerprint\"G\n" +
 	"\x0fConnectResponse\x124\n" +
 	"\n" +
 	"connection\x18\x01 \x01(\v2\x14.skeys.v1.ConnectionR\n" +

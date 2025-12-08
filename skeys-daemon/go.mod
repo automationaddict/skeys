@@ -4,6 +4,7 @@ go 1.24.0
 
 require (
 	github.com/automationaddict/skeys-core v0.0.0
+	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto v0.45.0
 	google.golang.org/grpc v1.77.0

@@ -23,6 +23,8 @@ package adapter
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -30,6 +32,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/automationaddict/skeys-core/keys"
+	"github.com/automationaddict/skeys-core/remote"
 	pb "github.com/automationaddict/skeys-daemon/api/gen/skeys/v1"
 )
 
@@ -37,12 +40,14 @@ import (
 type KeyServiceAdapter struct {
 	pb.UnimplementedKeyServiceServer
 	service *keys.Service
+	pool    *remote.ConnectionPool
 }
 
 // NewKeyServiceAdapter creates a new key service adapter
-func NewKeyServiceAdapter(service *keys.Service) *KeyServiceAdapter {
+func NewKeyServiceAdapter(service *keys.Service, pool *remote.ConnectionPool) *KeyServiceAdapter {
 	return &KeyServiceAdapter{
 		service: service,
+		pool:    pool,
 	}
 }
 
@@ -122,10 +127,114 @@ func (a *KeyServiceAdapter) ChangePassphrase(ctx context.Context, req *pb.Change
 	return &emptypb.Empty{}, nil
 }
 
-// PushKeyToRemote pushes a key to a remote server
+// PushKeyToRemote pushes a key to a remote server's authorized_keys file.
+// This works similar to ssh-copy-id, but uses an existing connection.
 func (a *KeyServiceAdapter) PushKeyToRemote(ctx context.Context, req *pb.PushKeyToRemoteRequest) (*pb.PushKeyToRemoteResponse, error) {
-	// TODO: Implement once remote functionality is wired up
-	return nil, status.Errorf(codes.Unimplemented, "method PushKeyToRemote not implemented")
+	if req.GetKeyId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "key_id is required")
+	}
+	if req.GetRemoteId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "remote_id is required")
+	}
+
+	// Find a connection for this remote
+	conn := a.findConnectionByRemoteID(req.GetRemoteId())
+	if conn == nil {
+		return nil, status.Errorf(codes.FailedPrecondition, "no active connection to remote %s", req.GetRemoteId())
+	}
+
+	// Get the public key content by looking up the key by fingerprint
+	publicKey, err := a.getPublicKeyByFingerprint(ctx, req.GetKeyId())
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "key not found: %v", err)
+	}
+
+	// Ensure public key ends with newline
+	publicKey = strings.TrimSpace(publicKey) + "\n"
+
+	// Execute ssh-copy-id style commands:
+	// 1. Create ~/.ssh directory if it doesn't exist (with correct permissions)
+	// 2. Create authorized_keys if it doesn't exist
+	// 3. Check if key already exists (avoid duplicates)
+	// 4. Append the key
+
+	// Escape the public key for use in shell commands
+	escapedKey := strings.ReplaceAll(publicKey, "'", "'\"'\"'")
+
+	// Combined command that handles all cases
+	// Uses printf to avoid echo interpretation issues
+	script := fmt.Sprintf(`
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+touch ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys
+KEY='%s'
+if grep -qF "$KEY" ~/.ssh/authorized_keys 2>/dev/null; then
+    echo "Key already exists in authorized_keys"
+else
+    printf '%%s' "$KEY" >> ~/.ssh/authorized_keys
+    echo "Key added to authorized_keys"
+fi
+`, strings.TrimSpace(escapedKey))
+
+	stdout, stderr, err := conn.Execute(ctx, script)
+	if err != nil {
+		errMsg := string(stderr)
+		if errMsg == "" {
+			errMsg = err.Error()
+		}
+		return &pb.PushKeyToRemoteResponse{
+			Success: false,
+			Message: fmt.Sprintf("failed to push key: %s", errMsg),
+		}, nil
+	}
+
+	// Parse the output to determine what happened
+	output := strings.TrimSpace(string(stdout))
+	if strings.Contains(output, "Key already exists") {
+		return &pb.PushKeyToRemoteResponse{
+			Success: true,
+			Message: "Key already exists in authorized_keys",
+		}, nil
+	}
+
+	return &pb.PushKeyToRemoteResponse{
+		Success: true,
+		Message: "Key added to authorized_keys",
+	}, nil
+}
+
+// findConnectionByRemoteID finds an active connection for the given remote ID
+func (a *KeyServiceAdapter) findConnectionByRemoteID(remoteID string) *remote.Connection {
+	if a.pool == nil {
+		return nil
+	}
+
+	connections := a.pool.List()
+	for _, conn := range connections {
+		if conn.RemoteID == remoteID {
+			return conn
+		}
+	}
+	return nil
+}
+
+// getPublicKeyByFingerprint looks up a key by its fingerprint and returns the public key content
+func (a *KeyServiceAdapter) getPublicKeyByFingerprint(ctx context.Context, fingerprint string) (string, error) {
+	// List all keys and find one matching the fingerprint
+	keyList, err := a.service.List(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to list keys: %w", err)
+	}
+
+	for _, key := range keyList {
+		// Match by SHA256 fingerprint (with or without prefix)
+		fpClean := strings.TrimPrefix(fingerprint, "SHA256:")
+		keyFpClean := strings.TrimPrefix(key.FingerprintSHA256, "SHA256:")
+		if fpClean == keyFpClean {
+			return key.PublicKey, nil
+		}
+	}
+
+	return "", fmt.Errorf("key with fingerprint %s not found", fingerprint)
 }
 
 // toProtoKey converts a core Key to a proto SSHKey

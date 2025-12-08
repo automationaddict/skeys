@@ -235,11 +235,11 @@ func New(opts ...ServerOption) (*Server, error) {
 	s.log.Debug("SSH config manager initialized")
 
 	// Create adapters (logging happens through core services and gRPC interceptor)
-	s.keyAdapter = adapter.NewKeyServiceAdapter(keyService)
+	s.keyAdapter = adapter.NewKeyServiceAdapter(keyService, connectionPool)
 	s.configAdapter = adapter.NewConfigServiceAdapter(clientConfig, serverConfig, sshConfigMgr)
 	s.hostsAdapter = adapter.NewHostsServiceAdapter(knownHosts, authorizedKeys)
 	s.agentAdapter = adapter.NewAgentServiceAdapter(agentService, managedAgent)
-	s.remoteAdapter = adapter.NewRemoteServiceAdapter(connectionPool, agentSocketPath)
+	s.remoteAdapter = adapter.NewRemoteServiceAdapter(connectionPool, metadataStore, agentSocketPath)
 	s.metadataAdapter = adapter.NewMetadataServiceAdapter(metadataStore)
 	s.versionAdapter = adapter.NewVersionServiceAdapter(s.version, s.commit)
 	s.systemAdapter = adapter.NewSystemServiceAdapter()

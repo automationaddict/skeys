@@ -25,12 +25,14 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/automationaddict/skeys-core/remote"
+	"github.com/automationaddict/skeys-core/storage"
 	pb "github.com/automationaddict/skeys-daemon/api/gen/skeys/v1"
 )
 
@@ -38,45 +40,164 @@ import (
 type RemoteServiceAdapter struct {
 	pb.UnimplementedRemoteServiceServer
 	pool            *remote.ConnectionPool
+	store           *storage.Store
 	agentSocketPath string
 }
 
 // NewRemoteServiceAdapter creates a new remote service adapter
-func NewRemoteServiceAdapter(pool *remote.ConnectionPool, agentSocketPath string) *RemoteServiceAdapter {
+func NewRemoteServiceAdapter(pool *remote.ConnectionPool, store *storage.Store, agentSocketPath string) *RemoteServiceAdapter {
 	return &RemoteServiceAdapter{
 		pool:            pool,
+		store:           store,
 		agentSocketPath: agentSocketPath,
 	}
 }
 
 // ListRemotes returns all saved remotes
 func (a *RemoteServiceAdapter) ListRemotes(ctx context.Context, req *pb.ListRemotesRequest) (*pb.ListRemotesResponse, error) {
-	// TODO: Implement remote storage - currently remotes are not persisted
-	return &pb.ListRemotesResponse{Remotes: []*pb.Remote{}}, nil
+	remotes := a.store.ListRemoteServers()
+
+	// Build a map of connected remote IDs
+	connectedRemoteIDs := make(map[string]bool)
+	for _, conn := range a.pool.List() {
+		connectedRemoteIDs[conn.RemoteID] = true
+	}
+
+	var pbRemotes []*pb.Remote
+	for _, r := range remotes {
+		pbRemote := storageRemoteToProto(r)
+		// Set status based on active connections
+		if connectedRemoteIDs[r.ID] {
+			pbRemote.Status = pb.RemoteStatus_REMOTE_STATUS_CONNECTED
+		}
+		pbRemotes = append(pbRemotes, pbRemote)
+	}
+
+	return &pb.ListRemotesResponse{Remotes: pbRemotes}, nil
 }
 
 // GetRemote returns a specific remote by ID
 func (a *RemoteServiceAdapter) GetRemote(ctx context.Context, req *pb.GetRemoteRequest) (*pb.Remote, error) {
-	// TODO: Implement remote storage
-	return nil, status.Errorf(codes.Unimplemented, "method GetRemote not implemented")
+	if req.GetId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "id is required")
+	}
+
+	r := a.store.GetRemoteServer(req.GetId())
+	if r == nil {
+		return nil, status.Errorf(codes.NotFound, "remote not found: %s", req.GetId())
+	}
+
+	pbRemote := storageRemoteToProto(r)
+	// Check if this remote has an active connection
+	for _, conn := range a.pool.List() {
+		if conn.RemoteID == r.ID {
+			pbRemote.Status = pb.RemoteStatus_REMOTE_STATUS_CONNECTED
+			break
+		}
+	}
+
+	return pbRemote, nil
 }
 
 // AddRemote saves a new remote configuration
 func (a *RemoteServiceAdapter) AddRemote(ctx context.Context, req *pb.AddRemoteRequest) (*pb.Remote, error) {
-	// TODO: Implement remote storage
-	return nil, status.Errorf(codes.Unimplemented, "method AddRemote not implemented")
+	if req.GetHost() == "" {
+		return nil, status.Error(codes.InvalidArgument, "host is required")
+	}
+	if req.GetUser() == "" {
+		return nil, status.Error(codes.InvalidArgument, "user is required")
+	}
+
+	port := int(req.GetPort())
+	if port == 0 {
+		port = 22
+	}
+
+	r := &storage.RemoteServer{
+		ID:             uuid.New().String(),
+		Name:           req.GetName(),
+		Host:           req.GetHost(),
+		Port:           port,
+		User:           req.GetUser(),
+		IdentityFile:   req.GetIdentityFile(),
+		SSHConfigAlias: req.GetSshConfigAlias(),
+		CreatedAt:      time.Now().Unix(),
+	}
+
+	if err := a.store.AddRemoteServer(r); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to save remote: %v", err)
+	}
+
+	return storageRemoteToProto(r), nil
 }
 
 // UpdateRemote updates an existing remote configuration
 func (a *RemoteServiceAdapter) UpdateRemote(ctx context.Context, req *pb.UpdateRemoteRequest) (*pb.Remote, error) {
-	// TODO: Implement remote storage
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateRemote not implemented")
+	if req.GetId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "id is required")
+	}
+
+	existing := a.store.GetRemoteServer(req.GetId())
+	if existing == nil {
+		return nil, status.Errorf(codes.NotFound, "remote not found: %s", req.GetId())
+	}
+
+	port := int(req.GetPort())
+	if port == 0 {
+		port = 22
+	}
+
+	r := &storage.RemoteServer{
+		ID:              req.GetId(),
+		Name:            req.GetName(),
+		Host:            req.GetHost(),
+		Port:            port,
+		User:            req.GetUser(),
+		IdentityFile:    req.GetIdentityFile(),
+		SSHConfigAlias:  req.GetSshConfigAlias(),
+		CreatedAt:       existing.CreatedAt,
+		LastConnectedAt: existing.LastConnectedAt,
+	}
+
+	if err := a.store.UpdateRemoteServer(r); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to update remote: %v", err)
+	}
+
+	return storageRemoteToProto(r), nil
 }
 
 // DeleteRemote removes a saved remote configuration
 func (a *RemoteServiceAdapter) DeleteRemote(ctx context.Context, req *pb.DeleteRemoteRequest) (*emptypb.Empty, error) {
-	// TODO: Implement remote storage
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteRemote not implemented")
+	if req.GetId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "id is required")
+	}
+
+	if err := a.store.DeleteRemoteServer(req.GetId()); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to delete remote: %v", err)
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+// storageRemoteToProto converts storage.RemoteServer to protobuf
+func storageRemoteToProto(r *storage.RemoteServer) *pb.Remote {
+	remote := &pb.Remote{
+		Id:             r.ID,
+		Name:           r.Name,
+		Host:           r.Host,
+		Port:           int32(r.Port),
+		User:           r.User,
+		IdentityFile:   r.IdentityFile,
+		SshConfigAlias: r.SSHConfigAlias,
+		CreatedAt:      timestamppb.New(time.Unix(r.CreatedAt, 0)),
+		Status:         pb.RemoteStatus_REMOTE_STATUS_DISCONNECTED,
+	}
+
+	if r.LastConnectedAt > 0 {
+		remote.LastConnectedAt = timestamppb.New(time.Unix(r.LastConnectedAt, 0))
+	}
+
+	return remote
 }
 
 // TestConnection tests connectivity to a remote host with real SSH authentication
@@ -86,9 +207,13 @@ func (a *RemoteServiceAdapter) TestConnection(ctx context.Context, req *pb.TestR
 		Host:           req.GetHost(),
 		Port:           int(req.GetPort()),
 		User:           req.GetUser(),
-		AgentSocket:    a.agentSocketPath,
 		PrivateKeyPath: req.GetIdentityFile(),
 		TrustHostKey:   req.GetTrustHostKey(),
+		// Note: We intentionally don't set AgentSocket here.
+		// TestConnection is typically called BEFORE adding a key to the agent,
+		// so we should authenticate using the private key file directly with
+		// the provided passphrase, not try to use the agent which may not have
+		// the key yet.
 	}
 
 	if req.GetPassphrase() != "" {
@@ -149,9 +274,45 @@ func toProtoHostKeyStatus(s remote.HostKeyStatus) pb.HostKeyStatus {
 
 // Connect establishes a connection to a remote server
 func (a *RemoteServiceAdapter) Connect(ctx context.Context, req *pb.ConnectRequest) (*pb.ConnectResponse, error) {
-	// TODO: Look up remote by ID and create connection config
-	// For now, this requires the remote storage to be implemented
-	return nil, status.Errorf(codes.Unimplemented, "method Connect not implemented - requires remote storage")
+	if req.GetRemoteId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "remote_id is required")
+	}
+
+	// Look up the remote configuration
+	r := a.store.GetRemoteServer(req.GetRemoteId())
+	if r == nil {
+		return nil, status.Errorf(codes.NotFound, "remote not found: %s", req.GetRemoteId())
+	}
+
+	// Build connection config
+	cfg := remote.ConnectionConfig{
+		Host:           r.Host,
+		Port:           r.Port,
+		User:           r.User,
+		AgentSocket:    a.agentSocketPath,
+		PrivateKeyPath: r.IdentityFile,
+		KeyFingerprint: req.GetKeyFingerprint(),
+	}
+
+	if req.GetPassphrase() != "" {
+		cfg.Passphrase = []byte(req.GetPassphrase())
+	}
+
+	// Connect via the pool
+	conn, err := a.pool.Connect(ctx, cfg)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to connect: %v", err)
+	}
+
+	// Update last connected time
+	_ = a.store.UpdateRemoteServerLastConnected(r.ID, time.Now().Unix())
+
+	// Set the remote ID on the connection for tracking
+	conn.RemoteID = r.ID
+
+	return &pb.ConnectResponse{
+		Connection: toProtoConnection(conn),
+	}, nil
 }
 
 // Disconnect closes an active connection
@@ -233,6 +394,7 @@ func (a *RemoteServiceAdapter) ExecuteCommand(ctx context.Context, req *pb.Execu
 func toProtoConnection(c *remote.Connection) *pb.Connection {
 	return &pb.Connection{
 		Id:             c.ID,
+		RemoteId:       c.RemoteID,
 		Host:           c.Host,
 		Port:           int32(c.Port),
 		User:           c.User,

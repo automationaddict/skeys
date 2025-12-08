@@ -111,7 +111,8 @@ func TestToProtoKey(t *testing.T) {
 func TestNewKeyServiceAdapter(t *testing.T) {
 	// Can't easily test without a real keys.Service due to filesystem dependencies
 	// This test just verifies the constructor doesn't panic with nil
-	adapter := NewKeyServiceAdapter(nil)
+	adapter := NewKeyServiceAdapter(nil, nil)
 	assert.NotNil(t, adapter)
 	assert.Nil(t, adapter.service)
+	assert.Nil(t, adapter.pool)
 }
