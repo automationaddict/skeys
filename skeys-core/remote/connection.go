@@ -39,16 +39,20 @@ import (
 // Connection represents an active SSH connection
 type Connection struct {
 	ID             string
+	RemoteID       string // ID of the stored remote server config, if any
 	Host           string
 	Port           int
 	User           string
 	ServerVersion  string
 	ConnectedAt    time.Time
 	LastActivityAt time.Time
+	KeyFingerprint string // Fingerprint of the key used for this connection (for key presence tracking)
 
-	client     *ssh.Client
-	sftpClient *sftp.Client
-	mu         sync.Mutex
+	client       *ssh.Client
+	sftpClient   *sftp.Client
+	mu           sync.Mutex
+	agentSocket  string // Agent socket for key presence checks
+	stopKeyCheck chan struct{}
 }
 
 // ConnectionConfig holds configuration for a connection
@@ -61,6 +65,7 @@ type ConnectionConfig struct {
 	Passphrase     []byte
 	Timeout        time.Duration
 	AgentSocket    string // Path to SSH agent socket for agent-based auth
+	KeyFingerprint string // Fingerprint of specific key to use from agent (optional)
 	TrustHostKey   bool   // If true and host is unknown, add to known_hosts before connecting
 }
 
@@ -167,11 +172,14 @@ func (p *ConnectionPool) dial(ctx context.Context, cfg ConnectionConfig) (*Conne
 		cfg.Timeout = 30 * time.Second
 	}
 
-	// Parse private key
-	var signer ssh.Signer
-	var err error
+	// Build auth methods
+	var authMethods []ssh.AuthMethod
+	var agentConn net.Conn
 
+	// Add direct key auth from raw bytes
 	if len(cfg.PrivateKey) > 0 {
+		var signer ssh.Signer
+		var err error
 		if len(cfg.Passphrase) > 0 {
 			signer, err = ssh.ParsePrivateKeyWithPassphrase(cfg.PrivateKey, cfg.Passphrase)
 		} else {
@@ -180,12 +188,49 @@ func (p *ConnectionPool) dial(ctx context.Context, cfg ConnectionConfig) (*Conne
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse private key: %w", err)
 		}
+		authMethods = append(authMethods, ssh.PublicKeys(signer))
 	}
 
-	// Build auth methods
-	var authMethods []ssh.AuthMethod
-	if signer != nil {
+	// Add direct key auth from file path
+	if cfg.PrivateKeyPath != "" {
+		keyBytes, err := os.ReadFile(cfg.PrivateKeyPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read private key file: %w", err)
+		}
+		var signer ssh.Signer
+		if len(cfg.Passphrase) > 0 {
+			signer, err = ssh.ParsePrivateKeyWithPassphrase(keyBytes, cfg.Passphrase)
+		} else {
+			signer, err = ssh.ParsePrivateKey(keyBytes)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse private key: %w", err)
+		}
 		authMethods = append(authMethods, ssh.PublicKeys(signer))
+	}
+
+	// Add SSH agent auth
+	if cfg.AgentSocket != "" {
+		conn, err := net.Dial("unix", cfg.AgentSocket)
+		if err == nil {
+			agentConn = conn
+			agentClient := agent.NewClient(conn)
+			// If a specific fingerprint is requested, filter to only that key
+			if cfg.KeyFingerprint != "" {
+				authMethods = append(authMethods, ssh.PublicKeysCallback(func() ([]ssh.Signer, error) {
+					return filterSignersByFingerprint(agentClient, cfg.KeyFingerprint)
+				}))
+			} else {
+				authMethods = append(authMethods, ssh.PublicKeysCallback(agentClient.Signers))
+			}
+		}
+	}
+
+	if len(authMethods) == 0 {
+		if agentConn != nil {
+			agentConn.Close()
+		}
+		return nil, fmt.Errorf("no authentication methods available - load key into agent or provide key file")
 	}
 
 	// Build client config
@@ -199,6 +244,9 @@ func (p *ConnectionPool) dial(ctx context.Context, cfg ConnectionConfig) (*Conne
 	// Dial
 	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 	client, err := ssh.Dial("tcp", addr, sshConfig)
+	if agentConn != nil {
+		agentConn.Close()
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect: %w", err)
 	}
@@ -212,11 +260,19 @@ func (p *ConnectionPool) dial(ctx context.Context, cfg ConnectionConfig) (*Conne
 		ServerVersion:  string(client.ServerVersion()),
 		ConnectedAt:    now,
 		LastActivityAt: now,
+		KeyFingerprint: cfg.KeyFingerprint,
 		client:         client,
+		agentSocket:    cfg.AgentSocket,
+		stopKeyCheck:   make(chan struct{}),
 	}
 
 	// Start keep-alive
 	go conn.keepAlive(p.config.KeepAliveInterval)
+
+	// Start key presence checker if we have a fingerprint to track
+	if cfg.KeyFingerprint != "" && cfg.AgentSocket != "" {
+		go p.watchKeyPresence(conn)
+	}
 
 	return conn, nil
 }
@@ -280,10 +336,72 @@ func (p *ConnectionPool) cleanup() {
 	}
 }
 
+// watchKeyPresence monitors if the key used for a connection is still in the agent
+// and auto-disconnects when the key is removed
+func (p *ConnectionPool) watchKeyPresence(conn *Connection) {
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-conn.stopKeyCheck:
+			return
+		case <-ticker.C:
+			if !p.isKeyInAgent(conn.agentSocket, conn.KeyFingerprint) {
+				p.log.InfoWithFields("key removed from agent, disconnecting", map[string]interface{}{
+					"connection_id":   conn.ID,
+					"key_fingerprint": conn.KeyFingerprint,
+				})
+				// Key is gone, disconnect
+				_ = p.Disconnect(conn.ID)
+				return
+			}
+		}
+	}
+}
+
+// isKeyInAgent checks if a key with the given fingerprint is present in the agent
+func (p *ConnectionPool) isKeyInAgent(agentSocket, fingerprint string) bool {
+	if agentSocket == "" || fingerprint == "" {
+		return true // No fingerprint tracking, assume present
+	}
+
+	conn, err := net.Dial("unix", agentSocket)
+	if err != nil {
+		return false // Can't connect to agent, consider key gone
+	}
+	defer conn.Close()
+
+	agentClient := agent.NewClient(conn)
+	keys, err := agentClient.List()
+	if err != nil {
+		return false
+	}
+
+	for _, key := range keys {
+		fp := ssh.FingerprintSHA256(key)
+		if fp == fingerprint {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Close closes the connection
 func (c *Connection) Close() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
+	// Signal key check goroutine to stop
+	if c.stopKeyCheck != nil {
+		select {
+		case <-c.stopKeyCheck:
+			// Already closed
+		default:
+			close(c.stopKeyCheck)
+		}
+	}
 
 	if c.sftpClient != nil {
 		c.sftpClient.Close()
@@ -497,18 +615,12 @@ func TestConnection(ctx context.Context, cfg ConnectionConfig) (*TestResult, err
 	var agentConn net.Conn
 	var keyNeedsPassphrase bool // Track if key parsing failed due to passphrase
 
-	// Try agent auth FIRST if socket provided and no passphrase given
-	// This handles the case where key is loaded in agent (already decrypted)
-	if cfg.AgentSocket != "" && len(cfg.Passphrase) == 0 {
-		conn, dialErr := net.Dial("unix", cfg.AgentSocket)
-		if dialErr == nil {
-			agentConn = conn
-			agentClient := agent.NewClient(conn)
-			authMethods = append(authMethods, ssh.PublicKeysCallback(agentClient.Signers))
-		}
-	}
+	// IMPORTANT: When a specific key file is provided (PrivateKey or PrivateKeyPath),
+	// we try direct key auth FIRST. This ensures that when testing a connection to
+	// add a key to the agent, we use the specific key being added, not whatever
+	// keys happen to be in the agent already.
 
-	// Add direct key auth if key bytes provided
+	// Add direct key auth FIRST if key bytes provided
 	if len(cfg.PrivateKey) > 0 {
 		var signer ssh.Signer
 		var parseErr error
@@ -523,9 +635,6 @@ func TestConnection(ctx context.Context, cfg ConnectionConfig) (*TestResult, err
 				strings.Contains(parseErr.Error(), "decryption password") {
 				keyNeedsPassphrase = true
 			} else {
-				if agentConn != nil {
-					agentConn.Close()
-				}
 				return &TestResult{
 					Success:       false,
 					Message:       fmt.Sprintf("failed to parse private key: %v", parseErr),
@@ -539,13 +648,10 @@ func TestConnection(ctx context.Context, cfg ConnectionConfig) (*TestResult, err
 		}
 	}
 
-	// Load key from file if path provided
+	// Load key from file FIRST if path provided (priority over agent)
 	if cfg.PrivateKeyPath != "" {
 		keyBytes, readErr := os.ReadFile(cfg.PrivateKeyPath)
 		if readErr != nil {
-			if agentConn != nil {
-				agentConn.Close()
-			}
 			return &TestResult{
 				Success:       false,
 				Message:       fmt.Sprintf("failed to read private key file: %v", readErr),
@@ -566,9 +672,6 @@ func TestConnection(ctx context.Context, cfg ConnectionConfig) (*TestResult, err
 				strings.Contains(parseErr.Error(), "decryption password") {
 				keyNeedsPassphrase = true
 			} else {
-				if agentConn != nil {
-					agentConn.Close()
-				}
 				return &TestResult{
 					Success:       false,
 					Message:       fmt.Sprintf("failed to parse private key: %v", parseErr),
@@ -582,8 +685,11 @@ func TestConnection(ctx context.Context, cfg ConnectionConfig) (*TestResult, err
 		}
 	}
 
-	// If agent socket provided and we haven't added it yet (passphrase was provided), add it now as fallback
-	if cfg.AgentSocket != "" && len(cfg.Passphrase) > 0 && agentConn == nil {
+	// Add agent auth as FALLBACK only if:
+	// 1. No direct key auth succeeded (authMethods is empty or key needed passphrase)
+	// 2. Agent socket is provided
+	// This prevents agent keys from interfering when testing a specific key
+	if cfg.AgentSocket != "" && (len(authMethods) == 0 || keyNeedsPassphrase) {
 		conn, dialErr := net.Dial("unix", cfg.AgentSocket)
 		if dialErr == nil {
 			agentConn = conn
@@ -702,4 +808,28 @@ func TestConnection(ctx context.Context, cfg ConnectionConfig) (*TestResult, err
 		HostKeyStatus: hostKeyStatus,
 		HostKeyInfo:   hostKeyInfo,
 	}, nil
+}
+
+// filterSignersByFingerprint returns only signers from the agent that match the given fingerprint
+func filterSignersByFingerprint(agentClient agent.ExtendedAgent, fingerprint string) ([]ssh.Signer, error) {
+	signers, err := agentClient.Signers()
+	if err != nil {
+		return nil, err
+	}
+
+	var filtered []ssh.Signer
+	for _, signer := range signers {
+		// Get fingerprint of this signer's public key (SHA256)
+		fp := ssh.FingerprintSHA256(signer.PublicKey())
+		if fp == fingerprint {
+			filtered = append(filtered, signer)
+			break // Found the matching key
+		}
+	}
+
+	if len(filtered) == 0 {
+		return nil, fmt.Errorf("key with fingerprint %s not found in agent", fingerprint)
+	}
+
+	return filtered, nil
 }

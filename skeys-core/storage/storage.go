@@ -46,6 +46,28 @@ type KeyMetadata struct {
 	VerifiedUser string `json:"verified_user,omitempty"`
 }
 
+// RemoteServer stores configuration for a remote SSH server
+type RemoteServer struct {
+	// ID is a unique identifier for this remote
+	ID string `json:"id"`
+	// Name is a human-friendly name for the remote
+	Name string `json:"name"`
+	// Host is the hostname or IP address
+	Host string `json:"host"`
+	// Port is the SSH port (default 22)
+	Port int `json:"port"`
+	// User is the SSH username
+	User string `json:"user"`
+	// IdentityFile is the path to the private key to use (optional)
+	IdentityFile string `json:"identity_file,omitempty"`
+	// SSHConfigAlias is an alias from ~/.ssh/config to use (optional)
+	SSHConfigAlias string `json:"ssh_config_alias,omitempty"`
+	// CreatedAt is when this remote was added
+	CreatedAt int64 `json:"created_at"`
+	// LastConnectedAt is when this remote was last connected to
+	LastConnectedAt int64 `json:"last_connected_at,omitempty"`
+}
+
 // Store handles persistent storage of skeys metadata
 type Store struct {
 	dataDir  string
@@ -57,8 +79,9 @@ type Store struct {
 
 // storeData is the on-disk format
 type storeData struct {
-	Version     int                     `json:"version"`
-	KeyMetadata map[string]*KeyMetadata `json:"key_metadata"` // keyed by key path
+	Version       int                      `json:"version"`
+	KeyMetadata   map[string]*KeyMetadata  `json:"key_metadata"`   // keyed by key path
+	RemoteServers map[string]*RemoteServer `json:"remote_servers"` // keyed by ID
 }
 
 // StoreOption configures the store
@@ -108,8 +131,9 @@ func NewStore(opts ...StoreOption) (*Store, error) {
 			"error": err.Error(),
 		})
 		s.data = &storeData{
-			Version:     1,
-			KeyMetadata: make(map[string]*KeyMetadata),
+			Version:       1,
+			KeyMetadata:   make(map[string]*KeyMetadata),
+			RemoteServers: make(map[string]*RemoteServer),
 		}
 	}
 
@@ -126,8 +150,9 @@ func (s *Store) load() error {
 	if err != nil {
 		if os.IsNotExist(err) {
 			s.data = &storeData{
-				Version:     1,
-				KeyMetadata: make(map[string]*KeyMetadata),
+				Version:       1,
+				KeyMetadata:   make(map[string]*KeyMetadata),
+				RemoteServers: make(map[string]*RemoteServer),
 			}
 			return nil
 		}
@@ -141,6 +166,9 @@ func (s *Store) load() error {
 
 	if s.data.KeyMetadata == nil {
 		s.data.KeyMetadata = make(map[string]*KeyMetadata)
+	}
+	if s.data.RemoteServers == nil {
+		s.data.RemoteServers = make(map[string]*RemoteServer)
 	}
 
 	return nil
@@ -253,4 +281,163 @@ func (s *Store) ListKeyMetadata() []*KeyMetadata {
 	}
 
 	return result
+}
+
+// GetRemoteServer returns a remote server by ID, or nil if not found
+func (s *Store) GetRemoteServer(id string) *RemoteServer {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	remote := s.data.RemoteServers[id]
+	if remote == nil {
+		return nil
+	}
+
+	// Return a copy to prevent external modification
+	return &RemoteServer{
+		ID:              remote.ID,
+		Name:            remote.Name,
+		Host:            remote.Host,
+		Port:            remote.Port,
+		User:            remote.User,
+		IdentityFile:    remote.IdentityFile,
+		SSHConfigAlias:  remote.SSHConfigAlias,
+		CreatedAt:       remote.CreatedAt,
+		LastConnectedAt: remote.LastConnectedAt,
+	}
+}
+
+// AddRemoteServer stores a new remote server configuration
+func (s *Store) AddRemoteServer(remote *RemoteServer) error {
+	if remote == nil || remote.ID == "" {
+		return fmt.Errorf("remote ID is required")
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.data.RemoteServers[remote.ID] = &RemoteServer{
+		ID:              remote.ID,
+		Name:            remote.Name,
+		Host:            remote.Host,
+		Port:            remote.Port,
+		User:            remote.User,
+		IdentityFile:    remote.IdentityFile,
+		SSHConfigAlias:  remote.SSHConfigAlias,
+		CreatedAt:       remote.CreatedAt,
+		LastConnectedAt: remote.LastConnectedAt,
+	}
+
+	if err := s.save(); err != nil {
+		s.log.ErrWithFields(err, "failed to save remote server", map[string]interface{}{
+			"id":   remote.ID,
+			"name": remote.Name,
+		})
+		return err
+	}
+
+	s.log.DebugWithFields("saved remote server", map[string]interface{}{
+		"id":   remote.ID,
+		"name": remote.Name,
+		"host": remote.Host,
+	})
+
+	return nil
+}
+
+// UpdateRemoteServer updates an existing remote server configuration
+func (s *Store) UpdateRemoteServer(remote *RemoteServer) error {
+	if remote == nil || remote.ID == "" {
+		return fmt.Errorf("remote ID is required")
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, exists := s.data.RemoteServers[remote.ID]; !exists {
+		return fmt.Errorf("remote server not found: %s", remote.ID)
+	}
+
+	s.data.RemoteServers[remote.ID] = &RemoteServer{
+		ID:              remote.ID,
+		Name:            remote.Name,
+		Host:            remote.Host,
+		Port:            remote.Port,
+		User:            remote.User,
+		IdentityFile:    remote.IdentityFile,
+		SSHConfigAlias:  remote.SSHConfigAlias,
+		CreatedAt:       remote.CreatedAt,
+		LastConnectedAt: remote.LastConnectedAt,
+	}
+
+	if err := s.save(); err != nil {
+		s.log.ErrWithFields(err, "failed to update remote server", map[string]interface{}{
+			"id": remote.ID,
+		})
+		return err
+	}
+
+	return nil
+}
+
+// DeleteRemoteServer removes a remote server by ID
+func (s *Store) DeleteRemoteServer(id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	delete(s.data.RemoteServers, id)
+
+	if err := s.save(); err != nil {
+		s.log.ErrWithFields(err, "failed to save after deleting remote server", map[string]interface{}{
+			"id": id,
+		})
+		return err
+	}
+
+	return nil
+}
+
+// ListRemoteServers returns all stored remote servers
+func (s *Store) ListRemoteServers() []*RemoteServer {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	result := make([]*RemoteServer, 0, len(s.data.RemoteServers))
+	for _, remote := range s.data.RemoteServers {
+		result = append(result, &RemoteServer{
+			ID:              remote.ID,
+			Name:            remote.Name,
+			Host:            remote.Host,
+			Port:            remote.Port,
+			User:            remote.User,
+			IdentityFile:    remote.IdentityFile,
+			SSHConfigAlias:  remote.SSHConfigAlias,
+			CreatedAt:       remote.CreatedAt,
+			LastConnectedAt: remote.LastConnectedAt,
+		})
+	}
+
+	return result
+}
+
+// UpdateRemoteServerLastConnected updates the last connected timestamp
+func (s *Store) UpdateRemoteServerLastConnected(id string, timestamp int64) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	remote, exists := s.data.RemoteServers[id]
+	if !exists {
+		return fmt.Errorf("remote server not found: %s", id)
+	}
+
+	remote.LastConnectedAt = timestamp
+
+	if err := s.save(); err != nil {
+		s.log.ErrWithFields(err, "failed to update last connected timestamp", map[string]interface{}{
+			"id": id,
+		})
+		return err
+	}
+
+	return nil
 }
