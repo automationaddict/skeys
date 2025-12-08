@@ -21,7 +21,7 @@ dependencies:
   protobuf: ^5.1.0
 
   # Dependency Injection
-  get_it: ^9.0.0
+  get_it: ^9.2.0
   injectable: ^2.7.0
 
   # Navigation
