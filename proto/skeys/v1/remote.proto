@@ -127,6 +127,7 @@ message TestRemoteConnectionResponse {
 message ConnectRequest {
   string remote_id = 1;
   string passphrase = 2;
+  string key_fingerprint = 3;  // Fingerprint of the key to use from the agent
 }
 
 message ConnectResponse {
